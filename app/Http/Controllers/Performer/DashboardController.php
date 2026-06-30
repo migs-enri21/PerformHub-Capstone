@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Performer;
 use App\Http\Controllers\Controller;
 use App\Models\Booking;
 use App\Models\Review;
+use App\Support\PortfolioFeed;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 
@@ -19,7 +20,8 @@ class DashboardController extends Controller
             ->whereIn('status', ['accepted', 'interview_scheduled'])
             ->count();
         $reviews = Review::where('reviewee_id', $user->id)->with('reviewer')->latest()->limit(5)->get();
+        $feedPosts = PortfolioFeed::recentPosts(12);
 
-        return view('performer.dashboard', compact('profile', 'pendingBookings', 'upcomingBookings', 'reviews'));
+        return view('performer.dashboard', compact('profile', 'pendingBookings', 'upcomingBookings', 'reviews', 'feedPosts'));
     }
 }

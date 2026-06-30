@@ -175,4 +175,33 @@ class User extends Authenticatable
             default => route('onboarding.complete'),
         };
     }
+
+    public function avatarUrl(int $size = 128): string
+    {
+        $photo = null;
+        $name = $this->fullName();
+
+        if ($this->isPerformer() && $this->performerProfile) {
+            $photo = $this->performerProfile->profile_photo;
+            $name = $this->performerProfile->stage_name ?: $name;
+        } elseif ($this->isOrganizer() && $this->organizerProfile) {
+            $photo = $this->organizerProfile->profile_photo;
+            $name = $this->organizerProfile->organization_name ?: $name;
+        }
+
+        if ($photo) {
+            return asset('storage/'.$photo);
+        }
+
+        return 'https://ui-avatars.com/api/?name='.urlencode($name).'&background=6346ff&color=fff&size='.$size;
+    }
+
+    public function profileRoute(): ?string
+    {
+        return match ($this->role) {
+            self::ROLE_PERFORMER => route('performer.profile.show'),
+            self::ROLE_ORGANIZER => route('organizer.profile.edit'),
+            default => null,
+        };
+    }
 }

@@ -66,13 +66,21 @@ class BookingController extends Controller
     public function confirmContract(Booking $booking): RedirectResponse
     {
         abort_unless($booking->performer_id === Auth::id(), 403);
-        abort_unless($booking->contract_path, 400);
+        abort_unless($booking->canConfirmContract(), 400, 'This contract cannot be confirmed right now.');
 
         $booking->update([
             'performer_confirmed_contract' => true,
             'contract_confirmed_at' => now(),
         ]);
 
-        return back()->with('success', 'Contract confirmed.');
+        Notification::send(
+            $booking->organizer,
+            'contract',
+            'Contract Confirmed',
+            Auth::user()->name.' confirmed the contract for '.$booking->event_name,
+            route('organizer.bookings.show', $booking)
+        );
+
+        return back()->with('success', 'Contract confirmed. The organizer has been notified.');
     }
 }

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Performer;
 
 use App\Http\Controllers\Controller;
 use App\Models\Portfolio;
+use App\Support\PortfolioFeed;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -16,7 +17,9 @@ class PortfolioController extends Controller
     {
         $portfolios = Auth::user()->performerProfile->portfolios()->latest()->get();
 
-        return view('performer.portfolio.index', compact('portfolios'));
+        $portfolioGroups = PortfolioFeed::groupItems($portfolios);
+
+        return view('performer.portfolio.index', compact('portfolioGroups'));
     }
 
     public function store(Request $request): RedirectResponse
@@ -24,22 +27,38 @@ class PortfolioController extends Controller
         $profile = Auth::user()->performerProfile;
 
         $validated = $request->validate([
-            'type' => ['required', 'in:photo,video'],
-            'file' => ['required', 'file', 'max:51200'],
-            'title' => ['nullable', 'string', 'max:255'],
-            'description' => ['nullable', 'string', 'max:1000'],
+            'files' => ['required', 'array', 'min:1'],
+            'files.*' => [
+                'file',
+                'max:51200',
+                'mimetypes:image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm,video/quicktime,video/x-msvideo',
+            ],
+            'caption' => ['nullable', 'string', 'max:255'],
         ]);
 
-        $path = $request->file('file')->store('portfolios', 'public');
+        $caption = $validated['caption'] ?? null;
+        $uploaded = 0;
 
-        $profile->portfolios()->create([
-            'type' => $validated['type'],
-            'file_path' => $path,
-            'title' => $validated['title'],
-            'description' => $validated['description'],
-        ]);
+        foreach ($request->file('files', []) as $file) {
+            $type = str_starts_with((string) $file->getMimeType(), 'video/') ? 'video' : 'photo';
+            $path = $file->store('portfolios', 'public');
 
-        return back()->with('success', 'Portfolio item uploaded.');
+            $profile->portfolios()->create([
+                'type' => $type,
+                'file_path' => $path,
+                'caption' => $caption,
+            ]);
+
+            $uploaded++;
+        }
+
+        $message = $uploaded === 1
+            ? 'Portfolio item uploaded.'
+            : "{$uploaded} portfolio items uploaded.";
+
+        return redirect()
+            ->route('performer.dashboard')
+            ->with('success', $message.' Your post is now on the community feed.');
     }
 
     public function destroy(Portfolio $portfolio): RedirectResponse

@@ -1,0 +1,24 @@
+/**
+ * PerformHub — Organizer module
+ * Owner: Organizer teammate
+ * Bookings, performer search, organizer profile
+ */
+
+.org-type-card {
+    display: block;
+    text-align: center;
+    background: var(--ph-bg-card);
+    border: 2px solid var(--ph-border);
+    border-radius: 12px;
+    padding: 1rem 0.5rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: var(--ph-text-muted);
+}
+
+.org-type-card.active,
+.org-type-card:hover {
+    border-color: var(--ph-purple);
+    color: var(--ph-purple);
+}
+

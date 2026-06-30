@@ -49,7 +49,18 @@
 
 <div class="row g-4">
     <div class="col-lg-8">
-        <div class="ph-card p-4">
+        <div class="ph-card p-4 mb-4">
+            <h5 class="fw-semibold mb-3">Community Feed</h5>
+            <p class="text-muted small mb-4">See what performers are sharing. Your uploads appear here for organizers and other performers.</p>
+            @include('partials.portfolio-feed', [
+                'posts' => $feedPosts,
+                'ownProfileId' => $profile?->id,
+                'emptyMessage' => 'No posts yet. Upload portfolio photos or videos to share your work.',
+            ])
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="ph-card p-4 mb-4">
             <h5 class="fw-semibold mb-3">Quick Actions</h5>
             <div class="d-flex flex-wrap gap-2">
                 <a href="{{ route('performer.profile.show') }}" class="btn ph-btn-outline btn-sm">View Profile</a>
@@ -63,8 +74,6 @@
                 @endif
             </div>
         </div>
-    </div>
-    <div class="col-lg-4">
         <div class="ph-card p-4">
             <h5 class="fw-semibold mb-3">Recent Reviews</h5>
             @forelse($reviews as $review)

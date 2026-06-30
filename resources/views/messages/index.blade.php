@@ -2,6 +2,10 @@
 
 @section('title', 'Messages')
 
+@section('sidebar')
+@include('partials.role-sidebar')
+@endsection
+
 @section('content')
 <h2 class="fw-bold mb-4">Messages</h2>
 <div class="ph-card p-4">

@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\MonitoringController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Auth\OnboardingController;
+use App\Http\Controllers\TalentProfileController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\InterviewController;
 use App\Http\Controllers\MessageController;
@@ -50,6 +51,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/messages/{user}', [MessageController::class, 'show'])->name('messages.show');
     Route::post('/messages/{user}', [MessageController::class, 'store'])->name('messages.store');
     Route::get('/interviews/{interview}/join', [InterviewController::class, 'join'])->name('interviews.join');
+    Route::get('/talent/{performer}', [TalentProfileController::class, 'show'])->name('talent.show');
 });
 
 Route::middleware(['auth', 'role:performer'])->prefix('performer')->name('performer.')->group(function () {

@@ -25,6 +25,16 @@
             <h2 class="fw-bold mb-1">Create your account</h2>
             <p class="text-muted mb-4">Choose your role and get started</p>
 
+            @if($errors->any())
+                <div class="alert alert-danger py-2 mb-3">
+                    <ul class="mb-0 small ps-3">
+                        @foreach($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
+
             <form method="POST" action="{{ route('register') }}">
                 @csrf
                 <input type="hidden" name="role" id="roleInput" value="{{ old('role', $role) }}">
@@ -42,22 +52,27 @@
 
                 <div class="mb-3">
                     <label class="form-label text-muted small">Username</label>
-                    <input type="text" name="username" class="form-control ph-input" value="{{ old('username') }}" required>
+                    <input type="text" name="username" class="form-control ph-input @error('username') is-invalid @enderror" value="{{ old('username') }}" required autocomplete="username">
+                    <div class="form-text text-muted">Letters and numbers only. Spaces become underscores (e.g. wency malinao → wency_malinao).</div>
+                    @error('username')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
                 </div>
 
                 <div class="mb-3">
                     <label class="form-label text-muted small">Email Address</label>
-                    <input type="email" name="email" class="form-control ph-input" value="{{ old('email') }}" required>
+                    <input type="email" name="email" class="form-control ph-input @error('email') is-invalid @enderror" value="{{ old('email') }}" required autocomplete="email">
+                    @error('email')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
                 </div>
 
                 <div class="mb-3">
                     <label class="form-label text-muted small">Password</label>
-                    <input type="password" name="password" class="form-control ph-input" required>
+                    <input type="password" name="password" class="form-control ph-input @error('password') is-invalid @enderror" required autocomplete="new-password">
+                    <div class="form-text text-muted">At least 8 characters.</div>
+                    @error('password')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
                 </div>
 
                 <div class="mb-3">
                     <label class="form-label text-muted small">Confirm Password</label>
-                    <input type="password" name="password_confirmation" class="form-control ph-input" required>
+                    <input type="password" name="password_confirmation" class="form-control ph-input @error('password') is-invalid @enderror" required autocomplete="new-password">
                 </div>
 
                 <label class="form-label text-muted small mb-2">Register as</label>

@@ -77,4 +77,51 @@ class Booking extends Model
             default => 'bg-secondary',
         };
     }
+
+    public function hasContract(): bool
+    {
+        return filled($this->contract_path);
+    }
+
+    public function needsContractReview(): bool
+    {
+        return $this->status === 'accepted'
+            && $this->hasContract()
+            && ! $this->performer_confirmed_contract;
+    }
+
+    public function canConfirmContract(): bool
+    {
+        return $this->needsContractReview();
+    }
+
+    public function contractStatusLabel(bool $forPerformer = false): string
+    {
+        if (! $this->hasContract()) {
+            return 'No contract';
+        }
+
+        if ($this->performer_confirmed_contract) {
+            return 'Confirmed';
+        }
+
+        if ($this->status === 'accepted') {
+            return $forPerformer ? 'Awaiting your review' : 'Awaiting performer';
+        }
+
+        return 'Uploaded';
+    }
+
+    public function contractStatusBadgeClass(): string
+    {
+        if (! $this->hasContract()) {
+            return 'bg-secondary';
+        }
+
+        if ($this->performer_confirmed_contract) {
+            return 'bg-success';
+        }
+
+        return $this->status === 'accepted' ? 'bg-warning text-dark' : 'bg-info';
+    }
 }

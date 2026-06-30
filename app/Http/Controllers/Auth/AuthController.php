@@ -9,6 +9,7 @@ use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rules\Password;
 use Illuminate\View\View;
 
@@ -63,13 +64,30 @@ class AuthController extends Controller
 
     public function register(Request $request): RedirectResponse
     {
+        $username = Str::slug(trim((string) $request->input('username', '')), '_');
+
+        if ($username === '') {
+            $username = Str::slug(
+                trim($request->input('first_name', '').' '.$request->input('last_name', '')),
+                '_'
+            );
+        }
+
+        $request->merge(['username' => $username]);
+
         $validated = $request->validate([
             'first_name' => ['required', 'string', 'max:100'],
             'last_name' => ['required', 'string', 'max:100'],
             'username' => ['required', 'string', 'max:50', 'alpha_dash', 'unique:users,username'],
             'email' => ['required', 'email', 'max:255', 'unique:users,email'],
-            'password' => ['required', 'confirmed', Password::defaults()],
+            'password' => ['required', 'confirmed', Password::min(8)],
             'role' => ['required', 'in:performer,organizer'],
+        ], [
+            'username.alpha_dash' => 'Username can only use letters, numbers, dashes, and underscores (spaces are converted automatically).',
+            'username.unique' => 'That username is already taken. Try another one.',
+            'email.unique' => 'An account with this email already exists.',
+            'password.confirmed' => 'Password and confirm password do not match.',
+            'password.min' => 'Password must be at least 8 characters.',
         ]);
 
         $user = User::create([

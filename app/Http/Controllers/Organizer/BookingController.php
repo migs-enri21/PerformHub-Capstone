@@ -71,6 +71,7 @@ class BookingController extends Controller
     public function uploadContract(Request $request, Booking $booking): RedirectResponse
     {
         abort_unless($booking->organizer_id === Auth::id(), 403);
+        abort_unless($booking->status === 'accepted', 400, 'Upload a contract only after the performer accepts the booking.');
 
         $validated = $request->validate([
             'contract' => ['required', 'file', 'mimes:pdf,doc,docx', 'max:10240'],
@@ -102,6 +103,10 @@ class BookingController extends Controller
     {
         abort_unless($booking->organizer_id === Auth::id(), 403);
         abort_unless($booking->status === 'accepted', 400);
+
+        if ($booking->hasContract() && ! $booking->performer_confirmed_contract) {
+            return back()->with('warning', 'Wait for the performer to review and confirm the contract before marking this booking complete.');
+        }
 
         $booking->update(['status' => 'completed']);
 

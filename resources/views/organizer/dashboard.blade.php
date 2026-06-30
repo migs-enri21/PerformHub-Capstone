@@ -25,6 +25,15 @@
 </div>
 
 <div class="ph-card p-4 mb-4">
+    <h5 class="fw-semibold mb-1">Latest from Performers</h5>
+    <p class="text-muted small mb-4">Browse portfolio posts and send booking requests to performers you like.</p>
+    @include('partials.portfolio-feed', [
+        'posts' => $feedPosts,
+        'emptyMessage' => 'No performer posts yet. Check back soon or browse all performers.',
+    ])
+</div>
+
+<div class="ph-card p-4 mb-4">
     <h5 class="fw-semibold mb-3">Recommended Performers <small class="text-muted">(without ratings)</small></h5>
     <div class="row g-3">
         @forelse($recommendedPerformers as $p)

@@ -39,17 +39,13 @@
         </div>
         <div class="ph-card p-4 mb-4">
             <h5 class="fw-semibold mb-3">Portfolio</h5>
-            <div class="row g-2">
-                @foreach($performer->portfolios as $item)
-                    <div class="col-4">
-                        @if($item->type === 'photo')
-                            <img src="{{ asset('storage/'.$item->file_path) }}" class="w-100 rounded" style="height:100px;object-fit:cover;">
-                        @else
-                            <video src="{{ asset('storage/'.$item->file_path) }}" class="w-100 rounded" style="height:100px;object-fit:cover;" controls></video>
-                        @endif
-                    </div>
-                @endforeach
-            </div>
+            @php
+                $portfolioGroups = $performer->portfolios
+                    ->sortByDesc('created_at')
+                    ->groupBy(fn ($item) => \App\Support\PortfolioFeed::groupKey($item))
+                    ->map(fn ($group) => $group->values());
+            @endphp
+            @include('partials.portfolio-feed', ['posts' => $portfolioGroups->values()])
         </div>
         <div class="ph-card p-4">
             <h5 class="fw-semibold mb-3">Reviews</h5>

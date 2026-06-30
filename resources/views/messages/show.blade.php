@@ -2,6 +2,10 @@
 
 @section('title', 'Chat with '.$user->name)
 
+@section('sidebar')
+@include('partials.role-sidebar')
+@endsection
+
 @section('content')
 <h2 class="fw-bold mb-4">{{ $user->name }}</h2>
 <div class="ph-card p-4 mb-3" style="max-height:400px;overflow-y:auto;">

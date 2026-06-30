@@ -11,8 +11,7 @@ class Portfolio extends Model
         'performer_profile_id',
         'type',
         'file_path',
-        'title',
-        'description',
+        'caption',
     ];
 
     public function performerProfile(): BelongsTo

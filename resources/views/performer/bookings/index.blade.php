@@ -10,7 +10,7 @@
 <h2 class="fw-bold mb-4">Booking History</h2>
 <div class="ph-card p-0 overflow-hidden">
     <table class="table table-dark table-hover mb-0">
-        <thead><tr><th>Event</th><th>Organizer</th><th>Date</th><th>Status</th><th></th></tr></thead>
+        <thead><tr><th>Event</th><th>Organizer</th><th>Date</th><th>Status</th><th>Contract</th><th></th></tr></thead>
         <tbody>
             @forelse($bookings as $booking)
                 <tr>
@@ -18,10 +18,21 @@
                     <td>{{ $booking->organizer->organizerProfile?->organization_name ?? $booking->organizer->name }}</td>
                     <td>{{ $booking->event_date->format('M d, Y') }}</td>
                     <td><span class="badge {{ $booking->statusBadgeClass() }}">{{ $booking->statusLabel() }}</span></td>
-                    <td><a href="{{ route('performer.bookings.show', $booking) }}" class="btn btn-sm ph-btn-outline">View</a></td>
+                    <td>
+                        @if($booking->status === 'accepted' || $booking->hasContract())
+                            <span class="badge {{ $booking->contractStatusBadgeClass() }}">{{ $booking->contractStatusLabel(true) }}</span>
+                        @else
+                            <span class="text-muted small">—</span>
+                        @endif
+                    </td>
+                    <td>
+                        <a href="{{ route('performer.bookings.show', $booking) }}" class="btn btn-sm {{ $booking->needsContractReview() ? 'ph-btn-primary' : 'ph-btn-outline' }}">
+                            {{ $booking->needsContractReview() ? 'Review' : 'View' }}
+                        </a>
+                    </td>
                 </tr>
             @empty
-                <tr><td colspan="5" class="text-center text-muted py-4">No bookings yet.</td></tr>
+                <tr><td colspan="6" class="text-center text-muted py-4">No bookings yet.</td></tr>
             @endforelse
         </tbody>
     </table>
