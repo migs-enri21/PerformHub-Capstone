@@ -1,0 +1,22 @@
+services:
+  mysql:
+    image: mysql:8.4
+    container_name: performhub-mysql
+    restart: unless-stopped
+    ports:
+      - "3307:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: performhub_root
+      MYSQL_DATABASE: performhub
+      MYSQL_USER: performhub
+      MYSQL_PASSWORD: performhub_secret
+    volumes:
+      - performhub_mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  performhub_mysql_data:
