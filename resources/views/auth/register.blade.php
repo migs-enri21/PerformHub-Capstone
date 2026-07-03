@@ -11,7 +11,7 @@
             </a>
         </div>
         <div class="auth-hero-content">
-            <h1 class="display-5 fw-bold">Join the stage.</h1>
+            <h1 class="display-5 fw-bold">Join the stage! </h1>
             <p class="text-white-50 fs-5">Create your account and start connecting today.</p>
         </div>
     </div>

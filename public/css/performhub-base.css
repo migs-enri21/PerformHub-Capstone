@@ -206,16 +206,51 @@ a:hover { color: var(--ph-purple-hover); }
 
 .auth-hero {
     background: linear-gradient(135deg, rgba(11,14,20,0.3), rgba(99,70,255,0.5)),
-        url('https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=1200&q=80') center/cover;
+        url('/images/auth-hero.jpg') center/cover;
     position: relative;
-    min-height: 300px;
+    min-height:100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.auth-hero > .p-4{
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 2;
 }
 
 .auth-hero-content {
     position: absolute;
-    bottom: 3rem;
-    left: 2rem;
-    right: 2rem;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 100%;
+    text-align: center;
+    padding: 2rem;
+}
+
+.auth-hero-content h1,
+.auth-hero-content p {
+    text-shadow: 0 2px 16px rgba(0,0,0, 0.85);
+}
+
+.auth-hero-content h1 {
+    font-size: clamp(2.5rem, 5vw, 4rem);
+    font-weight: 700;
+    line-height: 1.15;
+    margin-bottom: 1rem;
+}
+
+.auth-hero-content p {
+    font-size: clamp(1.1rem, 2.5vw, 1.5rem);
+    font-weight: 500;
+    color:#ffffff !important;
+    max-width: 32rem;
+    margin-left: auto;
+    margin-right: auto;
+    line-height: 1.5;
+
 }
 
 .auth-form-panel {

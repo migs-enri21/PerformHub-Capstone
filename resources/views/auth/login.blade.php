@@ -59,12 +59,6 @@
                     Sign In <i class="fas fa-arrow-right ms-2"></i>
                 </button>
 
-                <div class="d-grid gap-2 mb-4">
-                    <a href="{{ route('login', ['role' => 'organizer']) }}" class="btn ph-btn-outline"><i class="fas fa-building me-2"></i>Continue as Organizer</a>
-                    <a href="{{ route('login', ['role' => 'performer']) }}" class="btn ph-btn-outline"><i class="fas fa-microphone me-2"></i>Continue as Performer</a>
-                    <a href="{{ route('login', ['role' => 'admin']) }}" class="btn ph-btn-outline"><i class="fas fa-shield-halved me-2"></i>Continue as Admin</a>
-                </div>
-
                 <p class="text-center text-muted small mb-0">
                     Don't have an account? <a href="{{ route('register') }}">Create one</a>
                 </p>
