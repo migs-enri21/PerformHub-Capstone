@@ -32,8 +32,9 @@
         <div class="ph-card p-4 mb-4" id="availability">
             <h5 class="fw-semibold mb-3">Availability Calendar</h5>
             @include('partials.availability-calendar', [
-                'schedules' => $performer->availabilitySchedules,
-                'bookingCalendar' => $performer->bookings,
+                'schedules' => $calendar['schedules'],
+                'bookingCalendar' => $calendar['bookingCalendar'],
+                'googleBusy' => $calendar['googleBusy'],
                 'editable' => false,
             ])
         </div>

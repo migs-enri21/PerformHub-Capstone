@@ -38,6 +38,14 @@
             <div class="ph-card p-4">
                 <div class="row g-3">
                     <div class="col-md-6">
+                        <label class="form-label text-muted small">First Name</label>
+                        <input type="text" name="first_name" class="form-control ph-input" value="{{ old('first_name', auth()->user()->first_name) }}" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label text-muted small">Last Name</label>
+                        <input type="text" name="last_name" class="form-control ph-input" value="{{ old('last_name', auth()->user()->last_name) }}" required>
+                    </div>
+                    <div class="col-md-6">
                         <label class="form-label text-muted small">Stage Name</label>
                         <input type="text" name="stage_name" class="form-control ph-input" value="{{ old('stage_name', $profile->stage_name) }}" required>
                     </div>

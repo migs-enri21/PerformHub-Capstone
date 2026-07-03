@@ -14,24 +14,61 @@
     };
     $visible = $count > 4 ? $items->take(4) : $items;
     $caption = $items->first()->caption;
+    $hasMore = $count > 4;
+    $modalId = 'portfolio-gallery-'.$items->first()->id;
 @endphp
 
 <article class="portfolio-feed-card">
-    <div class="portfolio-preview-collage portfolio-feed-collage {{ $layout }}">
+    <div
+        class="portfolio-preview-collage portfolio-feed-collage {{ $layout }}"
+        @if($hasMore)
+            role="button"
+            tabindex="0"
+            data-bs-toggle="modal"
+            data-bs-target="#{{ $modalId }}"
+            aria-label="View all {{ $count }} items"
+        @endif
+    >
         @foreach($visible as $index => $item)
             <div class="portfolio-collage-tile">
                 @if($item->type === 'photo')
                     <img src="{{ asset('storage/'.$item->file_path) }}" alt="{{ $caption ?? '' }}">
                 @else
-                    <video src="{{ asset('storage/'.$item->file_path) }}" controls playsinline></video>
+                    <video src="{{ asset('storage/'.$item->file_path) }}" @if(!$hasMore) controls @endif playsinline></video>
                     <span class="portfolio-collage-badge"><i class="fas fa-play me-1"></i>Video</span>
                 @endif
-                @if($count > 4 && $index === 3)
+                @if($hasMore && $index === 3)
                     <div class="portfolio-collage-more">+{{ $count - 4 }}</div>
                 @endif
             </div>
         @endforeach
     </div>
+
+    @if($hasMore)
+        <div class="modal fade" id="{{ $modalId }}" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">All {{ $count }} items</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="portfolio-gallery-grid">
+                            @foreach($items as $item)
+                                <div class="portfolio-gallery-item">
+                                    @if($item->type === 'photo')
+                                        <img src="{{ asset('storage/'.$item->file_path) }}" alt="{{ $caption ?? '' }}">
+                                    @else
+                                        <video src="{{ asset('storage/'.$item->file_path) }}" controls playsinline></video>
+                                    @endif
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endif
 
     @if($caption || $editable)
         <div class="portfolio-feed-footer p-3">
@@ -51,3 +88,13 @@
         </div>
     @endif
 </article>
+
+@once
+    @push('scripts')
+        <script>
+        document.addEventListener('hidden.bs.modal', (e) => {
+            e.target.querySelectorAll('video').forEach(video => video.pause());
+        });
+        </script>
+    @endpush
+@endonce

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Models\PerformerProfile;
 use App\Models\Review;
+use App\Support\AvailabilityCalendar;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
@@ -56,7 +57,8 @@ class PerformerSearchController extends Controller
                             ->orWhereHas('availabilitySchedules', fn ($schedule) => $schedule
                                 ->whereDate('date', $date)
                                 ->where('is_available', true));
-                    });
+                    })
+                    ->whereDoesntHave('googleCalendarBusyDates', fn ($busyDate) => $busyDate->whereDate('date', $date));
             });
         }
 
@@ -68,17 +70,12 @@ class PerformerSearchController extends Controller
 
     public function show(PerformerProfile $performer): View
     {
-        $performer->load([
-            'user',
-            'category',
-            'portfolios',
-            'availabilitySchedules' => fn ($query) => $query->orderBy('date'),
-            'bookings' => fn ($query) => $query
-                ->whereIn('status', ['pending', 'interview_scheduled', 'accepted', 'completed'])
-                ->orderBy('event_date'),
-        ]);
+        $performer = AvailabilityCalendar::loadCalendarRelations(
+            $performer->load(['user', 'category', 'portfolios'])
+        );
+        $calendar = AvailabilityCalendar::calendarData($performer);
         $reviews = Review::where('reviewee_id', $performer->user_id)->with('reviewer')->latest()->get();
 
-        return view('organizer.performers.show', compact('performer', 'reviews'));
+        return view('organizer.performers.show', compact('performer', 'reviews', 'calendar'));
     }
 }

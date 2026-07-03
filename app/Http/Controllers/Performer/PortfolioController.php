@@ -30,10 +30,10 @@ class PortfolioController extends Controller
             'files' => ['required', 'array', 'min:1'],
             'files.*' => [
                 'file',
-                'max:51200',
+                'max:2097152', // 2 GB per file (kilobytes)
                 'mimetypes:image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm,video/quicktime,video/x-msvideo',
             ],
-            'caption' => ['nullable', 'string', 'max:255'],
+            'caption' => ['nullable', 'string', 'max:2000'],
         ]);
 
         $caption = $validated['caption'] ?? null;

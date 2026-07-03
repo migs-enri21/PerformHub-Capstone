@@ -35,8 +35,11 @@
         accept="image/jpeg,image/png,image/webp,image/gif"
     >
     <p class="text-muted small mb-2 profile-photo-hint" id="{{ $name }}_hint">
-        Click the photo to choose an image<br>JPG, PNG, WEBP · max 5 MB
+        JPG, PNG, WEBP · max 5 MB
     </p>
+    <label for="{{ $name }}_input" class="btn ph-btn-outline btn-sm profile-photo-choose">
+        <i class="fas fa-upload me-1"></i> Choose Photo
+    </label>
     <button
         type="submit"
         form="{{ $formId }}"
@@ -61,7 +64,7 @@
 
                 if (!file) {
                     applyBtn.classList.add('d-none');
-                    hint.innerHTML = 'Click the photo to choose an image<br>JPG, PNG, WEBP · max 5 MB';
+                    hint.innerHTML = 'JPG, PNG, WEBP · max 5 MB';
                     hint.classList.remove('text-success');
                     return;
                 }

@@ -36,6 +36,11 @@ class PerformerProfile extends Model
         'social_twitter',
         'social_twitter_followers',
         'is_verified_badge',
+        'google_calendar_connected',
+        'google_calendar_id',
+        'google_refresh_token',
+        'google_token_expires_at',
+        'google_calendar_synced_at',
     ];
 
     protected function casts(): array
@@ -43,6 +48,10 @@ class PerformerProfile extends Model
         return [
             'rate' => 'decimal:2',
             'is_verified_badge' => 'boolean',
+            'google_calendar_connected' => 'boolean',
+            'google_refresh_token' => 'encrypted',
+            'google_token_expires_at' => 'datetime',
+            'google_calendar_synced_at' => 'datetime',
         ];
     }
 
@@ -66,6 +75,11 @@ class PerformerProfile extends Model
         return $this->hasMany(AvailabilitySchedule::class);
     }
 
+    public function googleCalendarBusyDates(): HasMany
+    {
+        return $this->hasMany(GoogleCalendarBusyDate::class);
+    }
+
     public function bookings(): HasMany
     {
         return $this->hasMany(Booking::class, 'performer_id', 'user_id');
@@ -80,6 +94,16 @@ class PerformerProfile extends Model
 
         if ($hasActiveBooking) {
             return false;
+        }
+
+        if ($this->google_calendar_connected) {
+            $hasGoogleBusyDate = $this->googleCalendarBusyDates()
+                ->whereDate('date', $date)
+                ->exists();
+
+            if ($hasGoogleBusyDate) {
+                return false;
+            }
         }
 
         $schedule = $this->availabilitySchedules()

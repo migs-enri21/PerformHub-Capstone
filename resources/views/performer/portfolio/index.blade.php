@@ -27,7 +27,7 @@
             <label for="portfolioFiles" class="portfolio-upload-trigger" id="portfolioUploadTrigger">
                 <i class="fas fa-images fa-2x mb-2"></i>
                 <span class="fw-semibold">Add photos or videos</span>
-                <span class="small text-muted">Click to browse · JPG, PNG, WEBP, GIF, MP4, WEBM · max 50 MB each</span>
+                <span class="small text-muted">Click to browse · JPG, PNG, WEBP, GIF, MP4, WEBM · max 2 GB each</span>
             </label>
             <div class="portfolio-preview-collage d-none" id="portfolioPreviewCollage" aria-live="polite"></div>
             <label for="portfolioFiles" class="portfolio-collage-add d-none" id="portfolioAddMore">
@@ -41,7 +41,7 @@
         <div class="row g-3">
             <div class="col-md-8">
                 <label class="form-label text-muted small" for="portfolioCaption">Caption</label>
-                <input type="text" name="caption" id="portfolioCaption" class="form-control ph-input" placeholder="e.g. Live set at Sinulog 2026" value="{{ old('caption') }}">
+                <textarea name="caption" id="portfolioCaption" class="form-control ph-input" rows="3" maxlength="2000" placeholder="e.g. Live set at Sinulog 2026">{{ old('caption') }}</textarea>
             </div>
             <div class="col-md-4 d-flex align-items-end">
                 <button type="submit" class="btn ph-btn-primary w-100" id="portfolioSubmitBtn" disabled>Upload</button>

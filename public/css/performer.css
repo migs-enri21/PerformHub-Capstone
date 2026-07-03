@@ -1,5 +1,5 @@
 /**
- * PerformHub ó Performer module
+ * PerformHub ù Performer module
  * Owner: Performer teammate
  * Profile, portfolio, availability, social media
  */
@@ -52,6 +52,9 @@
     border: 4px solid var(--ph-bg-card);
     box-shadow: 0 0 0 3px var(--ph-purple);
     background: var(--ph-bg-card);
+    /* Prevent Edge's "Visual Search" hover icon from appearing on the
+       avatar and being confused with the actual photo-edit button. */
+    pointer-events: none;
 }
 
 .performer-profile-avatar-edit {
@@ -132,6 +135,7 @@
 .performer-banner-preview {
     height: 120px;
     object-fit: cover;
+    pointer-events: none;
 }
 
 .performer-banner-preview--empty {
@@ -288,6 +292,11 @@ button.av-day:not(:disabled):hover {
     border-color: rgba(234, 179, 8, 0.45);
 }
 
+.av-day--google-busy {
+    background: rgba(156, 163, 175, 0.18);
+    border-color: rgba(156, 163, 175, 0.45);
+}
+
 .av-day-number {
     font-weight: 700;
     font-size: 0.95rem;
@@ -309,6 +318,13 @@ button.av-day:not(:disabled):hover {
 .av-day-pending-label {
     font-size: 0.62rem;
     color: #fbbf24;
+    font-weight: 600;
+    line-height: 1.2;
+}
+
+.av-day-google-label {
+    font-size: 0.62rem;
+    color: #d1d5db;
     font-weight: 600;
     line-height: 1.2;
 }
@@ -344,6 +360,10 @@ button.av-day:not(:disabled):hover {
 
 .av-legend-dot--pending {
     background: #eab308;
+}
+
+.av-legend-dot--google {
+    background: #9ca3af;
 }
 
 .av-legend-dot--unset {
@@ -430,6 +450,7 @@ button.av-day:not(:disabled):hover {
 .portfolio-feed-avatar {
     object-fit: cover;
     border: 2px solid var(--ph-purple);
+    pointer-events: none;
 }
 
 .portfolio-feed-post-actions {
@@ -562,6 +583,32 @@ button.av-day:not(:disabled):hover {
 
 .portfolio-collage--many .portfolio-collage-tile:nth-child(n+5) {
     display: none;
+}
+
+.portfolio-feed-collage[role="button"] {
+    cursor: pointer;
+}
+
+.portfolio-gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 0.5rem;
+}
+
+.portfolio-gallery-item {
+    border-radius: 8px;
+    overflow: hidden;
+    background: #000;
+}
+
+.portfolio-gallery-item img,
+.portfolio-gallery-item video {
+    width: 100%;
+    height: 100%;
+    max-height: 320px;
+    object-fit: contain;
+    display: block;
+    background: #000;
 }
 
 .portfolio-feed-footer {

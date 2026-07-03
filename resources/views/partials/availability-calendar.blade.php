@@ -1,6 +1,7 @@
 @props([
     'schedules',
     'bookingCalendar' => collect(),
+    'googleBusy' => [],
     'editable' => false,
     'storeUrl' => null,
 ])
@@ -44,6 +45,7 @@
     data-schedules='@json($scheduleMap)'
     data-pending='@json($pendingMap)'
     data-confirmed='@json($confirmedMap)'
+    data-google-busy='@json($googleBusy)'
     @if($editable && $storeUrl)
         data-store-url="{{ $storeUrl }}"
         data-destroy-url="{{ route('performer.availability.destroy', '__ID__') }}"
@@ -74,6 +76,7 @@
         <span><i class="av-legend-dot av-legend-dot--available"></i> Available</span>
         <span><i class="av-legend-dot av-legend-dot--booked"></i> Booked (event)</span>
         <span><i class="av-legend-dot av-legend-dot--pending"></i> Pending</span>
+        <span><i class="av-legend-dot av-legend-dot--google"></i> Busy (Google Calendar)</span>
     </div>
 
     @if($editable)
@@ -153,6 +156,7 @@
             const schedules = JSON.parse(calendar.dataset.schedules || '{}');
             const pendingDates = JSON.parse(calendar.dataset.pending || '{}');
             const confirmedDates = JSON.parse(calendar.dataset.confirmed || '{}');
+            const googleBusyDates = JSON.parse(calendar.dataset.googleBusy || '{}');
             const editable = calendar.dataset.editable === '1';
             const grid = calendar.querySelector('.availability-calendar-grid');
             const monthLabel = calendar.querySelector('.av-cal-month-label');
@@ -227,11 +231,15 @@
             }
 
             function dayState(dateKey, entry) {
-                if (entry && !entry.is_available && entry.notes) {
+                if (confirmedDates[dateKey]) {
                     return 'booked';
                 }
 
-                if (confirmedDates[dateKey]) {
+                if (pendingDates[dateKey]) {
+                    return 'pending';
+                }
+
+                if (entry && !entry.is_available && entry.notes) {
                     return 'booked';
                 }
 
@@ -239,8 +247,8 @@
                     return 'blocked';
                 }
 
-                if (pendingDates[dateKey]) {
-                    return 'pending';
+                if (googleBusyDates[dateKey]) {
+                    return 'google-busy';
                 }
 
                 if (entry && entry.is_available) {
@@ -268,6 +276,13 @@
 
                 if (state === 'blocked') {
                     return 'Day off — not taking bookings';
+                }
+
+                if (state === 'google-busy') {
+                    const googleEvent = googleBusyDates[dateKey];
+                    return googleEvent?.summary
+                        ? `Busy (Google Calendar): ${googleEvent.summary}`
+                        : 'Busy (Google Calendar)';
                 }
 
                 if (state === 'available' && entry) {
@@ -316,6 +331,8 @@
                         button.classList.add('av-day--pending');
                     } else if (state === 'blocked') {
                         button.classList.add('av-day--blocked');
+                    } else if (state === 'google-busy') {
+                        button.classList.add('av-day--google-busy');
                     } else if (state === 'available') {
                         button.classList.add('av-day--available');
                     } else if (cellDate >= today) {
@@ -341,6 +358,11 @@
                         pending.className = 'av-day-pending-label';
                         pending.textContent = pendingDates[dateKey].label;
                         button.appendChild(pending);
+                    } else if (state === 'google-busy') {
+                        const googleLabel = document.createElement('span');
+                        googleLabel.className = 'av-day-google-label';
+                        googleLabel.textContent = 'Google';
+                        button.appendChild(googleLabel);
                     } else if (entry?.notes && state === 'booked') {
                         const event = document.createElement('span');
                         event.className = 'av-day-event';

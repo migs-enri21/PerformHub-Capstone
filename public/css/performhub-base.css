@@ -146,6 +146,9 @@ a:hover { color: var(--ph-purple-hover); }
     object-fit: cover;
     border: 3px solid var(--ph-purple);
     display: block;
+    /* Prevent Edge's "Visual Search" hover icon from covering the upload
+       trigger; clicks still reach the wrapping <label> underneath. */
+    pointer-events: none;
 }
 
 .profile-photo-overlay {
@@ -175,6 +178,13 @@ a:hover { color: var(--ph-purple-hover); }
     max-width: 220px;
     margin: 0 auto 0.5rem;
     line-height: 1.4;
+}
+
+.profile-photo-choose {
+    width: 100%;
+    max-width: 220px;
+    margin: 0 auto 0.5rem;
+    cursor: pointer;
 }
 
 .profile-photo-apply {
@@ -285,6 +295,7 @@ a:hover { color: var(--ph-purple-hover); }
     border: 2px solid var(--ph-purple);
     display: block;
     transition: box-shadow 0.15s ease;
+    pointer-events: none;
 }
 
 .nav-profile-toggle:hover .nav-profile-avatar,
@@ -324,6 +335,7 @@ a:hover { color: var(--ph-purple-hover); }
     border-radius: 50%;
     object-fit: cover;
     border: 3px solid var(--ph-purple);
+    pointer-events: none;
 }
 
 .verified-badge {
@@ -335,6 +347,11 @@ a:hover { color: var(--ph-purple-hover); }
     background: var(--ph-bg-card);
     border-right: 1px solid var(--ph-border);
     min-height: calc(100vh - 64px);
+    position: sticky;
+    top: 64px;
+    align-self: flex-start;
+    max-height: calc(100vh - 64px);
+    overflow-y: auto;
 }
 
 .sidebar-ph .nav-link {

@@ -24,6 +24,8 @@ class ProfileController extends Controller
         $profile = Auth::user()->organizerProfile;
 
         $validated = $request->validate(array_merge([
+            'first_name' => ['required', 'string', 'max:100'],
+            'last_name' => ['required', 'string', 'max:100'],
             'organization_name' => ['required', 'string', 'max:255'],
             'bio' => ['nullable', 'string', 'max:2000'],
             'phone' => ['nullable', 'string', 'max:30'],
@@ -38,7 +40,12 @@ class ProfileController extends Controller
             $validated['profile_photo'] = $request->file('profile_photo')->store('profiles', 'public');
         }
 
-        $profile->update(collect($validated)->except(['region', 'city', 'barangay'])->all());
+        Auth::user()->update([
+            'first_name' => $validated['first_name'],
+            'last_name' => $validated['last_name'],
+        ]);
+
+        $profile->update(collect($validated)->except(['first_name', 'last_name', 'region', 'city', 'barangay'])->all());
 
         if (! empty($validated['region']) && ! empty($validated['city']) && ! empty($validated['barangay'])) {
             $profile->update(PhilippineLocations::profileLocationAttributes($validated));

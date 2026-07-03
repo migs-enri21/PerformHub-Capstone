@@ -4,8 +4,11 @@ namespace App\Http\Controllers\Performer;
 
 use App\Http\Controllers\Controller;
 use App\Models\Category;
+use App\Services\GoogleCalendarService;
+use App\Support\AvailabilityCalendar;
 use App\Support\PerformerGenres;
 use App\Support\PhilippineLocations;
+use App\Support\PortfolioFeed;
 use App\Support\SocialMedia;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -15,19 +18,24 @@ use Illuminate\View\View;
 
 class ProfileController extends Controller
 {
-    public function show(): View
+    public function show(GoogleCalendarService $googleCalendar): View
     {
-        $profile = Auth::user()->performerProfile()
-            ->with([
-                'category',
-                'availabilitySchedules' => fn ($query) => $query->orderBy('date'),
-                'bookings' => fn ($query) => $query
-                    ->whereIn('status', ['pending', 'interview_scheduled', 'accepted', 'completed'])
-                    ->orderBy('event_date'),
-            ])
-            ->firstOrFail();
+        $profile = Auth::user()->performerProfile()->with(['category', 'portfolios.performerProfile.category'])->firstOrFail();
+        $profile = AvailabilityCalendar::loadCalendarRelations($profile);
 
-        return view('performer.profile.show', compact('profile'));
+        if ($googleCalendar->shouldSync($profile)) {
+            try {
+                $googleCalendar->syncBusyDates($profile);
+                $profile = AvailabilityCalendar::loadCalendarRelations($profile->fresh());
+            } catch (\Throwable) {
+                // Keep the page usable even if Google sync fails.
+            }
+        }
+
+        $calendar = AvailabilityCalendar::calendarData($profile);
+        $portfolioGroups = PortfolioFeed::groupItems($profile->portfolios);
+
+        return view('performer.profile.show', compact('profile', 'calendar', 'portfolioGroups'));
     }
 
     public function edit(): View
@@ -43,6 +51,8 @@ class ProfileController extends Controller
         $profile = Auth::user()->performerProfile()->firstOrFail();
 
         $validated = $request->validate(array_merge([
+            'first_name' => ['required', 'string', 'max:100'],
+            'last_name' => ['required', 'string', 'max:100'],
             'stage_name' => ['required', 'string', 'max:255'],
             'bio' => ['nullable', 'string', 'max:2000'],
             'genre' => PerformerGenres::validationRule(),
@@ -84,7 +94,12 @@ class ProfileController extends Controller
             }
         }
 
-        $profile->update(collect($validated)->except(['region', 'city', 'barangay'])->all());
+        Auth::user()->update([
+            'first_name' => $validated['first_name'],
+            'last_name' => $validated['last_name'],
+        ]);
+
+        $profile->update(collect($validated)->except(['first_name', 'last_name', 'region', 'city', 'barangay'])->all());
 
         if (! empty($validated['region']) && ! empty($validated['city']) && ! empty($validated['barangay'])) {
             $profile->update(PhilippineLocations::profileLocationAttributes($validated));
