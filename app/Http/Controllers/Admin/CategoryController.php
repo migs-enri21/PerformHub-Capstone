@@ -13,9 +13,23 @@ class CategoryController extends Controller
 {
     public function index(): View
     {
-        $categories = Category::latest()->paginate(15);
+        $search = request('search');
+        $status = request('status');
 
-        return view('admin.categories.index', compact('categories'));
+        $query = Category::query();
+
+        if ($search) {
+            $query->where('name', 'like', "%$search%")
+                  ->orWhere('description', 'like', "%$search%");
+        }
+
+        if ($status !== null) {
+            $query->where('is_active', $status === 'active');
+        }
+
+        $categories = $query->latest()->paginate(15);
+
+        return view('admin.categories.index', compact('categories', 'search', 'status'));
     }
 
     public function store(Request $request): RedirectResponse
@@ -33,6 +47,16 @@ class CategoryController extends Controller
         ]);
 
         return back()->with('success', 'Category created.');
+    }
+
+    public function edit(Category $category): View
+    {
+        return view('admin.categories.edit', compact('category'));
+    }
+
+    public function show(Category $category): View
+    {
+        return view('admin.categories.show', compact('category'));
     }
 
     public function update(Request $request, Category $category): RedirectResponse
@@ -57,5 +81,13 @@ class CategoryController extends Controller
         $category->delete();
 
         return back()->with('success', 'Category deleted.');
+    }
+
+    public function toggle(Category $category): RedirectResponse
+    {
+        $category->update(['is_active' => !$category->is_active]);
+
+        $status = $category->is_active ? 'activated' : 'deactivated';
+        return back()->with('success', "Category $status.");
     }
 }

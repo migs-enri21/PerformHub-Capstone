@@ -7,18 +7,48 @@
 @endsection
 
 @section('content')
-<h2 class="fw-bold mb-4">Notifications</h2>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-bold mb-0">Notifications</h2>
+    @if($notifications->total() > 0)
+        <span class="badge bg-primary">{{ $notifications->total() }} total</span>
+    @endif
+</div>
+
 @forelse($notifications as $n)
-    <div class="ph-card p-3 mb-2 {{ $n->is_read ? '' : 'border-primary' }}">
-        <form method="POST" action="{{ route('notifications.read', $n) }}">
-            @csrf
-            <h6 class="mb-1">{{ $n->title }}</h6>
-            <p class="text-muted small mb-2">{{ $n->message }}</p>
-            <button class="btn btn-sm ph-btn-outline">View</button>
-        </form>
-    </div>
+    <form method="POST" action="{{ route('notifications.read', $n) }}" class="mb-2">
+        @csrf
+        <div class="ph-card p-4 {{ !$n->is_read ? 'border-primary border-2' : '' }}" style="cursor: pointer;">
+            <div class="row align-items-start">
+                <div class="col">
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <h6 class="mb-0 fw-bold">{{ $n->title }}</h6>
+                        @if(!$n->is_read)
+                            <span class="badge bg-primary">New</span>
+                        @endif
+                    </div>
+                    <p class="text-muted mb-2">{{ $n->message }}</p>
+                    <small class="text-muted">{{ $n->created_at->diffForHumans() }}</small>
+                </div>
+                <div class="col-auto">
+                    <button type="submit" class="btn ph-btn-primary">
+                        @if($n->link)
+                            <i class="fas fa-arrow-right me-1"></i>View
+                        @else
+                            <i class="fas fa-check me-1"></i>Mark Read
+                        @endif
+                    </button>
+                </div>
+            </div>
+        </div>
+    </form>
 @empty
-    <p class="text-muted">No notifications.</p>
+    <div class="ph-card p-5 text-center">
+        <i class="fas fa-bell fa-3x text-muted mb-3"></i>
+        <p class="text-muted">No notifications yet.</p>
+    </div>
 @endforelse
-{{ $notifications->links() }}
+
+<div class="mt-4">
+    {{ $notifications->links() }}
+</div>
 @endsection
