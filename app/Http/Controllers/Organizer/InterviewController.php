@@ -14,6 +14,10 @@ use Illuminate\View\View;
 
 class InterviewController extends Controller
 {
+    public function index()
+    {
+        return view('organizer.interviews.index');
+    }
     public function create(Booking $booking): View
     {
         abort_unless($booking->organizer_id === Auth::id(), 403);

@@ -16,6 +16,8 @@ use App\Http\Controllers\Organizer\DashboardController as OrganizerDashboardCont
 use App\Http\Controllers\Organizer\InterviewController as OrganizerInterviewController;
 use App\Http\Controllers\Organizer\PerformerSearchController;
 use App\Http\Controllers\Organizer\ProfileController as OrganizerProfileController;
+use App\Http\Controllers\Organizer\EventController;
+use App\Http\Controllers\Organizer\EventHistoryController;
 use App\Http\Controllers\Performer\AvailabilityController;
 use App\Http\Controllers\Performer\BookingController as PerformerBookingController;
 use App\Http\Controllers\Performer\DashboardController as PerformerDashboardController;
@@ -81,8 +83,10 @@ Route::middleware(['auth', 'role:performer'])->prefix('performer')->name('perfor
 
 Route::middleware(['auth', 'role:organizer'])->prefix('organizer')->name('organizer.')->group(function () {
     Route::get('/dashboard', [OrganizerDashboardController::class, 'index'])->name('dashboard');
+    Route::get('/events/create', [EventController::class, 'create'])->name('events.create');
     Route::get('/profile', [OrganizerProfileController::class, 'edit'])->name('profile.edit');
     Route::put('/profile', [OrganizerProfileController::class, 'update'])->name('profile.update');
+    Route::get('/interviews', [OrganizerInterviewController::class, 'index'])->name('interviews.index');
     Route::get('/performers', [PerformerSearchController::class, 'index'])->name('performers.index');
     Route::get('/performers/{performer}', [PerformerSearchController::class, 'show'])->name('performers.show');
     Route::get('/bookings', [OrganizerBookingController::class, 'index'])->name('bookings.index');
@@ -95,6 +99,7 @@ Route::middleware(['auth', 'role:organizer'])->prefix('organizer')->name('organi
         Route::get('/bookings/{booking}/interview', [OrganizerInterviewController::class, 'create'])->name('interviews.create');
         Route::post('/bookings/{booking}/interview', [OrganizerInterviewController::class, 'store'])->name('interviews.store');
     });
+    Route::get('/history', [EventHistoryController::class, 'index'])->name('history.index');
 });
 
 Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
@@ -109,3 +114,4 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::get('/monitoring/bookings', [MonitoringController::class, 'bookings'])->name('monitoring.bookings');
     Route::get('/monitoring/interviews', [MonitoringController::class, 'interviews'])->name('monitoring.interviews');
 });
+
