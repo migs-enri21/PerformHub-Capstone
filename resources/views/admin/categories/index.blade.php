@@ -50,10 +50,10 @@
         <thead>
             <tr>
                 <th class="w-20">Name</th>
-                <th class="w-10">Icon</th>
+                <th class="w-45">Description</th>
                 <th class="w-15">Status</th>
                 <th class="w-12 text-center">Performers</th>
-                <th class="w-43 text-end">Actions</th>
+                <th class="w-18 text-end">Actions</th>
             </tr>
         </thead>
         <tbody>
@@ -62,8 +62,8 @@
                     <td class="align-middle">
                         <strong>{{ $cat->name }}</strong>
                     </td>
-                    <td class="align-middle text-center">
-                        <i class="fas {{ $cat->icon ?? 'fa-star' }} fa-lg" style="width: 30px; display: inline-block;"></i>
+                    <td class="align-middle">
+                        <p class="mb-0 text-truncate" style="max-width: 350px;">{{ $cat->description ?? '—' }}</p>
                     </td>
                     <td class="align-middle">
                         <span class="badge {{ $cat->is_active ? 'bg-success' : 'bg-secondary' }}">
@@ -96,7 +96,7 @@
                 </tr>
             @empty
                 <tr>
-                    <td colspan="4" class="text-center text-muted py-5">
+                    <td colspan="5" class="text-center text-muted py-5">
                         <i class="fas fa-inbox fa-2x mb-3 d-block"></i>
                         No categories found
                     </td>

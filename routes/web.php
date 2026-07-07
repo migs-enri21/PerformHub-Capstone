@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\CategoryController as AdminCategoryController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
+use App\Http\Controllers\Admin\EventTypeController;
 use App\Http\Controllers\Admin\MonitoringController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\Auth\AuthController;
@@ -16,8 +17,6 @@ use App\Http\Controllers\Organizer\DashboardController as OrganizerDashboardCont
 use App\Http\Controllers\Organizer\InterviewController as OrganizerInterviewController;
 use App\Http\Controllers\Organizer\PerformerSearchController;
 use App\Http\Controllers\Organizer\ProfileController as OrganizerProfileController;
-use App\Http\Controllers\Organizer\EventController;
-use App\Http\Controllers\Organizer\EventHistoryController;
 use App\Http\Controllers\Performer\AvailabilityController;
 use App\Http\Controllers\Performer\BookingController as PerformerBookingController;
 use App\Http\Controllers\Performer\DashboardController as PerformerDashboardController;
@@ -83,10 +82,8 @@ Route::middleware(['auth', 'role:performer'])->prefix('performer')->name('perfor
 
 Route::middleware(['auth', 'role:organizer'])->prefix('organizer')->name('organizer.')->group(function () {
     Route::get('/dashboard', [OrganizerDashboardController::class, 'index'])->name('dashboard');
-    Route::get('/events/create', [EventController::class, 'create'])->name('events.create');
     Route::get('/profile', [OrganizerProfileController::class, 'edit'])->name('profile.edit');
     Route::put('/profile', [OrganizerProfileController::class, 'update'])->name('profile.update');
-    Route::get('/interviews', [OrganizerInterviewController::class, 'index'])->name('interviews.index');
     Route::get('/performers', [PerformerSearchController::class, 'index'])->name('performers.index');
     Route::get('/performers/{performer}', [PerformerSearchController::class, 'show'])->name('performers.show');
     Route::get('/bookings', [OrganizerBookingController::class, 'index'])->name('bookings.index');
@@ -99,7 +96,6 @@ Route::middleware(['auth', 'role:organizer'])->prefix('organizer')->name('organi
         Route::get('/bookings/{booking}/interview', [OrganizerInterviewController::class, 'create'])->name('interviews.create');
         Route::post('/bookings/{booking}/interview', [OrganizerInterviewController::class, 'store'])->name('interviews.store');
     });
-    Route::get('/history', [EventHistoryController::class, 'index'])->name('history.index');
 });
 
 Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
@@ -114,7 +110,18 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::get('/categories/{category}', [AdminCategoryController::class, 'show'])->name('categories.show');
     Route::put('/categories/{category}', [AdminCategoryController::class, 'update'])->name('categories.update');
     Route::delete('/categories/{category}', [AdminCategoryController::class, 'destroy'])->name('categories.destroy');
+
+    Route::get('/event-types', [EventTypeController::class, 'index'])->name('event-types.index');
+    Route::post('/event-types', [EventTypeController::class, 'store'])->name('event-types.store');
+    Route::get('/event-types/{eventType}/edit', [EventTypeController::class, 'edit'])->name('event-types.edit');
+    Route::get('/event-types/{eventType}', [EventTypeController::class, 'show'])->name('event-types.show');
+    Route::put('/event-types/{eventType}', [EventTypeController::class, 'update'])->name('event-types.update');
+    Route::delete('/event-types/{eventType}', [EventTypeController::class, 'destroy'])->name('event-types.destroy');
+    Route::patch('/event-types/{eventType}/toggle', [EventTypeController::class, 'toggle'])->name('event-types.toggle');
+
     Route::get('/monitoring/bookings', [MonitoringController::class, 'bookings'])->name('monitoring.bookings');
     Route::get('/monitoring/interviews', [MonitoringController::class, 'interviews'])->name('monitoring.interviews');
+    Route::get('/events', [\App\Http\Controllers\Admin\EventController::class, 'index'])->name('events.index');
+    Route::post('/events', [\App\Http\Controllers\Admin\EventController::class, 'store'])->name('events.store');
+    Route::get('/events/{booking}', [\App\Http\Controllers\Admin\EventController::class, 'show'])->name('events.show');
 });
-
