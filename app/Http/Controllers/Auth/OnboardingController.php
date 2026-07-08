@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\Notification;
 use App\Models\OrganizerProfile;
 use App\Models\PerformerProfile;
 use App\Models\User;
@@ -189,6 +190,21 @@ class OnboardingController extends Controller
             if ($request->hasFile('performance_sample')) {
                 $this->storeDocument($user, 'performance_sample', $request->file('performance_sample'));
             }
+        }
+
+        // Notify admins about new registration
+        $roleType = $user->isPerformer() ? 'Performer' : 'Organizer';
+        $adminUsers = User::where('role', 'admin')->get(); // Get all admins
+        
+        foreach ($adminUsers as $admin) {
+            Notification::create([
+                'user_id' => $admin->id,
+                'type' => 'new_registration',
+                'title' => "New $roleType Registered",
+                'message' => "A new $roleType has registered: {$user->fullName()}",
+                'link' => route('admin.users.index'),
+                'is_read' => false,
+            ]);
         }
 
         $user->update(['onboarding_step' => User::ONBOARDING_COMPLETE]);

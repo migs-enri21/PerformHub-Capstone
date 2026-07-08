@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\Category;
+use App\Models\EventType;
 use App\Models\OrganizerProfile;
 use App\Models\PerformerProfile;
 use App\Models\User;
@@ -38,6 +39,58 @@ class DatabaseSeeder extends Seeder
             Category::create([
                 ...$cat,
                 'slug' => Str::slug($cat['name']),
+                'is_active' => true,
+            ]);
+        }
+
+        $eventTypes = [
+            'Music Festival',
+            'Concert',
+            'Cultural Festival',
+            'Food Festival',
+            'Arts Festival',
+            'Corporate Convention',
+            'Trade Expo / Expo',
+            'Product Launch',
+            'Company Anniversary',
+            'Awarding Ceremony',
+            'Charity Gala',
+            'Fundraising Event',
+            'University Foundation Day',
+            'Intramurals Opening & Closing Ceremony',
+            'Graduation Ceremony',
+            'Sports Tournament',
+            'Marathon / Fun Run',
+            'Esports Tournament',
+            'Fashion Show',
+            'Beauty Pageant',
+            'Tourism Festival',
+            'City or Municipal Fiesta',
+            'Government Celebration',
+            'Independence Day Celebration',
+            'New Year\'s Countdown Event',
+            'Christmas Festival',
+            'Halloween Festival',
+            'Cultural Showcase',
+            'Youth Summit',
+            'Business Summit',
+            'Technology Conference',
+            'Innovation Expo',
+            'Community Fair',
+            'Livelihood Fair',
+            'Agricultural Expo',
+            'Auto Show',
+            'Motor Show',
+            'Cosplay Convention',
+            'Comic Convention',
+            'Gaming Convention',
+        ];
+
+        foreach ($eventTypes as $eventType) {
+            EventType::create([
+                'name' => $eventType,
+                'slug' => Str::slug($eventType),
+                'description' => null,
                 'is_active' => true,
             ]);
         }
