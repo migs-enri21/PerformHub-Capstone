@@ -17,6 +17,8 @@ use App\Http\Controllers\Organizer\DashboardController as OrganizerDashboardCont
 use App\Http\Controllers\Organizer\InterviewController as OrganizerInterviewController;
 use App\Http\Controllers\Organizer\PerformerSearchController;
 use App\Http\Controllers\Organizer\ProfileController as OrganizerProfileController;
+use App\Http\Controllers\Organizer\EventController as OrganizerEventController;
+use App\Http\Controllers\Organizer\EventHistoryController as EventHistoryController;
 use App\Http\Controllers\Performer\AvailabilityController;
 use App\Http\Controllers\Performer\BookingController as PerformerBookingController;
 use App\Http\Controllers\Performer\DashboardController as PerformerDashboardController;
@@ -88,6 +90,10 @@ Route::middleware(['auth', 'role:organizer'])->prefix('organizer')->name('organi
     Route::get('/performers/{performer}', [PerformerSearchController::class, 'show'])->name('performers.show');
     Route::get('/bookings', [OrganizerBookingController::class, 'index'])->name('bookings.index');
     Route::get('/bookings/{booking}', [OrganizerBookingController::class, 'show'])->name('bookings.show');
+    Route::get('/events/create', [OrganizerEventController::class, 'create'])->name('events.create');
+    Route::post('/events', [OrganizerEventController::class, 'store'])->name('events.store');
+    Route::get('/interviews', [OrganizerInterviewController::class, 'index'])->name('interviews.index');
+    Route::get('/history', [EventHistoryController::class, 'index'])->name('history.index');
     Route::middleware('full.access')->group(function () {
         Route::get('/bookings/create/{performer}', [OrganizerBookingController::class, 'create'])->name('bookings.create');
         Route::post('/bookings/{performer}', [OrganizerBookingController::class, 'store'])->name('bookings.store');
