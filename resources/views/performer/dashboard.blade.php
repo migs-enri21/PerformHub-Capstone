@@ -46,46 +46,4 @@
         </div>
     </div>
 </div>
-
-<div class="row g-4">
-    <div class="col-lg-8">
-        <div class="ph-card p-4 mb-4">
-            <h5 class="fw-semibold mb-3">Community Feed</h5>
-            <p class="text-muted small mb-4">See what performers are sharing. Your uploads appear here for organizers and other performers.</p>
-            @include('partials.portfolio-feed', [
-                'posts' => $feedPosts,
-                'ownProfileId' => $profile?->id,
-                'emptyMessage' => 'No posts yet. Upload portfolio photos or videos to share your work.',
-            ])
-        </div>
-    </div>
-    <div class="col-lg-4">
-        <div class="ph-card p-4 mb-4">
-            <h5 class="fw-semibold mb-3">Quick Actions</h5>
-            <div class="d-flex flex-wrap gap-2">
-                <a href="{{ route('performer.profile.show') }}" class="btn ph-btn-outline btn-sm">View Profile</a>
-                <a href="{{ route('performer.profile.edit') }}" class="btn ph-btn-outline btn-sm">Edit Profile</a>
-                @if(auth()->user()->hasLimitedAccess())
-                    <a href="{{ auth()->user()->onboardingRoute() }}" class="btn ph-btn-primary btn-sm">Complete Sign-up</a>
-                @else
-                    <a href="{{ route('performer.portfolio.index') }}" class="btn ph-btn-outline btn-sm">Upload Portfolio</a>
-                    <a href="{{ route('performer.profile.show') }}#availability" class="btn ph-btn-outline btn-sm">Set Availability</a>
-                    <a href="{{ route('performer.bookings.index') }}" class="btn ph-btn-primary btn-sm">View Bookings</a>
-                @endif
-            </div>
-        </div>
-        <div class="ph-card p-4">
-            <h5 class="fw-semibold mb-3">Recent Reviews</h5>
-            @forelse($reviews as $review)
-                <div class="mb-3 pb-3 border-bottom" style="border-color: var(--ph-border) !important;">
-                    <div class="text-warning small mb-1">@for($i=0;$i<$review->rating;$i++)<i class="fas fa-star"></i>@endfor</div>
-                    <p class="small text-muted mb-1">{{ Str::limit($review->comment, 80) }}</p>
-                    <small class="text-muted">— {{ $review->reviewer->name }}</small>
-                </div>
-            @empty
-                <p class="text-muted small mb-0">No reviews yet.</p>
-            @endforelse
-        </div>
-    </div>
-</div>
 @endsection

@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Organizer;
 use App\Http\Controllers\Controller;
 use App\Models\Booking;
 use App\Services\PerformerRecommendationService;
-use App\Support\PortfolioFeed;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 
@@ -19,8 +18,7 @@ class DashboardController extends Controller
             ->whereIn('status', ['accepted', 'interview_scheduled'])
             ->count();
         $recommendedPerformers = $recommendations->forOrganizer(Auth::user());
-        $feedPosts = PortfolioFeed::recentPosts(12);
 
-        return view('organizer.dashboard', compact('profile', 'pendingBookings', 'activeBookings', 'recommendedPerformers', 'feedPosts'));
+        return view('organizer.dashboard', compact('profile', 'pendingBookings', 'activeBookings', 'recommendedPerformers'));
     }
 }

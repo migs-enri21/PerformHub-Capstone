@@ -183,6 +183,10 @@ class GoogleCalendarService
 
         $payload = $response->json();
 
+        if (empty($payload['access_token'])) {
+            throw new RuntimeException('Google Calendar did not return a valid access token.');
+        }
+
         $profile->update([
             'google_token_expires_at' => isset($payload['expires_in'])
                 ? now()->addSeconds((int) $payload['expires_in'])

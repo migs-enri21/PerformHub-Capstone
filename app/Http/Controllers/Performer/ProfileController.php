@@ -8,7 +8,6 @@ use App\Services\GoogleCalendarService;
 use App\Support\AvailabilityCalendar;
 use App\Support\PerformerGenres;
 use App\Support\PhilippineLocations;
-use App\Support\PortfolioFeed;
 use App\Support\SocialMedia;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -20,22 +19,21 @@ class ProfileController extends Controller
 {
     public function show(GoogleCalendarService $googleCalendar): View
     {
-        $profile = Auth::user()->performerProfile()->with(['category', 'portfolios.performerProfile.category'])->firstOrFail();
+        $profile = Auth::user()->performerProfile()->with('category')->firstOrFail();
         $profile = AvailabilityCalendar::loadCalendarRelations($profile);
 
         if ($googleCalendar->shouldSync($profile)) {
             try {
                 $googleCalendar->syncBusyDates($profile);
-                $profile = AvailabilityCalendar::loadCalendarRelations($profile->fresh());
+                $profile = AvailabilityCalendar::loadCalendarRelations($profile->fresh('category'));
             } catch (\Throwable) {
                 // Keep the page usable even if Google sync fails.
             }
         }
 
         $calendar = AvailabilityCalendar::calendarData($profile);
-        $portfolioGroups = PortfolioFeed::groupItems($profile->portfolios);
 
-        return view('performer.profile.show', compact('profile', 'calendar', 'portfolioGroups'));
+        return view('performer.profile.show', compact('profile', 'calendar'));
     }
 
     public function edit(): View

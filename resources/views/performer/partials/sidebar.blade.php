@@ -9,7 +9,6 @@
         <a class="nav-link {{ request()->routeIs('performer.profile.*') ? 'active' : '' }}" href="{{ route('performer.profile.show') }}#availability"><i class="fas fa-calendar me-2"></i> Availability</a>
         <a class="nav-link {{ request()->routeIs('performer.bookings.*') ? 'active' : '' }}" href="{{ route('performer.bookings.index') }}"><i class="fas fa-ticket me-2"></i> Bookings</a>
     @endif
-    <a class="nav-link" href="{{ route('messages.index') }}"><i class="fas fa-envelope me-2"></i> Messages</a>
     @if(auth()->user()->hasLimitedAccess())
         <a class="nav-link text-warning" href="{{ auth()->user()->onboardingRoute() }}"><i class="fas fa-arrow-right me-2"></i> Complete Sign-up</a>
     @endif

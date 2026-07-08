@@ -30,9 +30,6 @@
                             @endif
                         </a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ route('messages.index') }}"><i class="fas fa-envelope"></i></a>
-                    </li>
                     @include('partials.nav-profile-avatar')
                 </ul>
             </div>

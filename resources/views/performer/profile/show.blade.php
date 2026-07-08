@@ -101,15 +101,5 @@
             ])
         </div>
     </div>
-    <div class="col-12">
-        <div class="ph-card p-4">
-            <h5 class="fw-semibold mb-3">Portfolio Posts</h5>
-            @include('partials.portfolio-feed', [
-                'posts' => $portfolioGroups->values(),
-                'ownProfileId' => $profile->id,
-                'emptyMessage' => 'No posts yet. Upload photos or videos from Manage Portfolio to share your work.',
-            ])
-        </div>
-    </div>
 </div>
 @endsection

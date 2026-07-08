@@ -94,12 +94,6 @@
         ])
     @endif
 
-    <div class="onboarding-info-box mb-4">
-        <i class="fas fa-shield-alt me-2"></i>
-        Verified badges build trust and unlock full platform features. Documents are kept
-        <strong>strictly confidential</strong> and reviewed within <strong>24–48 hours</strong>.
-    </div>
-
     <div class="d-flex gap-2">
         <a href="{{ route('onboarding.profile') }}" class="btn ph-btn-outline">Back</a>
         <button type="submit" class="btn ph-btn-primary flex-grow-1">

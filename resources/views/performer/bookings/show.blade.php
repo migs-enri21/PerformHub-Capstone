@@ -84,7 +84,6 @@
             @if($booking->interview)
                 <a href="{{ route('interviews.join', $booking->interview) }}" class="btn ph-btn-primary w-100 mt-2"><i class="fas fa-video me-1"></i> Join Interview</a>
             @endif
-            <a href="{{ route('messages.show', $booking->organizer) }}" class="btn ph-btn-outline w-100 mt-2">Message Organizer</a>
         </div>
     </div>
 </div>

@@ -51,8 +51,8 @@
                 </div>
 
                 <div class="mb-3">
-                    <label class="form-label text-muted small">Username</label>
-                    <input type="text" name="username" class="form-control ph-input @error('username') is-invalid @enderror" value="{{ old('username') }}" required autocomplete="username">
+                    <label class="form-label text-muted small">Username <span class="text-muted fw-normal">(optional)</span></label>
+                    <input type="text" name="username" class="form-control ph-input @error('username') is-invalid @enderror" value="{{ old('username') }}" autocomplete="username" placeholder="Leave blank to auto-generate from your name">
                     <div class="form-text text-muted">Letters and numbers only. Spaces become underscores (e.g. wency malinao → wency_malinao).</div>
                     @error('username')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
                 </div>
