@@ -11,7 +11,7 @@
                     @if(auth()->user()->isPerformer())
                         You can explore your dashboard now. Finish your profile and verification to accept bookings, upload portfolio, and set availability.
                     @else
-                        You can explore your dashboard and browse performers. Finish your profile and verification to send booking requests and schedule interviews.
+                        You can explore your dashboard and browse performers. Finish your profile and verification to send booking requests.
                     @endif
                 </p>
             </div>

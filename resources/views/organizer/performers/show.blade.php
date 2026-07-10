@@ -21,7 +21,6 @@
             @else
                 <a href="{{ route('organizer.bookings.create', $performer) }}" class="btn ph-btn-primary w-100 mb-2">Send Booking Request</a>
             @endif
-            <a href="{{ route('messages.show', $performer->user) }}" class="btn ph-btn-outline w-100">Message</a>
         </div>
     </div>
     <div class="col-lg-8">

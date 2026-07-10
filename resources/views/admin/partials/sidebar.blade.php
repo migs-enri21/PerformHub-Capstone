@@ -5,5 +5,4 @@
     <a class="nav-link {{ request()->routeIs('admin.event-types.*') ? 'active' : '' }}" href="{{ route('admin.event-types.index') }}"><i class="fas fa-tag me-2"></i> Event Type</a>
     <a class="nav-link {{ request()->routeIs('admin.events.*') ? 'active' : '' }}" href="{{ route('admin.events.index') }}"><i class="fas fa-calendar-alt me-2"></i> User History</a>
     <a class="nav-link {{ request()->routeIs('admin.monitoring.bookings') ? 'active' : '' }}" href="{{ route('admin.monitoring.bookings') }}"><i class="fas fa-ticket me-2"></i> Bookings</a>
-    <a class="nav-link {{ request()->routeIs('admin.monitoring.interviews') ? 'active' : '' }}" href="{{ route('admin.monitoring.interviews') }}"><i class="fas fa-video me-2"></i> Interviews</a>
 </nav>

@@ -1,8 +1,0 @@
-/**
- * Legacy bundle — imports all stylesheets
- * Prefer loading role-specific files from layouts.
- */
-@import url('performhub-base.css');
-@import url('performer.css');
-@import url('organizer.css');
-@import url('admin.css');

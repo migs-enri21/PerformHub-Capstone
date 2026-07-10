@@ -48,19 +48,12 @@
     <div class="col-lg-4">
         <div class="ph-card p-4">
             <h5 class="fw-semibold mb-3">Actions</h5>
-            @if(in_array($booking->status, ['pending', 'accepted']))
-                <a href="{{ route('organizer.interviews.create', $booking) }}" class="btn ph-btn-primary w-100 mb-2"><i class="fas fa-video me-1"></i> Schedule Interview</a>
-            @endif
-            @if($booking->interview)
-                <a href="{{ route('interviews.join', $booking->interview) }}" class="btn ph-btn-outline w-100 mb-2">Join Interview</a>
-            @endif
             @if($booking->status === 'accepted')
                 @if($booking->hasContract() && ! $booking->performer_confirmed_contract)
                     <p class="text-warning small mb-2">The performer must confirm the contract before you can mark this booking complete.</p>
                 @endif
                 <form method="POST" action="{{ route('organizer.bookings.complete', $booking) }}">@csrf<button class="btn btn-success w-100" @disabled($booking->hasContract() && ! $booking->performer_confirmed_contract)>Mark Completed</button></form>
             @endif
-            <a href="{{ route('messages.show', $booking->performer) }}" class="btn ph-btn-outline w-100 mt-2">Message Performer</a>
         </div>
     </div>
 </div>

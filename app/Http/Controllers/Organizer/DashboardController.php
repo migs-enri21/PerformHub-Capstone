@@ -15,7 +15,7 @@ class DashboardController extends Controller
         $profile = Auth::user()->organizerProfile;
         $pendingBookings = Booking::where('organizer_id', Auth::id())->where('status', 'pending')->count();
         $activeBookings = Booking::where('organizer_id', Auth::id())
-            ->whereIn('status', ['accepted', 'interview_scheduled'])
+            ->where('status', 'accepted')
             ->count();
         $recommendedPerformers = $recommendations->forOrganizer(Auth::user());
 

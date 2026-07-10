@@ -9,7 +9,7 @@
 @section('content')
 <h2 class="fw-bold mb-4">Admin Dashboard</h2>
 <div class="row g-4 mb-4">
-    @foreach([['label'=>'Total Users','value'=>$stats['users']],['label'=>'Performers','value'=>$stats['performers']],['label'=>'Organizers','value'=>$stats['organizers']],['label'=>'Bookings','value'=>$stats['bookings']],['label'=>'Pending Verifications','value'=>$stats['pending_verifications']],['label'=>'Interviews','value'=>$stats['interviews']]] as $stat)
+    @foreach([['label'=>'Total Users','value'=>$stats['users']],['label'=>'Performers','value'=>$stats['performers']],['label'=>'Organizers','value'=>$stats['organizers']],['label'=>'Bookings','value'=>$stats['bookings']],['label'=>'Pending Verifications','value'=>$stats['pending_verifications']]] as $stat)
         <div class="col-md-4 col-lg-2">
             <div class="ph-card p-3 stat-card text-center">
                 <h4 class="fw-bold mb-0">{{ $stat['value'] }}</h4>

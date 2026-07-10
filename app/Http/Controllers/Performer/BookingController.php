@@ -14,7 +14,7 @@ class BookingController extends Controller
     public function index(): View
     {
         $bookings = Booking::where('performer_id', Auth::id())
-            ->with(['organizer.organizerProfile', 'interview'])
+            ->with('organizer.organizerProfile')
             ->latest()
             ->paginate(10);
 
@@ -24,7 +24,7 @@ class BookingController extends Controller
     public function show(Booking $booking): View
     {
         abort_unless($booking->performer_id === Auth::id(), 403);
-        $booking->load(['organizer.organizerProfile', 'interview']);
+        $booking->load('organizer.organizerProfile');
 
         return view('performer.bookings.show', compact('booking'));
     }
@@ -49,7 +49,7 @@ class BookingController extends Controller
     public function reject(Booking $booking): RedirectResponse
     {
         abort_unless($booking->performer_id === Auth::id(), 403);
-        abort_unless(in_array($booking->status, ['pending', 'interview_scheduled']), 400);
+        abort_unless($booking->status === 'pending', 400);
 
         $booking->update(['status' => 'rejected']);
         Notification::send(

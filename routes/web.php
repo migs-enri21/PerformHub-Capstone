@@ -9,12 +9,9 @@ use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Auth\OnboardingController;
 use App\Http\Controllers\TalentProfileController;
 use App\Http\Controllers\HomeController;
-use App\Http\Controllers\InterviewController;
-use App\Http\Controllers\MessageController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\Organizer\BookingController as OrganizerBookingController;
 use App\Http\Controllers\Organizer\DashboardController as OrganizerDashboardController;
-use App\Http\Controllers\Organizer\InterviewController as OrganizerInterviewController;
 use App\Http\Controllers\Organizer\PerformerSearchController;
 use App\Http\Controllers\Organizer\ProfileController as OrganizerProfileController;
 use App\Http\Controllers\Organizer\EventController as OrganizerEventController;
@@ -51,10 +48,6 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
     Route::post('/notifications/{notification}/read', [NotificationController::class, 'markRead'])->name('notifications.read');
-    Route::get('/messages', [MessageController::class, 'index'])->name('messages.index');
-    Route::get('/messages/{user}', [MessageController::class, 'show'])->name('messages.show');
-    Route::post('/messages/{user}', [MessageController::class, 'store'])->name('messages.store');
-    Route::get('/interviews/{interview}/join', [InterviewController::class, 'join'])->name('interviews.join');
     Route::get('/talent/{performer}', [TalentProfileController::class, 'show'])->name('talent.show');
 });
 
@@ -92,15 +85,12 @@ Route::middleware(['auth', 'role:organizer'])->prefix('organizer')->name('organi
     Route::get('/bookings/{booking}', [OrganizerBookingController::class, 'show'])->name('bookings.show');
     Route::get('/events/create', [OrganizerEventController::class, 'create'])->name('events.create');
     Route::post('/events', [OrganizerEventController::class, 'store'])->name('events.store');
-    Route::get('/interviews', [OrganizerInterviewController::class, 'index'])->name('interviews.index');
     Route::get('/history', [EventHistoryController::class, 'index'])->name('history.index');
     Route::middleware('full.access')->group(function () {
         Route::get('/bookings/create/{performer}', [OrganizerBookingController::class, 'create'])->name('bookings.create');
         Route::post('/bookings/{performer}', [OrganizerBookingController::class, 'store'])->name('bookings.store');
         Route::post('/bookings/{booking}/contract', [OrganizerBookingController::class, 'uploadContract'])->name('bookings.contract');
         Route::post('/bookings/{booking}/complete', [OrganizerBookingController::class, 'complete'])->name('bookings.complete');
-        Route::get('/bookings/{booking}/interview', [OrganizerInterviewController::class, 'create'])->name('interviews.create');
-        Route::post('/bookings/{booking}/interview', [OrganizerInterviewController::class, 'store'])->name('interviews.store');
     });
 });
 
@@ -126,7 +116,6 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::patch('/event-types/{eventType}/toggle', [EventTypeController::class, 'toggle'])->name('event-types.toggle');
 
     Route::get('/monitoring/bookings', [MonitoringController::class, 'bookings'])->name('monitoring.bookings');
-    Route::get('/monitoring/interviews', [MonitoringController::class, 'interviews'])->name('monitoring.interviews');
     Route::get('/events', [\App\Http\Controllers\Admin\EventController::class, 'index'])->name('events.index');
     Route::post('/events', [\App\Http\Controllers\Admin\EventController::class, 'store'])->name('events.store');
     Route::get('/events/{booking}', [\App\Http\Controllers\Admin\EventController::class, 'show'])->name('events.show');

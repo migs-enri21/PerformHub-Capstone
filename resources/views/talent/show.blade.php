@@ -34,9 +34,6 @@
                     <a href="{{ route('organizer.bookings.create', $performer) }}" class="btn ph-btn-primary">Send Booking Request</a>
                 @endif
             @endif
-            @if(auth()->id() !== $performer->user_id)
-                <a href="{{ route('messages.show', $performer->user) }}" class="btn ph-btn-outline">Message</a>
-            @endif
             <a href="{{ url()->previous() }}" class="btn ph-btn-outline">Back</a>
         </div>
     </div>

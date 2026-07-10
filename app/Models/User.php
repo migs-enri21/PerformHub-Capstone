@@ -83,16 +83,6 @@ class User extends Authenticatable
         return $this->hasMany(Booking::class, 'performer_id');
     }
 
-    public function sentMessages(): HasMany
-    {
-        return $this->hasMany(Message::class, 'sender_id');
-    }
-
-    public function receivedMessages(): HasMany
-    {
-        return $this->hasMany(Message::class, 'receiver_id');
-    }
-
     public function notifications(): HasMany
     {
         return $this->hasMany(Notification::class);

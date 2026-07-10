@@ -28,7 +28,7 @@ class AvailabilityCalendar
         return $profile->load([
             'availabilitySchedules' => fn ($query) => $query->orderBy('date'),
             'bookings' => fn ($query) => $query
-                ->whereIn('status', ['pending', 'interview_scheduled', 'accepted', 'completed'])
+                ->whereIn('status', ['pending', 'accepted', 'completed'])
                 ->orderBy('event_date'),
             'googleCalendarBusyDates' => fn ($query) => $query->orderBy('date'),
         ]);

@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Booking;
-use App\Models\Interview;
 use App\Models\User;
 use Illuminate\View\View;
 
@@ -20,7 +19,6 @@ class DashboardController extends Controller
             'pending_verifications' => User::where('is_verified', false)
                 ->whereIn('role', ['performer', 'organizer'])
                 ->count(),
-            'interviews' => Interview::count(),
         ];
 
         $recentBookings = Booking::with(['organizer', 'performer'])->latest()->limit(5)->get();

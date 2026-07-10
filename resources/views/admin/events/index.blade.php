@@ -22,7 +22,6 @@
             <select name="status" class="form-select ph-input">
                 <option value="">All</option>
                 <option value="pending" @selected(request('status') === 'pending')>Pending</option>
-                <option value="interview_scheduled" @selected(request('status') === 'interview_scheduled')>Interview Scheduled</option>
                 <option value="accepted" @selected(request('status') === 'accepted')>Accepted</option>
                 <option value="rejected" @selected(request('status') === 'rejected')>Rejected</option>
                 <option value="completed" @selected(request('status') === 'completed')>Completed</option>

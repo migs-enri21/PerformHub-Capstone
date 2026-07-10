@@ -20,10 +20,10 @@
         ->all();
 
     $pendingMap = $bookingCalendar
-        ->whereIn('status', ['pending', 'interview_scheduled'])
+        ->where('status', 'pending')
         ->mapWithKeys(fn ($booking) => [
             $booking->event_date->format('Y-m-d') => [
-                'label' => $booking->status === 'interview_scheduled' ? 'Interview' : 'Pending',
+                'label' => 'Pending',
                 'event_name' => $booking->event_name,
             ],
         ])
@@ -80,9 +80,9 @@
     </div>
 
     @if($editable)
-        <p class="text-muted small mt-3 mb-0">All dates are <strong>available by default</strong>. <span class="text-warning">Yellow</span> dates are pending interviews or waiting for an organizer update.</p>
+        <p class="text-muted small mt-3 mb-0">All dates are <strong>available by default</strong>. <span class="text-warning">Yellow</span> dates are pending booking requests waiting for your response.</p>
     @else
-        <p class="text-muted small mt-3 mb-0">Green dates are open for bookings. Yellow means pending interview or awaiting organizer response.</p>
+        <p class="text-muted small mt-3 mb-0">Green dates are open for bookings. Yellow means a pending request awaiting organizer response.</p>
     @endif
 </div>
 

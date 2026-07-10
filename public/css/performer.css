@@ -1,14 +1,16 @@
 /**
- * PerformHub ù Performer module
+ * PerformHub ? Performer module
  * Owner: Performer teammate
  * Profile, portfolio, availability, social media
  */
 
 /* Performer profile header */
+/* Profile card wrapper */
 .performer-profile-card {
     overflow: hidden;
 }
 
+/* Cover banner background */
 .performer-profile-banner {
     position: relative;
     height: 180px;
@@ -17,6 +19,7 @@
     background-position: center;
 }
 
+/* Banner edit button */
 .performer-profile-banner-edit {
     position: absolute;
     top: 1rem;
@@ -34,10 +37,12 @@
     border-color: var(--ph-purple);
 }
 
+/* Profile content padding */
 .performer-profile-body {
     padding: 0 1.5rem 1.5rem;
 }
 
+/* Avatar photo wrapper */
 .performer-profile-avatar-wrap {
     position: relative;
     margin-top: -3.5rem;
@@ -45,6 +50,7 @@
     height: 120px;
 }
 
+/* Profile photo image */
 .performer-profile-avatar {
     width: 120px;
     height: 120px;
@@ -57,6 +63,7 @@
     pointer-events: none;
 }
 
+/* Avatar edit button */
 .performer-profile-avatar-edit {
     position: absolute;
     right: 0;
@@ -78,26 +85,31 @@
     color: #fff;
 }
 
+/* Performer name text */
 .performer-profile-name {
     font-size: 1.75rem;
 }
 
+/* Category/genre subtitle */
 .performer-profile-subtitle {
     font-size: 0.95rem;
 }
 
+/* Bio paragraph text */
 .performer-profile-bio {
     color: var(--ph-text-muted);
     line-height: 1.6;
     max-width: 720px;
 }
 
+/* Tags row layout */
 .performer-profile-tags {
     display: flex;
     flex-wrap: wrap;
     gap: 0.5rem;
 }
 
+/* Genre/category tag pill */
 .profile-tag {
     display: inline-block;
     padding: 0.35rem 0.85rem;
@@ -108,6 +120,7 @@
     font-weight: 500;
 }
 
+/* Verified badge pill */
 .profile-verified-pill {
     display: inline-flex;
     align-items: center;
@@ -120,6 +133,7 @@
     font-weight: 600;
 }
 
+/* Star rating pill */
 .profile-rating-pill {
     display: inline-flex;
     align-items: center;
@@ -132,17 +146,20 @@
     font-weight: 600;
 }
 
+/* Banner upload preview */
 .performer-banner-preview {
     height: 120px;
     object-fit: cover;
     pointer-events: none;
 }
 
+/* Empty banner placeholder */
 .performer-banner-preview--empty {
     background: linear-gradient(135deg, #6346ff 0%, #4f35d4 100%);
 }
 
 /* Social media stats & embeds */
+/* Social platform stat card */
 .social-stat-card {
     display: flex;
     align-items: center;
@@ -162,6 +179,7 @@
     transform: translateY(-1px);
 }
 
+/* Platform icon circle */
 .social-stat-icon {
     width: 44px;
     height: 44px;
@@ -173,29 +191,34 @@
     flex-shrink: 0;
 }
 
+/* Per-platform icon colors */
 .social-stat-card--facebook .social-stat-icon { background: rgba(24, 119, 242, 0.15); color: #1877f2; }
 .social-stat-card--instagram .social-stat-icon { background: rgba(225, 48, 108, 0.15); color: #e1306c; }
 .social-stat-card--youtube .social-stat-icon { background: rgba(255, 0, 0, 0.15); color: #ff4444; }
 .social-stat-card--tiktok .social-stat-icon { background: rgba(255, 255, 255, 0.08); color: #fff; }
 .social-stat-card--twitter .social-stat-icon { background: rgba(29, 161, 242, 0.15); color: #1da1f2; }
 
+/* Stat text wrapper */
 .social-stat-body {
     display: flex;
     flex-direction: column;
     min-width: 0;
 }
 
+/* Follower count number */
 .social-stat-count {
     font-size: 1.35rem;
     font-weight: 700;
     line-height: 1.2;
 }
 
+/* Empty count state */
 .social-stat-count--empty {
     color: var(--ph-text-muted);
     font-weight: 500;
 }
 
+/* Stat label text */
 .social-stat-metric,
 .social-stat-platform {
     font-size: 0.8rem;
@@ -203,11 +226,13 @@
     line-height: 1.3;
 }
 
+/* Social link edit row */
 .social-edit-row {
     background: var(--ph-bg-input);
     border: 1px solid var(--ph-border);
 }
 
+/* Metric unit suffix */
 .social-metric-suffix {
     background: var(--ph-bg-card);
     border-color: var(--ph-border);
@@ -216,6 +241,7 @@
 }
 
 /* Availability calendar */
+/* Calendar grid layout */
 .availability-calendar-weekdays,
 .availability-calendar-grid {
     display: grid;
@@ -223,6 +249,7 @@
     gap: 0.5rem;
 }
 
+/* Weekday header label */
 .availability-calendar-weekdays span {
     text-align: center;
     font-size: 0.75rem;
@@ -231,6 +258,7 @@
     padding: 0.35rem 0;
 }
 
+/* Calendar day cell */
 .av-day {
     min-height: 72px;
     border: 1px solid var(--ph-border);
@@ -245,14 +273,17 @@
     transition: border-color 0.15s ease, background 0.15s ease;
 }
 
+/* Clickable day cursor */
 button.av-day:not(:disabled) {
     cursor: pointer;
 }
 
+/* Day hover highlight */
 button.av-day:not(:disabled):hover {
     border-color: var(--ph-purple);
 }
 
+/* Empty padding cell */
 .av-day--empty {
     border: none;
     background: transparent;
@@ -260,61 +291,73 @@ button.av-day:not(:disabled):hover {
     padding: 0;
 }
 
+/* Past day dimming */
 .av-day--past {
     opacity: 0.45;
 }
 
+/* Today outline highlight */
 .av-day--today {
     box-shadow: inset 0 0 0 2px var(--ph-purple);
 }
 
+/* Available day (green) */
 .av-day--available {
     background: rgba(34, 197, 94, 0.12);
     border-color: rgba(34, 197, 94, 0.35);
 }
 
+/* Default available shade */
 .av-day--default {
     background: rgba(34, 197, 94, 0.06);
 }
 
+/* Day off / blocked */
 .av-day--blocked {
     background: rgba(139, 147, 167, 0.12);
     border-color: rgba(139, 147, 167, 0.35);
 }
 
+/* Booked event (red) */
 .av-day--booked {
     background: rgba(239, 68, 68, 0.12);
     border-color: rgba(239, 68, 68, 0.4);
 }
 
+/* Pending booking (yellow) */
 .av-day--pending {
     background: rgba(234, 179, 8, 0.14);
     border-color: rgba(234, 179, 8, 0.45);
 }
 
+/* Google Calendar busy */
 .av-day--google-busy {
     background: rgba(156, 163, 175, 0.18);
     border-color: rgba(156, 163, 175, 0.45);
 }
 
+/* Day number text */
 .av-day-number {
     font-weight: 700;
     font-size: 0.95rem;
     line-height: 1;
 }
 
+/* Time range text */
 .av-day-time {
     font-size: 0.65rem;
     color: var(--ph-text-muted);
     line-height: 1.2;
 }
 
+/* Booked event name */
 .av-day-event {
     font-size: 0.62rem;
     color: #fca5a5;
     line-height: 1.2;
 }
 
+/* Pending status label */
 .av-day-pending-label {
     font-size: 0.62rem;
     color: #fbbf24;
@@ -322,6 +365,7 @@ button.av-day:not(:disabled):hover {
     line-height: 1.2;
 }
 
+/* Google busy label */
 .av-day-google-label {
     font-size: 0.62rem;
     color: #d1d5db;
@@ -329,6 +373,7 @@ button.av-day:not(:disabled):hover {
     line-height: 1.2;
 }
 
+/* Calendar legend row */
 .availability-calendar-legend {
     display: flex;
     flex-wrap: wrap;
@@ -337,12 +382,14 @@ button.av-day:not(:disabled):hover {
     color: var(--ph-text-muted);
 }
 
+/* Legend item wrapper */
 .availability-calendar-legend span {
     display: inline-flex;
     align-items: center;
     gap: 0.4rem;
 }
 
+/* Legend color dot */
 .av-legend-dot {
     width: 10px;
     height: 10px;
@@ -350,27 +397,33 @@ button.av-day:not(:disabled):hover {
     display: inline-block;
 }
 
+/* Available legend color */
 .av-legend-dot--available {
     background: #22c55e;
 }
 
+/* Booked legend color */
 .av-legend-dot--booked {
     background: #ef4444;
 }
 
+/* Pending legend color */
 .av-legend-dot--pending {
     background: #eab308;
 }
 
+/* Google busy legend color */
 .av-legend-dot--google {
     background: #9ca3af;
 }
 
+/* Unset day legend color */
 .av-legend-dot--unset {
     background: var(--ph-bg-input);
     border: 1px solid var(--ph-border);
 }
 
+/* Mobile calendar sizing */
 @media (max-width: 767px) {
     .av-day {
         min-height: 56px;
@@ -386,6 +439,7 @@ button.av-day:not(:disabled):hover {
     }
 }
 
+/* Availability mode option (radio) */
 .av-status-option {
     display: flex;
     align-items: flex-start;
@@ -398,31 +452,37 @@ button.av-day:not(:disabled):hover {
     margin: 0;
 }
 
+/* Selected option highlight */
 .av-status-option:has(input:checked) {
     border-color: var(--ph-purple);
     background: rgba(99, 70, 255, 0.08);
 }
 
+/* Radio input styling */
 .av-status-option input {
     margin-top: 0.2rem;
     accent-color: var(--ph-purple);
 }
 
+/* Option label text */
 .av-status-option span {
     font-size: 0.9rem;
     color: var(--ph-text-muted);
 }
 
+/* Option title text */
 .av-status-option span strong {
     color: var(--ph-text);
 }
 
 /* Portfolio upload collage preview */
+/* Upload dropzone container */
 .portfolio-upload-zone {
     position: relative;
     max-width: 500px;
 }
 
+/* Portfolio feed list */
 .portfolio-feed-list {
     display: flex;
     flex-direction: column;
@@ -430,6 +490,7 @@ button.av-day:not(:disabled):hover {
     gap: 1rem;
 }
 
+/* Feed stream layout */
 .portfolio-feed-stream {
     display: flex;
     flex-direction: column;
@@ -438,33 +499,40 @@ button.av-day:not(:disabled):hover {
     width: 100%;
 }
 
+/* Single feed post card */
 .portfolio-feed-post {
     width: 100%;
     max-width: 500px;
 }
 
+/* Post header divider */
 .portfolio-feed-post-header {
     border-bottom: 1px solid var(--ph-border);
 }
 
+/* Poster's avatar photo */
 .portfolio-feed-avatar {
     object-fit: cover;
     border: 2px solid var(--ph-purple);
     pointer-events: none;
 }
 
+/* Post actions divider */
 .portfolio-feed-post-actions {
     border-top: 1px solid var(--ph-border);
 }
 
+/* Feed card width */
 .portfolio-feed-card {
     width: 100%;
 }
 
+/* Collage container width */
 .portfolio-feed-collage {
     width: 100%;
 }
 
+/* Collage grid base */
 .portfolio-preview-collage {
     display: grid;
     gap: 3px;
@@ -475,63 +543,75 @@ button.av-day:not(:disabled):hover {
     min-height: 0;
 }
 
+/* Single item layout */
 .portfolio-collage--1 {
     grid-template-columns: 1fr;
 }
 
+/* Single item tile size */
 .portfolio-collage--1 .portfolio-collage-tile {
     aspect-ratio: 4 / 3;
     max-height: 375px;
     min-height: 0;
 }
 
+/* Two item layout */
 .portfolio-collage--2 {
     grid-template-columns: 1fr 1fr;
 }
 
+/* Two item tile size */
 .portfolio-collage--2 .portfolio-collage-tile {
     aspect-ratio: 1;
     max-height: 240px;
     min-height: 0;
 }
 
+/* Three item layout */
 .portfolio-collage--3 {
     grid-template-columns: 1fr 1fr;
     grid-template-rows: 1fr 1fr;
 }
 
+/* Three item tile size */
 .portfolio-collage--3 .portfolio-collage-tile {
     min-height: 0;
     max-height: 180px;
 }
 
+/* First tile spans rows */
 .portfolio-collage--3 .portfolio-collage-tile:first-child {
     grid-row: span 2;
     max-height: 363px;
 }
 
+/* Four item layout */
 .portfolio-collage--4 {
     grid-template-columns: 1fr 1fr;
     grid-template-rows: 1fr 1fr;
 }
 
+/* Four item tile size */
 .portfolio-collage--4 .portfolio-collage-tile {
     aspect-ratio: 1;
     max-height: 180px;
     min-height: 0;
 }
 
+/* Five-plus item layout */
 .portfolio-collage--many {
     grid-template-columns: 1fr 1fr;
     grid-template-rows: 1fr 1fr;
 }
 
+/* Five-plus item tile */
 .portfolio-collage--many .portfolio-collage-tile {
     aspect-ratio: 1;
     max-height: 180px;
     min-height: 0;
 }
 
+/* Hidden file input */
 .portfolio-file-input {
     position: absolute;
     width: 1px;
@@ -543,6 +623,7 @@ button.av-day:not(:disabled):hover {
     border: 0;
 }
 
+/* Upload trigger dropzone */
 .portfolio-upload-trigger {
     display: flex;
     flex-direction: column;
@@ -566,6 +647,7 @@ button.av-day:not(:disabled):hover {
     color: var(--ph-text);
 }
 
+/* Collage image/video tile */
 .portfolio-collage-tile {
     position: relative;
     overflow: hidden;
@@ -573,6 +655,7 @@ button.av-day:not(:disabled):hover {
     background: #000;
 }
 
+/* Tile media sizing */
 .portfolio-collage-tile img,
 .portfolio-collage-tile video {
     width: 100%;
@@ -581,26 +664,31 @@ button.av-day:not(:disabled):hover {
     display: block;
 }
 
+/* Hide extra tiles (5+) */
 .portfolio-collage--many .portfolio-collage-tile:nth-child(n+5) {
     display: none;
 }
 
+/* Clickable collage cursor */
 .portfolio-feed-collage[role="button"] {
     cursor: pointer;
 }
 
+/* Gallery modal grid */
 .portfolio-gallery-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
     gap: 0.5rem;
 }
 
+/* Gallery modal item */
 .portfolio-gallery-item {
     border-radius: 8px;
     overflow: hidden;
     background: #000;
 }
 
+/* Gallery media sizing */
 .portfolio-gallery-item img,
 .portfolio-gallery-item video {
     width: 100%;
@@ -611,10 +699,12 @@ button.av-day:not(:disabled):hover {
     background: #000;
 }
 
+/* Feed footer divider */
 .portfolio-feed-footer {
     border-top: 1px solid var(--ph-border);
 }
 
+/* "+N more" overlay badge */
 .portfolio-collage-badge {
     position: absolute;
     left: 0.5rem;
@@ -627,6 +717,7 @@ button.av-day:not(:disabled):hover {
     font-weight: 600;
 }
 
+/* "+N more" dark overlay */
 .portfolio-collage-more {
     position: absolute;
     inset: 0;
@@ -640,6 +731,7 @@ button.av-day:not(:disabled):hover {
     pointer-events: none;
 }
 
+/* Remove photo button */
 .portfolio-collage-remove {
     position: absolute;
     top: 0.45rem;
@@ -662,6 +754,7 @@ button.av-day:not(:disabled):hover {
     background: rgba(239, 68, 68, 0.9);
 }
 
+/* Add more photos button */
 .portfolio-collage-add {
     display: flex;
     flex-direction: column;

@@ -16,7 +16,7 @@ class DashboardController extends Controller
         $profile = $user->performerProfile;
         $pendingBookings = Booking::where('performer_id', $user->id)->where('status', 'pending')->count();
         $upcomingBookings = Booking::where('performer_id', $user->id)
-            ->whereIn('status', ['accepted', 'interview_scheduled'])
+            ->where('status', 'accepted')
             ->count();
         $reviews = Review::where('reviewee_id', $user->id)->with('reviewer')->latest()->limit(5)->get();
 

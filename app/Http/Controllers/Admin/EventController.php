@@ -58,7 +58,7 @@ class EventController extends Controller
             'notes' => ['nullable', 'string', 'max:1000'],
             'organizer_id' => ['required', 'exists:users,id'],
             'performer_id' => ['required', 'exists:users,id'],
-            'status' => ['nullable', 'in:pending,interview_scheduled,accepted,rejected,completed'],
+            'status' => ['nullable', 'in:pending,accepted,rejected,completed'],
         ]);
 
         Booking::create([
@@ -71,7 +71,7 @@ class EventController extends Controller
 
     public function show(Booking $booking): View
     {
-        $booking->load(['organizer', 'performer', 'interview']);
+        $booking->load(['organizer', 'performer']);
 
         return view('admin.events.show', compact('booking'));
     }

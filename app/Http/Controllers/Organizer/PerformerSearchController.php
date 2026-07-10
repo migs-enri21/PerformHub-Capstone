@@ -50,7 +50,7 @@ class PerformerSearchController extends Controller
                 $availabilityQuery
                     ->whereDoesntHave('bookings', fn ($booking) => $booking
                         ->whereDate('event_date', $date)
-                        ->whereIn('status', ['pending', 'interview_scheduled', 'accepted', 'completed']))
+                        ->whereIn('status', ['pending', 'accepted', 'completed']))
                     ->where(function ($scheduleQuery) use ($date) {
                         $scheduleQuery
                             ->whereDoesntHave('availabilitySchedules', fn ($schedule) => $schedule->whereDate('date', $date))

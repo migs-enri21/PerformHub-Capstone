@@ -101,10 +101,10 @@
     <div class="container py-4">
         <div class="text-center mb-5">
             <h2 class="fw-bold">How PerformHub Works</h2>
-            <p class="text-muted">Book talent in four simple steps</p>
+            <p class="text-muted">Book talent in three simple steps</p>
         </div>
         <div class="row g-4">
-            @foreach([['icon'=>'fa-search','title'=>'Discover','desc'=>'Search and filter performers by category, genre, and availability.'],['icon'=>'fa-paper-plane','title'=>'Request','desc'=>'Send booking requests with event details and requirements.'],['icon'=>'fa-video','title'=>'Interview','desc'=>'Schedule online auditions via integrated Jitsi Meet rooms.'],['icon'=>'fa-check-circle','title'=>'Book','desc'=>'Accept bookings, manage contracts, and complete events.']] as $step)
+            @foreach([['icon'=>'fa-search','title'=>'Discover','desc'=>'Search and filter performers by category, genre, and availability.'],['icon'=>'fa-paper-plane','title'=>'Request','desc'=>'Send booking requests with event details and requirements.'],['icon'=>'fa-check-circle','title'=>'Book','desc'=>'Accept bookings, manage contracts, and complete events.']] as $step)
                 <div class="col-md-6 col-lg-3">
                     <div class="ph-card p-4 text-center h-100">
                         <div class="category-icon"><i class="fas {{ $step['icon'] }}"></i></div>
@@ -124,7 +124,7 @@
             <p class="text-muted">What our community says</p>
         </div>
         <div class="row g-4">
-            @foreach([['name'=>'Maria Santos','role'=>'Event Organizer','text'=>'PerformHub made finding the perfect band for our corporate event incredibly easy.'],['name'=>'Juan Dela Cruz','role'=>'Musician','text'=>'I\'ve booked more gigs in 3 months than I did all last year. The platform is a game changer.'],['name'=>'Ana Reyes','role'=>'Wedding Planner','text'=>'The interview feature lets me audition performers before committing. Highly recommended!']] as $t)
+            @foreach([['name'=>'Maria Santos','role'=>'Event Organizer','text'=>'PerformHub made finding the perfect band for our corporate event incredibly easy.'],['name'=>'Juan Dela Cruz','role'=>'Musician','text'=>'I\'ve booked more gigs in 3 months than I did all last year. The platform is a game changer.'],['name'=>'Ana Reyes','role'=>'Wedding Planner','text'=>'Managing contracts and bookings in one place saved me so much back-and-forth. Highly recommended!']] as $t)
                 <div class="col-md-4">
                     <div class="testimonial-card h-100">
                         <div class="text-warning mb-2"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div>
@@ -144,7 +144,7 @@
             <h2 class="fw-bold">Why Choose PerformHub</h2>
         </div>
         <div class="row g-4">
-            @foreach([['icon'=>'fa-shield-halved','title'=>'Verified Performers','desc'=>'Admin-verified profiles with badge system.'],['icon'=>'fa-calendar-check','title'=>'Smart Scheduling','desc'=>'Availability calendars and interview booking.'],['icon'=>'fa-file-contract','title'=>'Contract Management','desc'=>'Upload and confirm contracts digitally.'],['icon'=>'fa-comments','title'=>'Direct Messaging','desc'=>'Communicate with organizers and performers.']] as $f)
+            @foreach([['icon'=>'fa-shield-halved','title'=>'Verified Performers','desc'=>'Admin-verified profiles with badge system.'],['icon'=>'fa-calendar-check','title'=>'Smart Scheduling','desc'=>'Availability calendars synced with Google Calendar.'],['icon'=>'fa-file-contract','title'=>'Contract Management','desc'=>'Upload and confirm contracts digitally.']] as $f)
                 <div class="col-md-6 col-lg-3">
                     <div class="ph-card p-4 h-100">
                         <i class="fas {{ $f['icon'] }} text-primary fs-4 mb-3"></i>

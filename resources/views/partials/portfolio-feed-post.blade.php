@@ -50,12 +50,6 @@
                     </a>
                 @endif
             @endif
-
-            @if(! $isOwn && auth()->id() !== $performer->user_id)
-                <a href="{{ route('messages.show', $performer->user) }}" class="btn btn-sm ph-btn-outline">
-                    <i class="fas fa-envelope me-1"></i> Message
-                </a>
-            @endif
         </div>
     @endunless
 </article>

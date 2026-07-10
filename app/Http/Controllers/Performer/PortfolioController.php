@@ -57,8 +57,8 @@ class PortfolioController extends Controller
             : "{$uploaded} portfolio items uploaded.";
 
         return redirect()
-            ->route('performer.dashboard')
-            ->with('success', $message.' Your post is now on the community feed.');
+            ->route('performer.portfolio.index')
+            ->with('success', $message);
     }
 
     public function destroy(Portfolio $portfolio): RedirectResponse

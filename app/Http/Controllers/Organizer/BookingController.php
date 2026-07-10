@@ -17,7 +17,7 @@ class BookingController extends Controller
     public function index(): View
     {
         $bookings = Booking::where('organizer_id', Auth::id())
-            ->with(['performer.performerProfile', 'interview'])
+            ->with('performer.performerProfile')
             ->latest()
             ->paginate(10);
 
@@ -63,7 +63,7 @@ class BookingController extends Controller
     public function show(Booking $booking): View
     {
         abort_unless($booking->organizer_id === Auth::id(), 403);
-        $booking->load(['performer.performerProfile', 'interview']);
+        $booking->load('performer.performerProfile');
 
         return view('organizer.bookings.show', compact('booking'));
     }
