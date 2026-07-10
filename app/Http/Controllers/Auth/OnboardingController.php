@@ -12,8 +12,8 @@ use App\Support\PhilippineLocations;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
+use App\Services\SupabaseStorageService;
 
 class OnboardingController extends Controller
 {
@@ -231,19 +231,22 @@ class OnboardingController extends Controller
     }
 
     private function storeDocument(User $user, string $type, \Illuminate\Http\UploadedFile $file): void
-    {
-        $existing = $user->verificationDocuments()->where('document_type', $type)->first();
+{
+    $existing = $user->verificationDocuments()->where('document_type', $type)->first();
 
-        if ($existing) {
-            Storage::disk('public')->delete($existing->file_path);
-            $existing->delete();
-        }
+    if ($existing) {$existing->delete();}
 
-        VerificationDocument::create([
-            'user_id' => $user->id,
-            'document_type' => $type,
-            'file_path' => $file->store('verification', 'public'),
-            'original_name' => $file->getClientOriginalName(),
-        ]);
+    $supabase = new SupabaseStorageService();
+
+    $bucket = $user->isPerformer()? 'performer-files': 'organizer-files';
+
+    $path = $supabase->upload($file,$bucket,$type,$user->id);
+
+    VerificationDocument::create([
+        'user_id' => $user->id,
+        'document_type' => $type,
+        'file_path' => $path,
+        'original_name' => $file->getClientOriginalName(),
+    ]);
     }
 }
