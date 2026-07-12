@@ -84,9 +84,15 @@ Route::middleware(['auth', 'role:organizer'])->prefix('organizer')->name('organi
     Route::get('/performers/{performer}', [PerformerSearchController::class, 'show'])->name('performers.show');
     Route::get('/bookings', [OrganizerBookingController::class, 'index'])->name('bookings.index');
     Route::get('/bookings/{booking}', [OrganizerBookingController::class, 'show'])->name('bookings.show');
+    Route::get('/events', [OrganizerEventController::class, 'index'])->name('events.index');
     Route::get('/events/create', [OrganizerEventController::class, 'create'])->name('events.create');
     Route::post('/events', [OrganizerEventController::class, 'store'])->name('events.store');
+    Route::get('/events/{event}', [OrganizerEventController::class, 'show'])->name('events.show');
+    Route::get('/events/{event}/edit', [OrganizerEventController::class, 'edit'])->name('events.edit');
+    Route::put('/events/{event}', [OrganizerEventController::class, 'update'])->name('events.update');
+    Route::delete('/events/{event}', [OrganizerEventController::class, 'destroy'])->name('events.destroy');
     Route::get('/history', [EventHistoryController::class, 'index'])->name('history.index');
+
     Route::middleware('full.access')->group(function () {
         Route::get('/bookings/create/{performer}', [OrganizerBookingController::class, 'create'])->name('bookings.create');
         Route::post('/bookings/{performer}', [OrganizerBookingController::class, 'store'])->name('bookings.store');

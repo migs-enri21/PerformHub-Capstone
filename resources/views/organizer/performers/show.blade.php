@@ -19,7 +19,10 @@
                     <i class="fas fa-lock me-1"></i> Complete sign-up to book
                 </a>
             @else
-                <a href="{{ route('organizer.bookings.create', $performer) }}" class="btn ph-btn-primary w-100 mb-2">Send Booking Request</a>
+                <a href="{{ route('organizer.bookings.create', [
+                    'performer' => $performer,
+                    'event' => request('event')
+                ]) }}" class="btn ph-btn-primary w-100 mb-2">Send Booking Request</a>
             @endif
         </div>
     </div>

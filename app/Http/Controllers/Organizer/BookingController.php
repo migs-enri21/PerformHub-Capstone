@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Organizer;
 use App\Http\Controllers\Controller;
 use App\Models\Booking;
 use App\Models\Notification;
+use App\Models\Event;
 use App\Models\PerformerProfile;
 use App\Services\SupabaseStorageService;
 use Illuminate\Http\RedirectResponse;
@@ -26,7 +27,9 @@ class BookingController extends Controller
 
     public function create(PerformerProfile $performer): View
     {
-        return view('organizer.bookings.create', compact('performer'));
+        $events = Event::where('organizer_id', Auth::id())->latest()->get();
+
+        return view('organizer.bookings.create', compact('performer', 'events'));
     }
 
     public function store(Request $request, PerformerProfile $performer): RedirectResponse

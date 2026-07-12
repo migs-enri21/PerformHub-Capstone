@@ -2,14 +2,78 @@
 
 namespace App\Http\Controllers\Organizer;
 
-use App\Models\Category;
 use App\Http\Controllers\Controller;
+use App\Models\Event;
+use App\Models\EventType;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class EventController extends Controller
 {
+    public function index()
+    {
+    $events = Event::where('organizer_id', Auth::id())->latest()->get();
+    
+    return view('organizer.events.index', compact('events'));
+    }
+
     public function create()
     {
-        $categories = Category::all();
-        return view('organizer.events.create', compact('categories'));
+        $eventTypes = EventType::where('is_active', true)->orderBy('name')->get();
+
+        return view('organizer.events.create', compact('eventTypes'));
+    }
+
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+        'event_type_id' => ['required', 'exists:event_types,id'],
+        'title' => ['required', 'string', 'max:255'],
+        'description' => ['nullable', 'string'],
+        'event_date' => ['required', 'date'],
+        'start_time' => ['required'],
+        'end_time' => ['nullable'],
+        'venue' => ['required', 'string', 'max:255'],
+        'budget' => ['nullable', 'numeric'],
+        'performers_needed' => ['required', 'integer', 'min:1'],
+        ]);
+
+        Event::create([
+        'organizer_id' => Auth::id(),
+        'event_type_id' => $validated['event_type_id'],
+        'title' => $validated['title'],
+        'description' => $validated['description'],
+        'event_date' => $validated['event_date'],
+        'start_time' => $validated['start_time'],
+        'end_time' => null,
+        'venue' => $validated['venue'],
+        'budget' => $validated['budget'],
+        'performers_needed' => $validated['performers_needed'],
+        'status' => 'Draft',
+        ]);
+
+        return redirect()
+        ->route('organizer.dashboard')
+        ->with('success', 'Event created successfully.');
+    }
+
+    public function show(Event $event)
+    {
+
+    }
+
+    public function edit(Event $event)
+    {
+
+    }
+
+    public function update(Request $request, Event $event)
+    {
+
+    }
+
+    public function destroy(Event $event)
+    {
+
     }
 }
