@@ -9,6 +9,31 @@
 @section('content')
 <h2 class="fw-bold mb-4">Search Performers</h2>
 
+@if($selectedEvent)
+<div class="alert alert-info mb-4">
+    <strong>Recommended performers for</strong>
+    {{ $selectedEvent->title }}
+
+    <br>
+
+    <small>
+        <strong>Category:</strong>
+        {{ $selectedEvent->eventType->name ?? 'N/A' }}
+    </small>
+
+    <br>
+
+    <small>
+        <strong>Event Date:</strong>
+        {{ \Carbon\Carbon::parse($selectedEvent->event_date)->format('F d, Y') }}
+    </small>
+
+    <br>
+
+    <small class="text-muted">Recommendations are based on the selected event's category and performer availability.</small>
+</div>
+@endif
+
 <div class="ph-card p-4 mb-4">
     <form method="GET" class="row g-3">
         <div class="col-md-3"><input type="text" name="search" class="form-control ph-input" placeholder="Search..." value="{{ request('search') }}"></div>
@@ -39,6 +64,10 @@
                 </div>
                 <p class="text-muted small">{{ Str::limit($p->bio, 80) }}</p>
                 <a href="{{ route('organizer.performers.show', $p) }}" class="btn ph-btn-primary btn-sm">View Profile</a>
+                <a href="{{ route('organizer.bookings.create', $p) }}"
+   class="btn ph-btn-primary btn-sm flex-fill">
+    Send Booking Request
+</a>
             </div>
         </div>
     @empty

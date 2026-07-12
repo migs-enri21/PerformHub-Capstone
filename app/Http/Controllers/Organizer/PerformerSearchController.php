@@ -9,11 +9,34 @@ use App\Models\Review;
 use App\Support\AvailabilityCalendar;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
+use App\Models\Event;
 
 class PerformerSearchController extends Controller
 {
     public function index(Request $request): View
     {
+
+        $selectedEvent = null;
+
+        if ($request->filled('event')) {
+
+        $selectedEvent = Event::find($request->event);
+
+            if ($selectedEvent) {
+
+            $request->merge([
+            'available_date' => $selectedEvent->event_date,
+            ]);
+            }
+        }
+
+        
+        if ($selectedEvent && $selectedEvent->eventType) {
+        $request->merge([
+        'category' => $selectedEvent->eventType->id,
+        ]);
+        }
+
         $query = PerformerProfile::query()
             ->with(['user', 'category'])
             ->whereHas('user', fn ($q) => $q->where('is_active', true));
@@ -65,7 +88,7 @@ class PerformerSearchController extends Controller
         $performers = $query->latest()->paginate(12)->withQueryString();
         $categories = Category::where('is_active', true)->get();
 
-        return view('organizer.performers.index', compact('performers', 'categories'));
+        return view('organizer.performers.index', compact('performers', 'categories', 'selectedEvent'));
     }
 
     public function show(PerformerProfile $performer): View

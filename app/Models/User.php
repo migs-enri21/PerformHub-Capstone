@@ -204,4 +204,9 @@ class User extends Authenticatable
             default => null,
         };
     }
+
+    public function events()
+    {
+        return $this->hasMany(Event::class, 'organizer_id');
+    }
 }
