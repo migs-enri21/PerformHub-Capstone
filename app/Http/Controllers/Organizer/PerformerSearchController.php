@@ -15,7 +15,7 @@ class PerformerSearchController extends Controller
     public function index(Request $request): View
     {
         $query = PerformerProfile::query()
-            ->with(['user', 'category'])
+            ->with(['user', 'categories'])
             ->whereHas('user', fn ($q) => $q->where('is_active', true));
 
         if ($request->filled('search')) {
@@ -28,7 +28,7 @@ class PerformerSearchController extends Controller
         }
 
         if ($request->filled('category_id')) {
-            $query->where('category_id', $request->category_id);
+            $query->whereHas('categories', fn ($q) => $q->where('categories.id', $request->category_id));
         }
 
         if ($request->filled('genre')) {
@@ -71,7 +71,7 @@ class PerformerSearchController extends Controller
     public function show(PerformerProfile $performer): View
     {
         $performer = AvailabilityCalendar::loadCalendarRelations(
-            $performer->load(['user', 'category', 'portfolios'])
+            $performer->load(['user', 'categories', 'portfolios'])
         );
         $calendar = AvailabilityCalendar::calendarData($performer);
         $reviews = Review::where('reviewee_id', $performer->user_id)->with('reviewer')->latest()->get();

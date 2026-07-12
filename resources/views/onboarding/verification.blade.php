@@ -89,7 +89,7 @@
             'title' => 'Performance Sample',
             'required' => false,
             'desc' => 'Photo, video, or portfolio sample showcasing your talent.',
-            'formats' => '.jpg .png .pdf .mp4 — max 50 MB',
+            'formats' => '.jpg .png .pdf .mp4 — max 500 MB',
             'icon' => 'fa-video',
         ])
     @endif

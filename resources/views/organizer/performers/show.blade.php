@@ -10,9 +10,9 @@
 <div class="row g-4">
     <div class="col-lg-4">
         <div class="ph-card p-4 text-center">
-            <img src="{{ $performer->profile_photo ? asset('storage/'.$performer->profile_photo) : 'https://ui-avatars.com/api/?name='.urlencode($performer->stage_name).'&background=6346ff&color=fff&size=128' }}" class="rounded-circle mb-3" width="128" height="128" style="object-fit:cover;">
+            <img src="{{ $performer->profilePhotoUrl() ?? 'https://ui-avatars.com/api/?name='.urlencode($performer->stage_name).'&background=6346ff&color=fff&size=128' }}" class="rounded-circle mb-3" width="128" height="128" style="object-fit:cover;">
             <h4 class="fw-bold">{{ $performer->stage_name }} @if($performer->is_verified_badge)<i class="fas fa-circle-check verified-badge"></i>@endif</h4>
-            <p class="text-muted">{{ $performer->category?->name }} · {{ $performer->genre }}</p>
+            <p class="text-muted">{{ $performer->categoryNames() }} · {{ $performer->genre }}</p>
             @if($performer->rate)<p class="fw-semibold">₱{{ number_format($performer->rate, 2) }}/event</p>@endif
             @if(auth()->user()->hasLimitedAccess())
                 <a href="{{ auth()->user()->onboardingRoute() }}" class="btn ph-btn-primary w-100 mb-2">

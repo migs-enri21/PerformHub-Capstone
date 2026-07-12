@@ -48,7 +48,7 @@
                         @endif
                     </div>
 
-                    <a href="{{ asset('storage/'.$booking->contract_path) }}" target="_blank" class="btn ph-btn-outline btn-sm mb-3">
+                    <a href="{{ $booking->contractUrl() }}" target="_blank" class="btn ph-btn-outline btn-sm mb-3">
                         <i class="fas fa-file-pdf me-1"></i> Review Contract
                     </a>
 
@@ -75,7 +75,7 @@
                 <form method="POST" action="{{ route('performer.bookings.reject', $booking) }}">@csrf<button class="btn btn-outline-danger w-100">Reject</button></form>
             @endif
             @if($booking->needsContractReview())
-                <a href="{{ asset('storage/'.$booking->contract_path) }}" target="_blank" class="btn ph-btn-primary w-100 mb-2">
+                <a href="{{ $booking->contractUrl() }}" target="_blank" class="btn ph-btn-primary w-100 mb-2">
                     <i class="fas fa-file-signature me-1"></i> Review Contract
                 </a>
             @endif

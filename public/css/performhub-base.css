@@ -112,6 +112,46 @@ a:hover { color: var(--ph-purple-hover); }
     color: var(--ph-text);
 }
 
+/* Dark-theme Bootstrap modals site-wide (default Bootstrap modals are white) */
+.modal-content {
+    background: var(--ph-bg-card);
+    border: 1px solid var(--ph-border);
+    color: var(--ph-text);
+}
+
+.modal-header,
+.modal-footer {
+    border-color: var(--ph-border);
+}
+
+.modal-title {
+    color: var(--ph-text);
+}
+
+.modal-backdrop.show {
+    opacity: 0.7;
+}
+
+.btn-close {
+    filter: invert(1) grayscale(100%) brightness(200%);
+}
+
+/* Native file input inside dark modals/forms */
+input[type="file"].ph-input::file-selector-button {
+    background: var(--ph-bg-card);
+    border: 1px solid var(--ph-border);
+    color: var(--ph-text);
+    border-radius: 8px;
+    padding: 0.4rem 0.9rem;
+    margin-right: 0.75rem;
+    cursor: pointer;
+}
+input[type="file"].ph-input::file-selector-button:hover {
+    background: var(--ph-purple);
+    border-color: var(--ph-purple);
+    color: #fff;
+}
+
 .profile-photo-card {
     display: flex;
     align-items: center;

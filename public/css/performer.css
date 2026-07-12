@@ -146,16 +146,52 @@
     font-weight: 600;
 }
 
-/* Banner upload preview */
-.performer-banner-preview {
-    height: 120px;
-    object-fit: cover;
-    pointer-events: none;
+/* Draggable banner reposition control */
+.banner-reposition {
+    position: relative;
+    height: 140px;
+    background-size: cover;
+    background-repeat: no-repeat;
+    cursor: grab;
+    user-select: none;
+    touch-action: none;
+    overflow: hidden;
 }
 
-/* Empty banner placeholder */
-.performer-banner-preview--empty {
+/* Grabbing state while dragging */
+.banner-reposition:active {
+    cursor: grabbing;
+}
+
+/* No banner uploaded yet */
+.banner-reposition--empty {
     background: linear-gradient(135deg, #6346ff 0%, #4f35d4 100%);
+    cursor: default;
+}
+
+/* Empty-state label */
+.banner-reposition-placeholder {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(255, 255, 255, 0.75);
+    font-size: 0.85rem;
+}
+
+/* Floating "drag to reposition" hint */
+.banner-reposition-hint {
+    position: absolute;
+    bottom: 0.5rem;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(11, 14, 20, 0.75);
+    color: #fff;
+    font-size: 0.7rem;
+    padding: 0.25rem 0.65rem;
+    border-radius: 999px;
+    pointer-events: none;
 }
 
 /* Social media stats & embeds */
@@ -754,6 +790,64 @@ button.av-day:not(:disabled):hover {
     background: rgba(239, 68, 68, 0.9);
 }
 
+/* Edit-post modal grid */
+.portfolio-edit-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+    gap: 0.5rem;
+}
+
+/* Edit-post modal tile */
+.portfolio-edit-tile {
+    position: relative;
+    aspect-ratio: 1 / 1;
+    overflow: hidden;
+    border-radius: 8px;
+    background: #000;
+    transition: opacity 0.15s ease;
+}
+
+/* Edit tile media sizing */
+.portfolio-edit-tile img,
+.portfolio-edit-tile video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+/* Tile marked for removal */
+.portfolio-edit-tile--removed {
+    opacity: 0.35;
+}
+
+/* Remove/undo button on edit tile */
+.portfolio-edit-tile-remove {
+    position: absolute;
+    top: 0.35rem;
+    right: 0.35rem;
+    width: 26px;
+    height: 26px;
+    border: none;
+    border-radius: 50%;
+    background: rgba(11, 14, 20, 0.75);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+
+.portfolio-edit-tile-remove:hover {
+    background: rgba(239, 68, 68, 0.9);
+}
+
+.portfolio-edit-tile--removed .portfolio-edit-tile-remove {
+    background: rgba(34, 197, 94, 0.85);
+}
+
 /* Add more photos button */
 .portfolio-collage-add {
     display: flex;
@@ -773,4 +867,35 @@ button.av-day:not(:disabled):hover {
 .portfolio-collage-add:hover {
     border-color: var(--ph-purple);
     color: var(--ph-purple);
+}
+
+/* Multi-select category grid */
+.category-checkbox-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 0.5rem;
+}
+
+/* Single category checkbox pill */
+.category-checkbox-option {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid var(--ph-border);
+    border-radius: 8px;
+    background: var(--ph-bg-input);
+    cursor: pointer;
+    transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+/* Hover state for category pill */
+.category-checkbox-option:hover {
+    border-color: var(--ph-purple);
+}
+
+/* Checked category pill highlight */
+.category-checkbox-option:has(input:checked) {
+    border-color: var(--ph-purple);
+    background: rgba(99, 70, 255, 0.15);
 }

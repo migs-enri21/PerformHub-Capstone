@@ -8,6 +8,11 @@ class PortfolioFeed
 {
     public static function groupKey(object $item): string
     {
+        if (! empty($item->batch_key)) {
+            return $item->performer_profile_id.'|batch|'.$item->batch_key;
+        }
+
+        // Fallback for items uploaded before batch_key existed.
         return $item->performer_profile_id.'|'.($item->caption ?? '__empty__').'|'.$item->created_at->format('Y-m-d H:i');
     }
 

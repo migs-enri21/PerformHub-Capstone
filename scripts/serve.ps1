@@ -17,7 +17,7 @@ try {
     php -d upload_max_filesize=2048M `
         -d post_max_size=2048M `
         -d max_execution_time=600 `
-        -d memory_limit=512M `
+        -d memory_limit=1024M `
         -S "${HostName}:${Port}" `
         $router
 } finally {

@@ -3,11 +3,11 @@
 namespace App\Http\Controllers\Organizer;
 
 use App\Http\Controllers\Controller;
+use App\Services\SupabaseStorageService;
 use App\Support\PhilippineLocations;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 
 class ProfileController extends Controller
@@ -34,10 +34,12 @@ class ProfileController extends Controller
         ], PhilippineLocations::locationFieldsRules(required: false)));
 
         if ($request->hasFile('profile_photo')) {
+            $supabase = new SupabaseStorageService();
+
             if ($profile->profile_photo) {
-                Storage::disk('public')->delete($profile->profile_photo);
+                $supabase->delete('organizer-files', $profile->profile_photo);
             }
-            $validated['profile_photo'] = $request->file('profile_photo')->store('profiles', 'public');
+            $validated['profile_photo'] = $supabase->upload($request->file('profile_photo'), 'organizer-files', 'profile_picture', Auth::id());
         }
 
         Auth::user()->update([

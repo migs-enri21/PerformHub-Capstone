@@ -172,15 +172,15 @@ class User extends Authenticatable
         $name = $this->fullName();
 
         if ($this->isPerformer() && $this->performerProfile) {
-            $photo = $this->performerProfile->profile_photo;
+            $photo = $this->performerProfile->profilePhotoUrl();
             $name = $this->performerProfile->stage_name ?: $name;
         } elseif ($this->isOrganizer() && $this->organizerProfile) {
-            $photo = $this->organizerProfile->profile_photo;
+            $photo = $this->organizerProfile->profilePhotoUrl();
             $name = $this->organizerProfile->organization_name ?: $name;
         }
 
         if ($photo) {
-            return asset('storage/'.$photo);
+            return $photo;
         }
 
         return 'https://ui-avatars.com/api/?name='.urlencode($name).'&background=6346ff&color=fff&size='.$size;

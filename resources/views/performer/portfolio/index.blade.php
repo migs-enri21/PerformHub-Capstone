@@ -27,7 +27,7 @@
             <label for="portfolioFiles" class="portfolio-upload-trigger" id="portfolioUploadTrigger">
                 <i class="fas fa-images fa-2x mb-2"></i>
                 <span class="fw-semibold">Add photos or videos</span>
-                <span class="small text-muted">Click to browse · JPG, PNG, WEBP, GIF, MP4, WEBM · max 2 GB each</span>
+                <span class="small text-muted">Click to browse · JPG, PNG, WEBP, GIF, MP4, WEBM · max 500 MB each</span>
             </label>
             <div class="portfolio-preview-collage d-none" id="portfolioPreviewCollage" aria-live="polite"></div>
             <label for="portfolioFiles" class="portfolio-collage-add d-none" id="portfolioAddMore">

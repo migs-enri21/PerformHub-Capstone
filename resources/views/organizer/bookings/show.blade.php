@@ -28,7 +28,7 @@
                 <p class="text-muted small mb-3">Upload the contract for the performer to review and confirm.</p>
                 @if($booking->hasContract())
                     <div class="d-flex align-items-center gap-2 mb-3 flex-wrap">
-                        <a href="{{ asset('storage/'.$booking->contract_path) }}" target="_blank" class="btn ph-btn-outline btn-sm">View Contract</a>
+                        <a href="{{ $booking->contractUrl() }}" target="_blank" class="btn ph-btn-outline btn-sm">View Contract</a>
                         <span class="badge {{ $booking->contractStatusBadgeClass() }}">{{ $booking->contractStatusLabel() }}</span>
                     </div>
                     @if($booking->performer_confirmed_contract)

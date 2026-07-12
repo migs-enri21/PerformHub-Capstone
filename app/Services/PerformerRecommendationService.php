@@ -11,11 +11,11 @@ class PerformerRecommendationService
     public function recommend(?int $categoryId = null, ?string $location = null, int $limit = 6): Collection
     {
         $query = PerformerProfile::query()
-            ->with(['user', 'category'])
+            ->with(['user', 'categories'])
             ->whereHas('user', fn ($q) => $q->where('is_active', true)->where('is_verified', true));
 
         if ($categoryId) {
-            $query->where('category_id', $categoryId);
+            $query->whereHas('categories', fn ($q) => $q->where('categories.id', $categoryId));
         }
 
         if ($location) {

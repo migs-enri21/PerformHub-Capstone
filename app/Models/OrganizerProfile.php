@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Concerns\HasPhilippineLocation;
+use App\Services\SupabaseStorageService;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -27,5 +28,14 @@ class OrganizerProfile extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function profilePhotoUrl(): ?string
+    {
+        if (! $this->profile_photo) {
+            return null;
+        }
+
+        return (new SupabaseStorageService)->url('organizer-files', $this->profile_photo);
     }
 }

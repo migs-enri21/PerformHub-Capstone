@@ -59,6 +59,7 @@ Route::middleware(['auth', 'role:performer'])->prefix('performer')->name('perfor
     Route::middleware('full.access')->group(function () {
         Route::get('/portfolio', [PortfolioController::class, 'index'])->name('portfolio.index');
         Route::post('/portfolio', [PortfolioController::class, 'store'])->name('portfolio.store');
+        Route::post('/portfolio/update', [PortfolioController::class, 'update'])->name('portfolio.update');
         Route::delete('/portfolio/{portfolio}', [PortfolioController::class, 'destroy'])->name('portfolio.destroy');
         Route::get('/availability', [AvailabilityController::class, 'index'])->name('availability.index');
         Route::post('/availability', [AvailabilityController::class, 'store'])->name('availability.store');

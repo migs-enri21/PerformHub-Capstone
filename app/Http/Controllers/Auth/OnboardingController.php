@@ -182,7 +182,9 @@ class OnboardingController extends Controller
         } else {
             $validated = $request->validate([
                 'government_id' => ['required', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'],
-                'performance_sample' => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf,mp4,mov', 'max:51200'],
+                'performance_sample' => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf,mp4,mov', 'max:512000'],
+            ], [
+                'performance_sample.max' => 'The performance sample must be 500 MB or smaller.',
             ]);
 
             $this->storeDocument($user, 'government_id', $request->file('government_id'));

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\SupabaseStorageService;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -73,6 +74,15 @@ class Booking extends Model
     public function hasContract(): bool
     {
         return filled($this->contract_path);
+    }
+
+    public function contractUrl(): ?string
+    {
+        if (! $this->hasContract()) {
+            return null;
+        }
+
+        return (new SupabaseStorageService)->url('organizer-files', $this->contract_path);
     }
 
     public function needsContractReview(): bool

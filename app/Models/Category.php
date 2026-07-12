@@ -3,7 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Category extends Model
 {
@@ -22,8 +22,8 @@ class Category extends Model
         ];
     }
 
-    public function performers(): HasMany
+    public function performers(): BelongsToMany
     {
-        return $this->hasMany(PerformerProfile::class);
+        return $this->belongsToMany(PerformerProfile::class, 'performer_profile_category');
     }
 }

@@ -3,9 +3,11 @@
 namespace App\Models;
 
 use App\Models\Concerns\HasPhilippineLocation;
+use App\Services\SupabaseStorageService;
 use App\Support\SocialMedia;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class PerformerProfile extends Model
@@ -17,7 +19,6 @@ class PerformerProfile extends Model
         'stage_name',
         'bio',
         'genre',
-        'category_id',
         'rate',
         'location',
         'region',
@@ -25,6 +26,7 @@ class PerformerProfile extends Model
         'barangay',
         'profile_photo',
         'banner_photo',
+        'banner_position_y',
         'social_facebook',
         'social_facebook_followers',
         'social_instagram',
@@ -47,6 +49,7 @@ class PerformerProfile extends Model
     {
         return [
             'rate' => 'decimal:2',
+            'banner_position_y' => 'integer',
             'is_verified_badge' => 'boolean',
             'google_calendar_connected' => 'boolean',
             'google_refresh_token' => 'encrypted',
@@ -60,9 +63,9 @@ class PerformerProfile extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function category(): BelongsTo
+    public function categories(): BelongsToMany
     {
-        return $this->belongsTo(Category::class);
+        return $this->belongsToMany(Category::class, 'performer_profile_category');
     }
 
     public function portfolios(): HasMany
@@ -172,9 +175,14 @@ class PerformerProfile extends Model
     public function displayTags(): array
     {
         return array_values(array_filter(array_unique([
-            $this->category?->name,
+            ...$this->categories->pluck('name')->all(),
             $this->genre,
         ])));
+    }
+
+    public function categoryNames(): string
+    {
+        return $this->categories->pluck('name')->implode(', ');
     }
 
     public function shortLocation(): string
@@ -184,5 +192,23 @@ class PerformerProfile extends Model
         }
 
         return $this->location ?: 'Philippines';
+    }
+
+    public function profilePhotoUrl(): ?string
+    {
+        if (! $this->profile_photo) {
+            return null;
+        }
+
+        return (new SupabaseStorageService)->url('performer-files', $this->profile_photo);
+    }
+
+    public function bannerPhotoUrl(): ?string
+    {
+        if (! $this->banner_photo) {
+            return null;
+        }
+
+        return (new SupabaseStorageService)->url('performer-files', $this->banner_photo);
     }
 }

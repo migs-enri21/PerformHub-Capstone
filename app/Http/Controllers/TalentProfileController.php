@@ -11,7 +11,7 @@ class TalentProfileController extends Controller
 {
     public function show(PerformerProfile $performer): View
     {
-        $performer->load(['user', 'category', 'portfolios', 'availabilitySchedules', 'bookings']);
+        $performer->load(['user', 'categories', 'portfolios', 'availabilitySchedules', 'bookings']);
         $reviews = Review::where('reviewee_id', $performer->user_id)->with('reviewer')->latest()->get();
 
         $portfolioGroups = PortfolioFeed::groupItems($performer->portfolios);

@@ -6,10 +6,10 @@ use App\Http\Controllers\Controller;
 use App\Models\Booking;
 use App\Models\Notification;
 use App\Models\PerformerProfile;
+use App\Services\SupabaseStorageService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 
 class BookingController extends Controller
@@ -77,11 +77,13 @@ class BookingController extends Controller
             'contract' => ['required', 'file', 'mimes:pdf,doc,docx', 'max:10240'],
         ]);
 
+        $supabase = new SupabaseStorageService();
+
         if ($booking->contract_path) {
-            Storage::disk('public')->delete($booking->contract_path);
+            $supabase->delete('organizer-files', $booking->contract_path);
         }
 
-        $path = $request->file('contract')->store('contracts', 'public');
+        $path = $supabase->upload($request->file('contract'), 'organizer-files', 'contract', Auth::id());
         $booking->update([
             'contract_path' => $path,
             'performer_confirmed_contract' => false,

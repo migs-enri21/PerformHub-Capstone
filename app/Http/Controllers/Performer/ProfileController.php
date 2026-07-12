@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Performer;
 use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Services\GoogleCalendarService;
+use App\Services\SupabaseStorageService;
 use App\Support\AvailabilityCalendar;
 use App\Support\PerformerGenres;
 use App\Support\PhilippineLocations;
@@ -12,20 +13,19 @@ use App\Support\SocialMedia;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 
 class ProfileController extends Controller
 {
     public function show(GoogleCalendarService $googleCalendar): View
     {
-        $profile = Auth::user()->performerProfile()->with('category')->firstOrFail();
+        $profile = Auth::user()->performerProfile()->with('categories')->firstOrFail();
         $profile = AvailabilityCalendar::loadCalendarRelations($profile);
 
         if ($googleCalendar->shouldSync($profile)) {
             try {
                 $googleCalendar->syncBusyDates($profile);
-                $profile = AvailabilityCalendar::loadCalendarRelations($profile->fresh('category'));
+                $profile = AvailabilityCalendar::loadCalendarRelations($profile->fresh('categories'));
             } catch (\Throwable) {
                 // Keep the page usable even if Google sync fails.
             }
@@ -38,7 +38,7 @@ class ProfileController extends Controller
 
     public function edit(): View
     {
-        $profile = Auth::user()->performerProfile()->with('category')->firstOrFail();
+        $profile = Auth::user()->performerProfile()->with('categories')->firstOrFail();
         $categories = Category::where('is_active', true)->get();
 
         return view('performer.profile.edit', compact('profile', 'categories'));
@@ -54,7 +54,8 @@ class ProfileController extends Controller
             'stage_name' => ['required', 'string', 'max:255'],
             'bio' => ['nullable', 'string', 'max:2000'],
             'genre' => PerformerGenres::validationRule(),
-            'category_id' => ['nullable', 'exists:categories,id'],
+            'category_ids' => ['nullable', 'array'],
+            'category_ids.*' => ['integer', 'exists:categories,id'],
             'rate' => ['nullable', 'numeric', 'min:0'],
             'social_facebook' => ['nullable', 'url', 'max:255'],
             'social_facebook_followers' => ['nullable', 'integer', 'min:0'],
@@ -68,20 +69,23 @@ class ProfileController extends Controller
             'social_twitter_followers' => ['nullable', 'integer', 'min:0'],
             'profile_photo' => ['nullable', 'image', 'max:5120'],
             'banner_photo' => ['nullable', 'image', 'max:5120'],
+            'banner_position_y' => ['nullable', 'integer', 'min:0', 'max:100'],
         ], PhilippineLocations::locationFieldsRules(required: false)));
+
+        $supabase = new SupabaseStorageService();
 
         if ($request->hasFile('profile_photo')) {
             if ($profile->profile_photo) {
-                Storage::disk('public')->delete($profile->profile_photo);
+                $supabase->delete('performer-files', $profile->profile_photo);
             }
-            $validated['profile_photo'] = $request->file('profile_photo')->store('profiles', 'public');
+            $validated['profile_photo'] = $supabase->upload($request->file('profile_photo'), 'performer-files', 'profile_picture', Auth::id());
         }
 
         if ($request->hasFile('banner_photo')) {
             if ($profile->banner_photo) {
-                Storage::disk('public')->delete($profile->banner_photo);
+                $supabase->delete('performer-files', $profile->banner_photo);
             }
-            $validated['banner_photo'] = $request->file('banner_photo')->store('profiles/banners', 'public');
+            $validated['banner_photo'] = $supabase->upload($request->file('banner_photo'), 'performer-files', 'banner_photo', Auth::id());
         }
 
         if (! empty($validated['social_youtube']) && empty($validated['social_youtube_subscribers'])) {
@@ -97,7 +101,9 @@ class ProfileController extends Controller
             'last_name' => $validated['last_name'],
         ]);
 
-        $profile->update(collect($validated)->except(['first_name', 'last_name', 'region', 'city', 'barangay'])->all());
+        $profile->update(collect($validated)->except(['first_name', 'last_name', 'region', 'city', 'barangay', 'category_ids'])->all());
+
+        $profile->categories()->sync($validated['category_ids'] ?? []);
 
         if (! empty($validated['region']) && ! empty($validated['city']) && ! empty($validated['barangay'])) {
             $profile->update(PhilippineLocations::profileLocationAttributes($validated));

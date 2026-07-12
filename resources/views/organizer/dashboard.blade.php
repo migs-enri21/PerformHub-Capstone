@@ -30,10 +30,10 @@
         @forelse($recommendedPerformers as $p)
             <div class="col-md-4">
                 <div class="d-flex align-items-center gap-3 p-3 rounded" style="background:var(--ph-bg-input);">
-                    <img src="{{ $p->profile_photo ? asset('storage/'.$p->profile_photo) : 'https://ui-avatars.com/api/?name='.urlencode($p->stage_name).'&background=6346ff&color=fff' }}" class="rounded-circle" width="48" height="48" style="object-fit:cover;">
+                    <img src="{{ $p->profilePhotoUrl() ?? 'https://ui-avatars.com/api/?name='.urlencode($p->stage_name).'&background=6346ff&color=fff' }}" class="rounded-circle" width="48" height="48" style="object-fit:cover;">
                     <div class="flex-grow-1">
                         <h6 class="mb-0">{{ $p->stage_name }}</h6>
-                        <small class="text-muted">{{ $p->category?->name }}</small>
+                        <small class="text-muted">{{ $p->categoryNames() }}</small>
                     </div>
                     <a href="{{ route('organizer.performers.show', $p) }}" class="btn btn-sm ph-btn-primary">View</a>
                 </div>

@@ -4,14 +4,13 @@
 ])
 
 @php
-    $photoUrl = $performer->profile_photo
-        ? asset('storage/'.$performer->profile_photo)
-        : 'https://ui-avatars.com/api/?name='.urlencode($performer->stage_name).'&background=6346ff&color=fff&size=256';
-    $bannerStyle = $performer->banner_photo
-        ? "background-image: url('".asset('storage/'.$performer->banner_photo)."');"
+    $photoUrl = $performer->profilePhotoUrl()
+        ?? 'https://ui-avatars.com/api/?name='.urlencode($performer->stage_name).'&background=6346ff&color=fff&size=256';
+    $bannerStyle = $performer->bannerPhotoUrl()
+        ? "background-image: url('".$performer->bannerPhotoUrl()."'); background-position: center ".($performer->banner_position_y ?? 50)."%;"
         : '';
     $rating = $performer->averageRating();
-    $subtitle = collect([$performer->category?->name, $performer->shortLocation()])->filter()->implode(' · ');
+    $subtitle = collect([$performer->categoryNames(), $performer->shortLocation()])->filter()->implode(' · ');
     $tags = $performer->displayTags();
 @endphp
 

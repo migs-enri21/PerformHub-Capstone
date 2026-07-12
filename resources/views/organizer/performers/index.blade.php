@@ -30,10 +30,10 @@
         <div class="col-md-6 col-lg-4">
             <div class="ph-card p-4 h-100">
                 <div class="d-flex gap-3 mb-3">
-                    <img src="{{ $p->profile_photo ? asset('storage/'.$p->profile_photo) : 'https://ui-avatars.com/api/?name='.urlencode($p->stage_name).'&background=6346ff&color=fff' }}" class="performer-avatar" alt="">
+                    <img src="{{ $p->profilePhotoUrl() ?? 'https://ui-avatars.com/api/?name='.urlencode($p->stage_name).'&background=6346ff&color=fff' }}" class="performer-avatar" alt="">
                     <div>
                         <h6 class="mb-0">{{ $p->stage_name }} @if($p->is_verified_badge)<i class="fas fa-circle-check verified-badge"></i>@endif</h6>
-                        <small class="text-muted">{{ $p->category?->name }} · {{ $p->genre }}</small>
+                        <small class="text-muted">{{ $p->categoryNames() }} · {{ $p->genre }}</small>
                         <div class="text-warning small">@for($i=0;$i<round($p->averageRating());$i++)<i class="fas fa-star"></i>@endfor</div>
                     </div>
                 </div>

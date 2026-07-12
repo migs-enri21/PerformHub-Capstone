@@ -108,12 +108,11 @@ class DatabaseSeeder extends Seeder
             'onboarding_step' => User::ONBOARDING_COMPLETE,
         ]);
 
-        PerformerProfile::create([
+        $performerProfile = PerformerProfile::create([
             'user_id' => $performer->id,
             'stage_name' => 'JDC Live',
             'bio' => 'Professional acoustic performer specializing in weddings and corporate events.',
             'genre' => 'Acoustic Pop',
-            'category_id' => 1,
             'rate' => 15000,
             'location' => 'Ermita, Manila, Metro Manila (NCR)',
             'region' => 'Metro Manila (NCR)',
@@ -123,6 +122,9 @@ class DatabaseSeeder extends Seeder
             'social_instagram' => 'https://instagram.com',
             'social_youtube' => 'https://youtube.com',
         ]);
+
+        // A performer can belong to more than one category, e.g. a singer who also dances.
+        $performerProfile->categories()->attach([1, 3]);
 
         $organizer = User::create([
             'first_name' => 'Maria',

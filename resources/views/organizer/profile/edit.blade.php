@@ -14,7 +14,7 @@
         <div class="col-lg-4">
             <div class="ph-card p-4 profile-photo-card">
                 @include('partials.profile-photo-upload', [
-                    'currentUrl' => $profile->profile_photo ? asset('storage/'.$profile->profile_photo) : null,
+                    'currentUrl' => $profile->profilePhotoUrl(),
                     'fallbackName' => $profile->organization_name,
                 ])
             </div>
