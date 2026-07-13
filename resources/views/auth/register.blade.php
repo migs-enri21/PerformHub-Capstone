@@ -6,8 +6,8 @@
 <div class="auth-split">
     <div class="auth-hero d-none d-lg-block">
         <div class="p-4">
-            <a href="{{ route('home') }}" class="text-white text-decoration-none fw-bold fs-5">
-                <i class="fas fa-music me-2"></i>PerformHub
+            <a href="{{ route('home') }}" class="text-white text-decoration-none fw-bold fs-5 d-flex align-items-center">
+                <img src="{{ asset('images/logo.png') }}" alt="PerformHub" height="32" width="32" class="me-2 rounded-circle" style="object-fit: cover;">PerformHub
             </a>
         </div>
         <div class="auth-hero-content">

@@ -5,7 +5,7 @@
 @section('content')
 <nav class="navbar navbar-expand-lg navbar-dark navbar-ph fixed-top" style="z-index: 1030;">
     <div class="container">
-        <a class="navbar-brand fw-bold" href="{{ route('home') }}"><i class="fas fa-music me-2"></i>PerformHub</a>
+        <a class="navbar-brand fw-bold d-flex align-items-center" href="{{ route('home') }}"><img src="{{ asset('images/logo.png') }}" alt="PerformHub" height="32" width="32" class="me-2 rounded-circle" style="object-fit: cover;">PerformHub</a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navLanding">
             <span class="navbar-toggler-icon"></span>
         </button>

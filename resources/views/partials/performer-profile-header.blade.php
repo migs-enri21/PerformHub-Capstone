@@ -30,8 +30,8 @@
                     src="{{ $photoUrl }}"
                     alt=""
                     class="performer-profile-avatar rounded-circle"
-                    width="120"
-                    height="120"
+                    width="200"
+                    height="200"
                     onerror="this.onerror=null;this.src='https://ui-avatars.com/api/?name={{ urlencode($performer->stage_name) }}&background=6346ff&color=fff&size=256';"
                 >
                 @if($editable)

@@ -7,20 +7,7 @@
 @endsection
 
 @section('content')
-@if(session('success'))
-    <div class="alert alert-success border-0 mb-4" style="background: rgba(34, 197, 94, 0.12); color: #86efac;">
-        {{ session('success') }}
-    </div>
-@endif
-
-@if(session('error'))
-    <div class="alert alert-danger border-0 mb-4" style="background: rgba(239, 68, 68, 0.12); color: #fca5a5;">
-        {{ session('error') }}
-    </div>
-@endif
-
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <h2 class="fw-bold mb-0">My Profile</h2>
+<div class="d-flex justify-content-end mb-2">
     <a href="{{ route('performer.profile.edit') }}" class="btn ph-btn-outline btn-sm">
         <i class="fas fa-pen me-1"></i> Edit Profile
     </a>
