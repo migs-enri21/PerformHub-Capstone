@@ -31,9 +31,6 @@
                             @endif
                         </a>
                     </li>
-                    @unless(auth()->user()->isPerformer())
-                        @include('partials.nav-profile-avatar')
-                    @endunless
                 </ul>
             </div>
         </div>

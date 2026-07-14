@@ -21,9 +21,18 @@ class OrganizerProfile extends Model
         'city',
         'barangay',
         'profile_photo',
+        'banner_photo',
+        'banner_position_y',
         'phone',
         'website',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'banner_position_y' => 'integer',
+        ];
+    }
 
     public function user(): BelongsTo
     {
@@ -37,6 +46,15 @@ class OrganizerProfile extends Model
         }
 
         return (new SupabaseStorageService)->url('organizer-files', $this->profile_photo);
+    }
+
+    public function bannerPhotoUrl(): ?string
+    {
+        if (! $this->banner_photo) {
+            return null;
+        }
+
+        return (new SupabaseStorageService)->url('organizer-files', $this->banner_photo);
     }
 
     public function shortLocation(): string
