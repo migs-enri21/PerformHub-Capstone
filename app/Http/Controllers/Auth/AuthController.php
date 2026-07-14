@@ -18,9 +18,7 @@ class AuthController extends Controller
 {
     public function showLogin(Request $request): View
     {
-        $role = $request->query('role', 'organizer');
-
-        return view('auth.login', compact('role'));
+        return view('auth.login');
     }
 
     public function login(Request $request): RedirectResponse
@@ -28,11 +26,7 @@ class AuthController extends Controller
         $credentials = $request->validate([
             'email' => ['required', 'email'],
             'password' => ['required'],
-            'role' => ['required', 'in:performer,organizer,admin'],
         ]);
-
-        $role = $credentials['role'];
-        unset($credentials['role']);
 
         if (Auth::attempt($credentials, $request->boolean('remember'))) {
             $request->session()->regenerate();
@@ -41,19 +35,13 @@ class AuthController extends Controller
             if (! $user->is_active) {
                 Auth::logout();
 
-                return back()->withErrors(['email' => 'Your account has been deactivated.'])->onlyInput('email', 'role');
-            }
-
-            if ($user->role !== $role) {
-                Auth::logout();
-
-                return back()->withErrors(['email' => 'Invalid credentials for the selected role.'])->onlyInput('email', 'role');
+                return back()->withErrors(['email' => 'Your account has been deactivated.'])->onlyInput('email');
             }
 
             return redirect()->intended($user->dashboardRoute());
         }
 
-        return back()->withErrors(['email' => 'Invalid credentials.'])->onlyInput('email', 'role');
+        return back()->withErrors(['email' => 'Invalid credentials.'])->onlyInput('email');
     }
 
     public function showRegister(Request $request): View

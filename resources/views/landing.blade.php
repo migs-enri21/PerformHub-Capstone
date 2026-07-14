@@ -13,7 +13,6 @@
             <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-3">
                 <li class="nav-item"><a class="nav-link" href="#categories">Categories</a></li>
                 <li class="nav-item"><a class="nav-link" href="#how-it-works">How It Works</a></li>
-                <li class="nav-item"><a class="nav-link" href="#testimonials">Testimonials</a></li>
                 @guest
                     <li class="nav-item"><a class="btn ph-btn-outline btn-sm" href="{{ route('login') }}">Sign In</a></li>
                     <li class="nav-item"><a class="btn ph-btn-primary btn-sm" href="{{ route('register') }}">Get Started</a></li>
@@ -117,26 +116,6 @@
     </div>
 </section>
 
-<section id="testimonials" class="py-5" style="background: var(--ph-bg-card);">
-    <div class="container py-4">
-        <div class="text-center mb-5">
-            <h2 class="fw-bold">Testimonials</h2>
-            <p class="text-muted">What our community says</p>
-        </div>
-        <div class="row g-4">
-            @foreach([['name'=>'Maria Santos','role'=>'Event Organizer','text'=>'PerformHub made finding the perfect band for our corporate event incredibly easy.'],['name'=>'Juan Dela Cruz','role'=>'Musician','text'=>'I\'ve booked more gigs in 3 months than I did all last year. The platform is a game changer.'],['name'=>'Ana Reyes','role'=>'Wedding Planner','text'=>'Managing contracts and bookings in one place saved me so much back-and-forth. Highly recommended!']] as $t)
-                <div class="col-md-4">
-                    <div class="testimonial-card h-100">
-                        <div class="text-warning mb-2"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div>
-                        <p class="text-muted">"{{ $t['text'] }}"</p>
-                        <h6 class="mb-0 fw-semibold">{{ $t['name'] }}</h6>
-                        <small class="text-muted">{{ $t['role'] }}</small>
-                    </div>
-                </div>
-            @endforeach
-        </div>
-    </div>
-</section>
 
 <section class="py-5">
     <div class="container py-4">

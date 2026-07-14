@@ -31,7 +31,6 @@
 
             <form method="POST" action="{{ route('login') }}" id="loginForm">
                 @csrf
-                <input type="hidden" name="role" id="roleInput" value="{{ old('role', $role) }}">
 
                 <div class="mb-3">
                     <label class="form-label text-muted small">Email Address</label>
@@ -41,18 +40,6 @@
                 <div class="mb-4">
                     <label class="form-label text-muted small">Password</label>
                     <input type="password" name="password" class="form-control ph-input" placeholder="••••••••" required>
-                </div>
-
-                <label class="form-label text-muted small mb-2">Sign in as</label>
-                <div class="row g-2 mb-4">
-                    @foreach(['organizer' => ['icon' => 'fa-building', 'label' => 'Organizer'], 'performer' => ['icon' => 'fa-microphone', 'label' => 'Performer'], 'admin' => ['icon' => 'fa-shield-halved', 'label' => 'Admin']] as $key => $item)
-                        <div class="col-4">
-                            <div class="role-card {{ old('role', $role) === $key ? 'active' : '' }}" data-role="{{ $key }}">
-                                <i class="fas {{ $item['icon'] }}"></i>
-                                <span class="small fw-semibold d-block">{{ $item['label'] }}</span>
-                            </div>
-                        </div>
-                    @endforeach
                 </div>
 
                 <button type="submit" class="btn ph-btn-primary w-100 mb-3">
@@ -68,14 +55,3 @@
 </div>
 @endsection
 
-@push('scripts')
-<script>
-document.querySelectorAll('.role-card').forEach(card => {
-    card.addEventListener('click', () => {
-        document.querySelectorAll('.role-card').forEach(c => c.classList.remove('active'));
-        card.classList.add('active');
-        document.getElementById('roleInput').value = card.dataset.role;
-    });
-});
-</script>
-@endpush

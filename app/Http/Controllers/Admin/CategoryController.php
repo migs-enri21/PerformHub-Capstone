@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Category;
+use App\Models\EventType;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -29,7 +30,14 @@ class CategoryController extends Controller
 
         $categories = $query->latest()->paginate(15);
 
-        return view('admin.categories.index', compact('categories', 'search', 'status'));
+        $eventTypes = EventType::query()
+            ->when($search, fn($query) => $query->where('name', 'like', "%$search%")
+                ->orWhere('description', 'like', "%$search%"))
+            ->when($status !== null, fn($query) => $query->where('is_active', $status === 'active'))
+            ->latest()
+            ->paginate(15, ['*'], 'event_types_page');
+
+        return view('admin.categories.index', compact('categories', 'eventTypes', 'search', 'status'));
     }
 
     public function store(Request $request): RedirectResponse
