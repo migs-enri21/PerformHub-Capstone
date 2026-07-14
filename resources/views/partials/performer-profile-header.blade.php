@@ -1,6 +1,8 @@
 @props([
     'performer',
     'editable' => false,
+    'bookingUrl' => null,
+    'onboardingRoute' => null,
 ])
 
 @php
@@ -54,6 +56,25 @@
                     </div>
                     @if($subtitle)
                         <p class="text-muted mb-0 performer-profile-subtitle">{{ $subtitle }}</p>
+                    @endif
+                    @if($bookingUrl || $onboardingRoute)
+                        <div class="profile-booking-bar d-flex flex-wrap align-items-center gap-2 mt-3">
+                            @if($performer->rate)
+                                <span class="profile-rate-pill">
+                                    ₱{{ number_format($performer->rate, 2) }}
+                                    <span class="profile-rate-suffix">/ event</span>
+                                </span>
+                            @endif
+                            @if($onboardingRoute)
+                                <a href="{{ $onboardingRoute }}" class="btn ph-btn-primary btn-sm">
+                                    <i class="fas fa-lock me-1"></i> Complete sign-up to book
+                                </a>
+                            @elseif($bookingUrl)
+                                <a href="{{ $bookingUrl }}" class="btn ph-btn-primary btn-sm">
+                                    Send Booking Request
+                                </a>
+                            @endif
+                        </div>
                     @endif
                 </div>
                 <div class="d-flex flex-wrap align-items-center gap-2">

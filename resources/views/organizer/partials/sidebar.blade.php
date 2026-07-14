@@ -1,4 +1,4 @@
-<a href="{{ route('organizer.profile.edit') }}" class="sidebar-profile-block d-block text-center text-decoration-none mb-4">
+<a href="{{ route('organizer.profile.show') }}" class="sidebar-profile-block d-block text-center text-decoration-none mb-4">
     <img
         src="{{ auth()->user()->avatarUrl(96) }}"
         alt="{{ auth()->user()->name }}"

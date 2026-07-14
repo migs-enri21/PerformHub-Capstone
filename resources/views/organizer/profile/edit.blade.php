@@ -7,12 +7,17 @@
 @endsection
 
 @section('content')
-<h2 class="fw-bold mb-4">Organizer Profile</h2>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-bold mb-0">Edit Profile</h2>
+    <a href="{{ route('organizer.profile.show') }}" class="btn ph-btn-outline btn-sm">
+        <i class="fas fa-eye me-1"></i> View Profile
+    </a>
+</div>
 <form method="POST" action="{{ route('organizer.profile.update') }}" enctype="multipart/form-data" id="profileForm">
     @csrf @method('PUT')
     <div class="row g-4">
         <div class="col-lg-4">
-            <div class="ph-card p-4 profile-photo-card">
+            <div class="ph-card p-4 profile-photo-card" id="photo">
                 @include('partials.profile-photo-upload', [
                     'currentUrl' => $profile->profilePhotoUrl(),
                     'fallbackName' => $profile->organization_name,

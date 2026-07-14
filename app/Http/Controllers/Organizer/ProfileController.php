@@ -12,6 +12,13 @@ use Illuminate\View\View;
 
 class ProfileController extends Controller
 {
+    public function show(): View
+    {
+        $profile = Auth::user()->organizerProfile;
+
+        return view('organizer.profile.show', compact('profile'));
+    }
+
     public function edit(): View
     {
         $profile = Auth::user()->organizerProfile;
@@ -64,6 +71,6 @@ class ProfileController extends Controller
             $profile->update(PhilippineLocations::profileLocationAttributes($validated));
         }
 
-        return back()->with('success', 'Profile updated successfully.');
+        return redirect()->route('organizer.profile.show')->with('success', 'Profile updated successfully.');
     }
 }
