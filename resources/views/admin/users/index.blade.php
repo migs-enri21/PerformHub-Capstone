@@ -21,11 +21,12 @@
         <tbody>
             @foreach($users as $user)
                 <tr>
-                    <td>{{ $user->first_name }} {{ $user->last_name }} <small class="text-muted">@{{ $user->username }}</small></td>
+                    <td>{{ $user->first_name }} {{ $user->last_name }}</td>
                     <td><span class="badge bg-secondary">{{ ucfirst($user->role) }}</span></td>
                     <td>@if($user->is_verified)<span class="text-success">Yes</span>@else<span class="text-warning">No</span>@endif</td>
                     <td>@if($user->is_active)<span class="text-success">Active</span>@else<span class="text-danger">Suspended</span>@endif</td>
-                    <td class="d-flex gap-1">
+                    <td class="d-flex gap-1 flex-wrap justify-content-end">
+                        <a href="{{ route('admin.users.show', $user) }}" class="btn btn-sm btn-outline-info">View</a>
                         @if(!$user->is_verified)<form method="POST" action="{{ route('admin.users.verify', $user) }}">@csrf<button class="btn btn-sm btn-success">Verify</button></form>@endif
                         <form method="POST" action="{{ route('admin.users.toggle', $user) }}">@csrf<button class="btn btn-sm btn-outline-warning">{{ $user->is_active ? 'Suspend' : 'Activate' }}</button></form>
                     </td>

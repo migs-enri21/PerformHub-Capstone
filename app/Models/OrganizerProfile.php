@@ -38,4 +38,14 @@ class OrganizerProfile extends Model
 
         return (new SupabaseStorageService)->url('organizer-files', $this->profile_photo);
     }
+
+    public function shortLocation(): string
+    {
+        if ($this->city || $this->region) {
+            $parts = array_filter([$this->city, $this->region, 'Philippines']);
+            return implode(', ', $parts);
+        }
+
+        return $this->location ?: 'Philippines';
+    }
 }
