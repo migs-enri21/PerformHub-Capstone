@@ -27,6 +27,15 @@ class UserController extends Controller
         return view('admin.users.index', compact('users'));
     }
 
+    public function show(User $user): View
+    {
+        abort_unless(in_array($user->role, ['performer', 'organizer']), 404);
+
+        $user->load(['performerProfile', 'organizerProfile', 'verificationDocuments']);
+
+        return view('admin.users.show', compact('user'));
+    }
+
     public function verify(User $user): RedirectResponse
     {
         abort_unless(in_array($user->role, ['performer', 'organizer']), 400);

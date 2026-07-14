@@ -38,16 +38,34 @@
                     <div class="fw-semibold">{{ $booking->venue ?? '—' }}</div>
                 </div>
                 <div class="col-md-6">
+                    <div class="small text-muted">Duration</div>
+                    <div class="fw-semibold">{{ $booking->duration_hours ? $booking->duration_hours . ' hr' : '—' }}</div>
+                </div>
+                <div class="col-md-6">
                     <div class="small text-muted">Status</div>
                     <span class="badge {{ $booking->statusBadgeClass() }}">{{ $booking->statusLabel() }}</span>
                 </div>
                 <div class="col-md-6">
                     <div class="small text-muted">Created</div>
-                    <div class="fw-semibold">{{ $booking->created_at->format('F d, Y h:i A') }}</div>
+                    <div class="fw-semibold">{{ optional($booking->created_at)->format('F d, Y h:i A') ?? '—' }}</div>
                 </div>
                 <div class="col-md-6">
                     <div class="small text-muted">Last Updated</div>
-                    <div class="fw-semibold">{{ $booking->updated_at->format('F d, Y h:i A') }}</div>
+                    <div class="fw-semibold">{{ optional($booking->updated_at)->format('F d, Y h:i A') ?? '—' }}</div>
+                </div>
+                <div class="col-md-6">
+                    <div class="small text-muted">Contract</div>
+                    <div class="fw-semibold">{{ $booking->contractStatusLabel() }}</div>
+                </div>
+                <div class="col-md-6">
+                    <div class="small text-muted">Contract File</div>
+                    <div class="fw-semibold">
+                        @if($booking->contractUrl())
+                            <a href="{{ $booking->contractUrl() }}" target="_blank" rel="noopener">Download contract</a>
+                        @else
+                            —
+                        @endif
+                    </div>
                 </div>
                 <div class="col-12">
                     <div class="small text-muted">Requirements</div>

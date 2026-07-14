@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\OrganizerProfile;
 use App\Models\PerformerProfile;
 use App\Models\User;
+use App\Models\Notification;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -115,6 +116,22 @@ class AuthController extends Controller
         }
 
         Auth::login($user);
+
+        // Notify administrators about new registrations for performers or organizers.
+        // This runs even if no admin exists yet, so the notification is still stored for the first admin that is created.
+        $admins = User::where('role', User::ROLE_ADMIN)->get();
+        $type = 'user.registered';
+        $title = $user->isOrganizer() ? 'New Organizer Registered' : 'New Performer Registered';
+        $message = sprintf('%s: %s', $title, $user->fullName());
+        $link = route('admin.users.index');
+
+        if ($admins->isEmpty()) {
+            Notification::send($user, $type, $title, $message, $link);
+        } else {
+            foreach ($admins as $admin) {
+                Notification::send($admin, $type, $title, $message, $link);
+            }
+        }
 
         return redirect($user->dashboardRoute())
             ->with('success', 'Welcome to PerformHub! Your account is ready — complete sign-up anytime to unlock all features.');

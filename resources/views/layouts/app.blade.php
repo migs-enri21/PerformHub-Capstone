@@ -23,14 +23,6 @@
             </button>
             <div class="collapse navbar-collapse" id="navMain">
                 <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-2">
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ route('notifications.index') }}">
-                            <i class="fas fa-bell"></i>
-                            @if(auth()->user()->notifications()->where('is_read', false)->count())
-                                <span class="badge bg-danger rounded-pill">{{ auth()->user()->notifications()->where('is_read', false)->count() }}</span>
-                            @endif
-                        </a>
-                    </li>
                     @include('partials.nav-profile-avatar')
                 </ul>
             </div>
