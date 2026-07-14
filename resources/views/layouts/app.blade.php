@@ -21,25 +21,28 @@
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMain">
                 <span class="navbar-toggler-icon"></span>
             </button>
-            <div class="collapse navbar-collapse" id="navMain">
-                <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-2">
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ route('notifications.index') }}">
-                            <i class="fas fa-bell"></i>
-                            @if(auth()->user()->notifications()->where('is_read', false)->count())
-                                <span class="badge bg-danger rounded-pill">{{ auth()->user()->notifications()->where('is_read', false)->count() }}</span>
-                            @endif
-                        </a>
-                    </li>
+                    <div class="collapse navbar-collapse" id="navMain">
+            <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-2">
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ route('notifications.index') }}">
+                        <i class="fas fa-bell"></i>
+                        @if(auth()->user()->notifications()->where('is_read', false)->count())
+                            <span class="badge bg-danger rounded-pill">{{ auth()->user()->notifications()->where('is_read', false)->count() }}</span>
+                        @endif
+                    </a>
+                </li>
+                            @unless(auth()->user()->isPerformer())
                     @include('partials.nav-profile-avatar')
-                </ul>
-            </div>
-        </div>
+                @endunless
+            </ul>
+                        </ul>
+                    </div>
+                    </div>
     </nav>
 
     <div class="container-fluid">
         <div class="row">
-            <aside class="col-lg-2 d-none d-lg-block sidebar-ph p-3">
+        <aside class="col-lg-2 d-none d-lg-flex flex-column sidebar-ph p-3">
                 @yield('sidebar')
             </aside>
             <main class="col-lg-10 p-4">
