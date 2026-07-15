@@ -29,6 +29,7 @@ class AvailabilityController extends Controller
 
         $validated['is_available'] = $request->boolean('is_available', true);
 
+        // it only ever stores exceptions to the default, not every single day
         $isDefaultAvailable = $validated['is_available']
             && empty($validated['start_time'])
             && empty($validated['end_time'])

@@ -79,7 +79,8 @@ Route::middleware(['auth', 'role:performer'])->prefix('performer')->name('perfor
 
 Route::middleware(['auth', 'role:organizer'])->prefix('organizer')->name('organizer.')->group(function () {
     Route::get('/dashboard', [OrganizerDashboardController::class, 'index'])->name('dashboard');
-    Route::get('/profile', [OrganizerProfileController::class, 'edit'])->name('profile.edit');
+    Route::get('/profile', [OrganizerProfileController::class, 'show'])->name('profile.show');
+    Route::get('/profile/edit', [OrganizerProfileController::class, 'edit'])->name('profile.edit');
     Route::put('/profile', [OrganizerProfileController::class, 'update'])->name('profile.update');
     Route::get('/performers', [PerformerSearchController::class, 'index'])->name('performers.index');
     Route::get('/performers/{performer}', [PerformerSearchController::class, 'show'])->name('performers.show');

@@ -1,6 +1,8 @@
 @props([
     'performer',
     'editable' => false,
+    'bookingUrl' => null,
+    'onboardingRoute' => null,
 ])
 
 @php
@@ -42,26 +44,47 @@
             </div>
 
             <div class="flex-grow-1 min-w-0">
-                <div class="d-flex flex-column flex-lg-row align-items-lg-start justify-content-lg-between gap-3 mb-2">
-                    <div>
-                        <h2 class="fw-bold mb-1 performer-profile-name">{{ $performer->stage_name }}</h2>
-                        @if($subtitle)
-                            <p class="text-muted mb-0 performer-profile-subtitle">{{ $subtitle }}</p>
-                        @endif
-                    </div>
-                    <div class="d-flex flex-wrap align-items-center gap-2">
+            <div class="d-flex flex-column flex-lg-row align-items-lg-start justify-content-lg-between gap-3 mb-2">
+                <div>
+                    <div class="d-flex align-items-center gap-2 flex-wrap mb-1">
+                        <h2 class="fw-bold mb-0 performer-profile-name">{{ $performer->stage_name }}</h2>
                         @if($performer->is_verified_badge)
                             <span class="profile-verified-pill">
                                 <i class="fas fa-circle-check me-1"></i> Verified
                             </span>
                         @endif
-                        @if($rating > 0)
-                            <span class="profile-rating-pill">
-                                <i class="fas fa-star me-1"></i> {{ number_format($rating, 1) }}
-                            </span>
-                        @endif
                     </div>
+                    @if($subtitle)
+                        <p class="text-muted mb-0 performer-profile-subtitle">{{ $subtitle }}</p>
+                    @endif
+                    @if($bookingUrl || $onboardingRoute)
+                        <div class="profile-booking-bar d-flex flex-wrap align-items-center gap-2 mt-3">
+                            @if($performer->rate)
+                                <span class="profile-rate-pill">
+                                    ₱{{ number_format($performer->rate, 2) }}
+                                    <span class="profile-rate-suffix">/ event</span>
+                                </span>
+                            @endif
+                            @if($onboardingRoute)
+                                <a href="{{ $onboardingRoute }}" class="btn ph-btn-primary btn-sm">
+                                    <i class="fas fa-lock me-1"></i> Complete sign-up to book
+                                </a>
+                            @elseif($bookingUrl)
+                                <a href="{{ $bookingUrl }}" class="btn ph-btn-primary btn-sm">
+                                    Send Booking Request
+                                </a>
+                            @endif
+                        </div>
+                    @endif
                 </div>
+                <div class="d-flex flex-wrap align-items-center gap-2">
+                    @if($rating > 0)
+                        <span class="profile-rating-pill">
+                            <i class="fas fa-star me-1"></i> {{ number_format($rating, 1) }}
+                        </span>
+                    @endif
+                </div>
+            </div>
 
                 <p class="performer-profile-bio mb-0">
                     {{ $performer->bio ?: 'Add a bio to tell organizers about your experience and style.' }}

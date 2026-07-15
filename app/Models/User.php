@@ -190,7 +190,7 @@ class User extends Authenticatable
     {
         return match ($this->role) {
             self::ROLE_PERFORMER => route('performer.profile.show'),
-            self::ROLE_ORGANIZER => route('organizer.profile.edit'),
+            self::ROLE_ORGANIZER => route('organizer.profile.show'),
             default => null,
         };
     }

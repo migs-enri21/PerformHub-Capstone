@@ -17,7 +17,7 @@
 
         <div class="row g-3">
             @foreach($stats as $platform => $stat)
-                <div class="col-sm-6 col-lg-4">
+                <div class="col-6 col-lg-3">
                     <a href="{{ $stat['url'] }}" target="_blank" rel="noopener" class="social-stat-card social-stat-card--{{ $platform }}">
                         <span class="social-stat-icon">
                             <i class="fab fa-{{ $platform }}"></i>

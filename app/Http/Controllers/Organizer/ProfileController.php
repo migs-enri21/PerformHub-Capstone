@@ -12,6 +12,13 @@ use Illuminate\View\View;
 
 class ProfileController extends Controller
 {
+    public function show(): View
+    {
+        $profile = Auth::user()->organizerProfile;
+
+        return view('organizer.profile.show', compact('profile'));
+    }
+
     public function edit(): View
     {
         $profile = Auth::user()->organizerProfile;
@@ -31,6 +38,8 @@ class ProfileController extends Controller
             'phone' => ['nullable', 'string', 'max:30'],
             'website' => ['nullable', 'url', 'max:255'],
             'profile_photo' => ['nullable', 'image', 'max:5120'],
+            'banner_photo' => ['nullable', 'image', 'max:5120'],
+            'banner_position_y' => ['nullable', 'integer', 'min:0', 'max:100'],
         ], PhilippineLocations::locationFieldsRules(required: false)));
 
         if ($request->hasFile('profile_photo')) {
@@ -40,6 +49,15 @@ class ProfileController extends Controller
                 $supabase->delete('organizer-files', $profile->profile_photo);
             }
             $validated['profile_photo'] = $supabase->upload($request->file('profile_photo'), 'organizer-files', 'profile_picture', Auth::id());
+        }
+
+        if ($request->hasFile('banner_photo')) {
+            $supabase = new SupabaseStorageService();
+
+            if ($profile->banner_photo) {
+                $supabase->delete('organizer-files', $profile->banner_photo);
+            }
+            $validated['banner_photo'] = $supabase->upload($request->file('banner_photo'), 'organizer-files', 'banner_photo', Auth::id());
         }
 
         Auth::user()->update([
@@ -53,6 +71,6 @@ class ProfileController extends Controller
             $profile->update(PhilippineLocations::profileLocationAttributes($validated));
         }
 
-        return back()->with('success', 'Profile updated successfully.');
+        return redirect()->route('organizer.profile.show')->with('success', 'Profile updated successfully.');
     }
 }

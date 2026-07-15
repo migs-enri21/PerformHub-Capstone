@@ -67,7 +67,7 @@ class ProfileController extends Controller
             'social_tiktok_followers' => ['nullable', 'integer', 'min:0'],
             'social_twitter' => ['nullable', 'url', 'max:255'],
             'social_twitter_followers' => ['nullable', 'integer', 'min:0'],
-            'profile_photo' => ['nullable', 'image', 'max:5120'],
+            'profile_photo' => ['nullable', 'image', 'max:5120'], // 5MB
             'banner_photo' => ['nullable', 'image', 'max:5120'],
             'banner_position_y' => ['nullable', 'integer', 'min:0', 'max:100'],
         ], PhilippineLocations::locationFieldsRules(required: false)));

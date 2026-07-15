@@ -407,6 +407,41 @@ input[type="file"].ph-input::file-selector-button:hover {
     color: var(--ph-purple);
 }
 
+/* Sidebar profile block */
+.sidebar-profile-block {
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--ph-border);
+}
+
+.sidebar-profile-avatar {
+    width: 72px;
+    height: 72px;
+    object-fit: cover;
+    border: 3px solid var(--ph-purple);
+}
+
+.sidebar-profile-name {
+    font-weight: 600;
+    color: var(--ph-text);
+}
+
+.sidebar-logout-btn {
+    color: var(--ph-text-muted);
+}
+
+.sidebar-logout-btn:hover {
+    background: rgba(239, 68, 68, 0.12);
+    color: #fca5a5;
+}
+
+.sidebar-profile-block:hover .sidebar-profile-name {
+    color: var(--ph-purple);
+}
+
+.sidebar-profile-block:hover .sidebar-profile-avatar {
+    box-shadow: 0 0 0 2px rgba(99, 70, 255, 0.35);
+}
+
 .stat-card {
     border-left: 4px solid var(--ph-purple);
 }

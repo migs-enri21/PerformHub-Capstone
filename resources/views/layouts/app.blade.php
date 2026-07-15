@@ -23,7 +23,14 @@
             </button>
             <div class="collapse navbar-collapse" id="navMain">
                 <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-2">
-                    @include('partials.nav-profile-avatar')
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ route('notifications.index') }}">
+                            <i class="fas fa-bell"></i>
+                            @if(auth()->user()->notifications()->where('is_read', false)->count())
+                                <span class="badge bg-danger rounded-pill">{{ auth()->user()->notifications()->where('is_read', false)->count() }}</span>
+                            @endif
+                        </a>
+                    </li>
                 </ul>
             </div>
         </div>
@@ -31,7 +38,7 @@
 
     <div class="container-fluid">
         <div class="row">
-            <aside class="col-lg-2 d-none d-lg-block sidebar-ph p-3">
+        <aside class="col-lg-2 d-none d-lg-flex flex-column sidebar-ph p-3">
                 @yield('sidebar')
             </aside>
             <main class="col-lg-10 p-4">
