@@ -5,15 +5,22 @@ namespace App\Http\Controllers\Organizer;
 use App\Http\Controllers\Controller;
 use App\Models\Event;
 use App\Models\EventType;
+use App\Services\SupabaseStorageService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class EventController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-    $events = Event::where('organizer_id', Auth::id())->latest()->get();
-    
+    $query = Event::where('organizer_id', Auth::id());
+
+    if ($request->filled('status')) {
+        $query->where('status', $request->status);
+    }
+
+    $events = $query->latest()->get();
+
     return view('organizer.events.index', compact('events'));
     }
 
@@ -29,6 +36,7 @@ class EventController extends Controller
         $validated = $request->validate([
         'event_type_id' => ['required', 'exists:event_types,id'],
         'title' => ['required', 'string', 'max:255'],
+        'banner_photo' => 'nullable|image|max:5120',
         'description' => ['nullable', 'string'],
         'event_date' => ['required', 'date'],
         'start_time' => ['required'],
@@ -37,6 +45,19 @@ class EventController extends Controller
         'budget' => ['nullable', 'numeric'],
         'performers_needed' => ['required', 'integer', 'min:1'],
         ]);
+
+        if ($request->hasFile('banner_photo')) {
+
+            $supabase = new SupabaseStorageService();
+
+            $validated['banner_photo'] = $supabase->upload(
+            $request->file('banner_photo'),
+            'organizer-files',
+            'event_banners',
+            Auth::id()
+            );
+
+        }
 
         Event::create([
         'organizer_id' => Auth::id(),
@@ -53,7 +74,7 @@ class EventController extends Controller
         ]);
 
         return redirect()
-        ->route('organizer.dashboard')
+        ->route('organizer.events.index')
         ->with('success', 'Event created successfully.');
     }
 

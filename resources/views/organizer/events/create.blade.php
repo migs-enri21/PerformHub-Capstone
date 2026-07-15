@@ -14,9 +14,22 @@
 
     <div class="ph-card p-4">
         
-            <form action="{{ route('organizer.events.store') }}" method="POST">
+            <form method="POST" action="{{ route('organizer.events.store') }}" enctype="multipart/form-data">
              @csrf
 
+                <div class="mb-4">
+
+                <label class="form-label fw-semibold"> Event Banner Photo</label>
+
+                <input
+                type="file"
+                name="banner_photo"
+                class="form-control"
+                accept="image/*">
+
+                <small class="text-muted"> Upload a banner photo for your event.</small>
+
+                </div>
                 <div class="mb-3"><label class="form-label">Event Name</label><input type="text" class="form-control" name="title"></div>
 
                 <div class="row">
