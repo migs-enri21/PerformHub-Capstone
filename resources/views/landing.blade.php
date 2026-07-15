@@ -152,6 +152,7 @@
 
 <footer class="py-4 border-top" style="border-color: var(--ph-border) !important;">
     <div class="container text-center text-muted small">
+        <p class="mb-1"><a href="{{ route('terms') }}" class="text-muted text-decoration-none">Terms & Agreement</a></p>
         <p class="mb-0">&copy; {{ date('Y') }} PerformHub. All rights reserved.</p>
     </div>
 </footer>

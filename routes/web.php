@@ -25,6 +25,7 @@ use App\Http\Controllers\Performer\ProfileController as PerformerProfileControll
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
+Route::view('/terms', 'terms')->name('terms');
 
 Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'showLogin'])->name('login');

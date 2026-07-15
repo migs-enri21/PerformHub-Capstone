@@ -71,10 +71,12 @@ class AuthController extends Controller
             'email' => ['required', 'email', 'max:255', 'unique:users,email'],
             'password' => ['required', 'confirmed', Password::min(8)],
             'role' => ['required', 'in:performer,organizer'],
+            'terms_accepted' => ['accepted'],
         ], [
             'username.alpha_dash' => 'Username can only use letters, numbers, dashes, and underscores (spaces are converted automatically).',
             'username.unique' => 'That username is already taken. Try another one.',
             'email.unique' => 'An account with this email already exists.',
+            'terms_accepted.accepted' => 'You must agree to the Terms & Agreement before continuing.',
             'password.confirmed' => 'Password and confirm password do not match.',
             'password.min' => 'Password must be at least 8 characters.',
         ]);

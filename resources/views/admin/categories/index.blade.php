@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Categories & Event Types')
+@section('title', 'Category & Event Management')
 
 @section('sidebar')
 @include('admin.partials.sidebar')
@@ -8,7 +8,7 @@
 
 @section('content')
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h2 class="fw-bold mb-0">Categories & Event Type Management</h2>
+    <h2 class="fw-bold mb-0">Category & Event Management</h2>
 </div>
 
 <!-- Filter Section -->
@@ -40,7 +40,6 @@
             <form method="POST" action="{{ route('admin.categories.store') }}" class="row g-3">
                 @csrf
                 <div class="col-12"><input type="text" name="name" class="form-control ph-input" placeholder="Category name" required></div>
-                <div class="col-12"><input type="text" name="icon" class="form-control ph-input" placeholder="fa-music"></div>
                 <div class="col-12"><input type="text" name="description" class="form-control ph-input" placeholder="Description"></div>
                 <div class="col-12"><button class="btn ph-btn-primary w-100">Add Category</button></div>
             </form>
@@ -131,11 +130,11 @@
                             <a href="{{ route('admin.event-types.edit', $eventType) }}" class="btn btn-sm btn-outline-warning" title="Edit"><i class="fas fa-edit"></i></a>
                             <form method="POST" action="{{ route('admin.event-types.toggle', $eventType) }}" class="d-inline" style="display:inline-block;">
                                 @csrf @method('PATCH')
-                                <button type="submit" class="btn btn-sm {{ $eventType->is_active ? 'btn-outline-secondary' : 'btn-outline-success' }}" title="{{ $eventType->is_active ? 'Deactivate' : 'Activate' }}">{{ $eventType->is_active ? 'Deactivate' : 'Activate' }}</button>
+                                <button type="submit" class="btn btn-sm {{ $eventType->is_active ? 'btn-outline-secondary' : 'btn-outline-success' }}" title="{{ $eventType->is_active ? 'Deactivate' : 'Activate' }}"><i class="fas {{ $eventType->is_active ? 'fa-toggle-on' : 'fa-toggle-off' }}"></i></button>
                             </form>
                             <form method="POST" action="{{ route('admin.event-types.destroy', $eventType) }}" class="d-inline" onsubmit="return confirm('Delete this event type?');" style="display:inline-block;">
                                 @csrf @method('DELETE')
-                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete">Delete</button>
+                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete"><i class="fas fa-trash"></i></button>
                             </form>
                         </td>
                     </tr>

@@ -17,18 +17,16 @@
 </div>
 <div class="ph-card p-0 overflow-hidden">
     <table class="table table-dark table-hover mb-0">
-        <thead><tr><th>Name</th><th>Role</th><th>Verified</th><th>Status</th><th>Actions</th></tr></thead>
+        <thead><tr><th>Name</th><th>Role</th><th class="text-center">Verified</th><th class="text-center">Status</th><th class="text-center">Actions</th></tr></thead>
         <tbody>
             @foreach($users as $user)
                 <tr>
                     <td>{{ $user->first_name }} {{ $user->last_name }}</td>
                     <td><span class="badge bg-secondary">{{ ucfirst($user->role) }}</span></td>
-                    <td>@if($user->is_verified)<span class="text-success">Yes</span>@else<span class="text-warning">No</span>@endif</td>
-                    <td>@if($user->is_active)<span class="text-success">Active</span>@else<span class="text-danger">Suspended</span>@endif</td>
-                    <td class="d-flex gap-1 flex-wrap justify-content-end">
+                    <td class="text-center">@if($user->is_verified)<span class="badge bg-primary">Yes</span>@else<span class="badge bg-warning text-dark">No</span>@endif</td>
+                    <td class="text-center">@if($user->is_active)<span class="badge bg-success">Active</span>@else<span class="badge bg-danger">Suspended</span>@endif</td>
+                    <td class="text-center">
                         <a href="{{ route('admin.users.show', $user) }}" class="btn btn-sm btn-outline-info">View</a>
-                        @if(!$user->is_verified)<form method="POST" action="{{ route('admin.users.verify', $user) }}">@csrf<button class="btn btn-sm btn-success">Verify</button></form>@endif
-                        <form method="POST" action="{{ route('admin.users.toggle', $user) }}">@csrf<button class="btn btn-sm btn-outline-warning">{{ $user->is_active ? 'Suspend' : 'Activate' }}</button></form>
                     </td>
                 </tr>
             @endforeach

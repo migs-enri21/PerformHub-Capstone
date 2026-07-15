@@ -73,13 +73,11 @@
                         <a href="{{ route('admin.event-types.edit', $eventType) }}" class="btn btn-sm btn-outline-warning">Edit</a>
                         <form method="POST" action="{{ route('admin.event-types.toggle', $eventType) }}" class="d-inline">
                             @csrf @method('PATCH')
-                            <button type="submit" class="btn btn-sm {{ $eventType->is_active ? 'btn-outline-secondary' : 'btn-outline-success' }}">
-                                {{ $eventType->is_active ? 'Deactivate' : 'Activate' }}
-                            </button>
+                            <button type="submit" class="btn btn-sm {{ $eventType->is_active ? 'btn-outline-secondary' : 'btn-outline-success' }}" title="{{ $eventType->is_active ? 'Deactivate' : 'Activate' }}"><i class="fas {{ $eventType->is_active ? 'fa-toggle-on' : 'fa-toggle-off' }}"></i></button>
                         </form>
                         <form method="POST" action="{{ route('admin.event-types.destroy', $eventType) }}" class="d-inline" onsubmit="return confirm('Delete this event type?');">
                             @csrf @method('DELETE')
-                            <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+                            <button type="submit" class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></button>
                         </form>
                     </td>
                 </tr>

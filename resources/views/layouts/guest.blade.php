@@ -14,6 +14,14 @@
 </head>
 <body>
     @yield('content')
+
+    <footer class="py-4 mt-5 text-center text-white-50" style="background-color: #020817;">
+        <div class="container">
+            <p class="mb-1">© 2026 PerformHub. All Rights Reserved.</p>
+            <p class="mb-0">Privacy Policy | Terms & Conditions | Disclaimer</p>
+        </div>
+    </footer>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     @stack('scripts')
 </body>
