@@ -25,12 +25,21 @@ class OrganizerProfile extends Model
         'banner_position_y',
         'phone',
         'website',
+        'google_calendar_connected',
+        'google_calendar_id',
+        'google_refresh_token',
+        'google_token_expires_at',
+        'google_calendar_synced_at',
     ];
 
     protected function casts(): array
     {
-        return [
-            'banner_position_y' => 'integer',
+    return [
+        'banner_position_y' => 'integer',
+        'google_calendar_connected' => 'boolean',
+        'google_token_expires_at' => 'datetime',
+        'google_refresh_token' => 'encrypted',
+        'google_calendar_synced_at' => 'datetime',
         ];
     }
 
