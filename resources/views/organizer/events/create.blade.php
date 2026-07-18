@@ -44,20 +44,28 @@
                     </select>
                     </div>
 
-                    <div class="col-md-6 mb-3"><label class="form-label">Preferred Performer Category</label><select class="form-select" name="category_id">
-                        <select class="form-select" disabled>
-                        <option>Coming Soon</option>
-                    </select>
-                    </select>
-                    </div>
+                    <div class="col-md-6 mb-3"><label class="form-label">Preferred Performer Category</label>
+
+                    <select name="preferred_category_id" class="form-select">
+
+                    <option value="">Select Performer Category</option>
+
+                    @foreach($categories as $category)
+                    <option value="{{ $category->id }}" {{ old('preferred_category_id') == $category->id ? 'selected' : '' }}> {{ $category->name }}
+                    </option>
+                    @endforeach
+
+                </select>
+                </div>
 
                 </div>
 
                 <div class="row">
 
-                    <div class="col-md-6 mb-3"><label class="form-label">Event Date</label><input type="date" class="form-control" name="event_date"></div>
-                    <div class="col-md-6 mb-3"><label class="form-label">Event Time</label><input type="time" class="form-control" name="start_time"></div>
+                <div class="col-md-4 mb-3"><label class="form-label">Event Date</label><input type="date" class="form-control" name="event_date" value="{{ old('event_date') }}"></div>
+                <div class="col-md-4 mb-3"><label class="form-label">Start Time</label><input type="time" class="form-control" name="start_time" value="{{ old('start_time') }}"></div>
 
+                <div class="col-md-4 mb-3"><label class="form-label">End Time</label><input type="time" class="form-control" name="end_time" value="{{ old('end_time') }}"></div>
                 </div>
 
                 <div class="mb-3"><label class="form-label">Venue / Location</label><input type="text" class="form-control" name="venue"></div>

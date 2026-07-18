@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use  App\Models\Category;
 
 class Event extends Model
 {
@@ -18,6 +19,8 @@ class Event extends Model
         'budget',
         'performers_needed',
         'status',
+        'banner_photo',
+        'preferred_category_id',
     ];
 
     public function organizer()
@@ -28,5 +31,10 @@ class Event extends Model
     public function eventType()
     {
         return $this->belongsTo(EventType::class);
+    }
+
+    public function preferredCategory()
+    {
+    return $this->belongsTo(Category::class, 'preferred_category_id');
     }
 }
