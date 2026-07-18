@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Performer;
 
 use App\Http\Controllers\Controller;
 use App\Models\Booking;
+use App\Models\Event;
 use App\Models\Review;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
@@ -20,6 +21,8 @@ class DashboardController extends Controller
             ->count();
         $reviews = Review::where('reviewee_id', $user->id)->with('reviewer')->latest()->limit(5)->get();
 
-        return view('performer.dashboard', compact('profile', 'pendingBookings', 'upcomingBookings', 'reviews'));
+        $availableEvents = Event::with('organizer')->where('status', 'Open')->latest()->take(6)->get();
+
+        return view('performer.dashboard', compact('profile', 'pendingBookings', 'upcomingBookings', 'reviews', 'availableEvents'));
     }
 }
