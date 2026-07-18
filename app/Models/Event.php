@@ -19,7 +19,7 @@ class Event extends Model
         'budget',
         'performers_needed',
         'status',
-        'banner_photo',
+        'cover_photo',
         'preferred_category_id',
     ];
 
@@ -30,11 +30,11 @@ class Event extends Model
 
     public function eventType()
     {
-        return $this->belongsTo(EventType::class);
+         return $this->belongsTo(EventType::class, 'event_type_id');
     }
 
     public function preferredCategory()
     {
-    return $this->belongsTo(Category::class, 'preferred_category_id');
+        return $this->belongsTo(Category::class, 'preferred_category_id');
     }
 }

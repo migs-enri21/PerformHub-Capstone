@@ -40,7 +40,7 @@ class EventController extends Controller
         'event_type_id' => ['required', 'exists:event_types,id'],
         'preferred_category_id' => ['nullable', 'exists:categories,id'],
         'title' => ['required', 'string', 'max:255'],
-        'banner_photo' => 'nullable|image|max:5120',
+        'cover_photo' => 'nullable|image|max:5120',
         'description' => ['nullable', 'string'],
         'event_date' => ['required', 'date'],
         'start_time' => ['required'],
@@ -50,16 +50,13 @@ class EventController extends Controller
         'performers_needed' => ['required', 'integer', 'min:1'],
         ]);
 
-        if ($request->hasFile('banner_photo')) {
+        $bannerPath = null;
+
+        if ($request->hasFile('cover_photo')) {
 
             $supabase = new SupabaseStorageService();
 
-            $validated['banner_photo'] = $supabase->upload(
-            $request->file('banner_photo'),
-            'organizer-files',
-            'event_banners',
-            Auth::id()
-            );
+            $bannerPath = $supabase->upload($request->file('cover_photo'),'organizer-files','event_banner',Auth::id());
 
         }
 
@@ -75,7 +72,7 @@ class EventController extends Controller
         'venue' => $validated['venue'],
         'budget' => $validated['budget'],
         'performers_needed' => $validated['performers_needed'],
-        'banner_photo' => $validated['banner_photo'] ?? null,
+        'cover_photo' => $bannerPath,
         'status' => 'Open',
         ]);
 

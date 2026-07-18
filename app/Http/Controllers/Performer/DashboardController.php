@@ -21,7 +21,13 @@ class DashboardController extends Controller
             ->count();
         $reviews = Review::where('reviewee_id', $user->id)->with('reviewer')->latest()->limit(5)->get();
 
-        $availableEvents = Event::with('organizer')->where('status', 'Open')->latest()->take(6)->get();
+        $availableEvents = Event::with(['organizer','eventType','preferredCategory',])
+            ->where(function ($query) { $query->where('status', 'Open')->orWhere('status', 'open');
+            })
+            ->whereDate('event_date', '>=', now()->toDateString())
+            ->orderBy('event_date')
+            ->orderBy('start_time')
+            ->get();
 
         return view('performer.dashboard', compact('profile', 'pendingBookings', 'upcomingBookings', 'reviews', 'availableEvents'));
     }
