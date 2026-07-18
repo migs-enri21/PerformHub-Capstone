@@ -8,7 +8,7 @@
 
 @section('content')
 <div class="mb-4">
-    <a href="{{ route('admin.event-types.index') }}" class="btn btn-outline-secondary mb-3">← Back to Event Types</a>
+    <a href="{{ route('admin.categories.index') }}" class="btn btn-outline-secondary mb-3">← Back to Categories</a>
     <h2 class="fw-bold">{{ $eventType->name }}</h2>
 </div>
 
@@ -19,10 +19,6 @@
             <div class="mb-3">
                 <label class="form-label text-muted">Name</label>
                 <p class="fw-bold">{{ $eventType->name }}</p>
-            </div>
-            <div class="mb-3">
-                <label class="form-label text-muted">Slug</label>
-                <p>{{ $eventType->slug }}</p>
             </div>
             <div class="mb-3">
                 <label class="form-label text-muted">Status</label>

@@ -8,7 +8,7 @@
 
 @section('content')
 <div class="mb-4">
-    <a href="{{ route('admin.event-types.index') }}" class="btn btn-outline-secondary mb-3">← Back to Event Types</a>
+    <a href="{{ route('admin.categories.index') }}" class="btn btn-outline-secondary mb-3">← Back to Categories</a>
     <h2 class="fw-bold">Edit Event Type: {{ $eventType->name }}</h2>
 </div>
 
@@ -35,7 +35,7 @@
         </div>
         <div class="col-12">
             <button type="submit" class="btn ph-btn-primary">Save Changes</button>
-            <a href="{{ route('admin.event-types.index') }}" class="btn btn-outline-secondary">Cancel</a>
+            <a href="{{ route('admin.categories.index') }}" class="btn btn-outline-secondary">Cancel</a>
         </div>
     </form>
 </div>

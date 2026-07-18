@@ -24,11 +24,6 @@
             </div>
 
             <div class="mb-3">
-                <label class="form-label text-muted">Slug</label>
-                <p>{{ $category->slug }}</p>
-            </div>
-
-            <div class="mb-3">
                 <label class="form-label text-muted">Status</label>
                 <p>
                     <span class="badge {{ $category->is_active ? 'bg-success' : 'bg-secondary' }}">
