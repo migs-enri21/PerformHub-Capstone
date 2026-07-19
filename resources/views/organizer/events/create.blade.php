@@ -19,15 +19,16 @@
 
                 <div class="mb-4">
 
-                <label class="form-label fw-semibold"> Event Banner Photo</label>
+                <label class="form-label fw-semibold">Event Photos</label>
 
                 <input
                 type="file"
-                name="banner_photo"
+                name="photos[]"
                 class="form-control"
-                accept="image/*">
+                accept="image/*"
+                multiple>
 
-                <small class="text-muted"> Upload a banner photo for your event.</small>
+                <small class="text-muted">Upload one or more photos. Multiple photos show as a collage for performers.</small>
 
                 </div>
                 <div class="mb-3"><label class="form-label">Event Name</label><input type="text" class="form-control" name="title" value="{{ old('title') }}"></div>

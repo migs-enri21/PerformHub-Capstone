@@ -2,7 +2,9 @@
 
 namespace App\Models;
 
+use App\Services\SupabaseStorageService;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use  App\Models\Category;
 
 class Event extends Model
@@ -36,5 +38,37 @@ class Event extends Model
     public function preferredCategory()
     {
         return $this->belongsTo(Category::class, 'preferred_category_id');
+    }
+
+    public function applications()
+    {
+        return $this->hasMany(EventApplication::class);
+    }
+
+    public function photos(): HasMany
+    {
+        return $this->hasMany(EventPhoto::class)->orderBy('sort_order');
+    }
+
+    public function hasGalleryPhotos(): bool
+    {
+        if ($this->relationLoaded('photos')) {
+            return $this->photos->isNotEmpty() || $this->cover_photo !== null;
+        }
+
+        return $this->photos()->exists() || $this->cover_photo !== null;
+    }
+
+    public function coverPhotoUrl(): ?string
+    {
+        if (! $this->cover_photo) {
+            return null;
+        }
+
+        if (str_starts_with($this->cover_photo, 'http')) {
+            return $this->cover_photo;
+        }
+
+        return (new SupabaseStorageService)->url('organizer-files', $this->cover_photo);
     }
 }

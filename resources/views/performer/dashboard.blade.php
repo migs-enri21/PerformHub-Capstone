@@ -46,38 +46,27 @@
         </div>
     </div>
 </div>
-<div class="ph-card p-4 mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h4 class="fw-bold mb-0">Available Events</h4>
+<div class="event-feed-section mt-4">
+    <div class="text-center mb-4">
+        <h4 class="fw-bold mb-1">Available Events</h4>
+        <p class="text-muted small mb-0">Open gigs posted by organizers</p>
     </div>
 
-    @forelse($availableEvents as $event)
-        <div class="border rounded p-3 mb-3">
-            <div class="d-flex justify-content-between">
-                <div>
-                    <h5 class="mb-1">{{ $event->title }}</h5>
-
-                    <p class="text-muted mb-1">
-                        Organizer:
-                        {{ optional($event->organizer)->name ?? 'Unknown Organizer' }}
-                    </p>
-
-                    <small class="text-muted">
-                        {{ $event->event_date }}
-                        |
-                        {{ $event->venue }}
-                    </small>
-                </div>
-
-                <span class="badge bg-primary">
-                    {{ $event->status }}
-                </span>
+    @if($availableEvents->isNotEmpty())
+        <div class="event-feed-center">
+            @foreach($availableEvents as $event)
+                @include('partials.event-feed-post', [
+                    'event' => $event,
+                    'hasApplied' => in_array($event->id, $appliedEventIds ?? [], true),
+                ])
+            @endforeach
+        </div>
+    @else
+        <div class="event-feed-center">
+            <div class="event-feed-empty text-muted text-center">
+                No events available right now. Check back when organizers post open gigs.
             </div>
         </div>
-    @empty
-        <p class="text-muted mb-0">
-            No events available.
-        </p>
-    @endforelse
+    @endif
 </div>
 @endsection

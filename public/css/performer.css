@@ -1045,3 +1045,154 @@ button.av-day:not(:disabled):hover {
     background: rgba(99, 70, 255, 0.15);
 }
 
+/* Event cards — centered Facebook-style posts */
+.event-feed-section {
+    width: 100%;
+}
+
+.event-feed-center {
+    max-width: 680px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    padding-bottom: 1.5rem;
+}
+
+.event-feed-empty {
+    padding: 2rem 1.5rem;
+    background: var(--ph-bg-card);
+    border: 1px solid var(--ph-border);
+    border-radius: 12px;
+}
+
+.event-feed-post {
+    display: flex;
+    flex-direction: column;
+    background: var(--ph-bg-card);
+    border: 1px solid var(--ph-border);
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+}
+
+.event-feed-post-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem 1rem 0.5rem;
+}
+
+.event-feed-body {
+    padding: 0 1rem 1rem;
+}
+
+.event-feed-avatar {
+    object-fit: cover;
+    border: 2px solid var(--ph-purple);
+}
+
+.event-feed-title {
+    font-size: 1.05rem;
+    line-height: 1.35;
+}
+
+.event-feed-description {
+    white-space: pre-line;
+    line-height: 1.45;
+    font-size: 0.92rem;
+}
+
+.event-feed-meta {
+    color: var(--ph-text-muted);
+    font-size: 0.8rem;
+    line-height: 1.5;
+}
+
+.event-feed-meta span:not(:last-child)::after {
+    content: " · ";
+    opacity: 0.75;
+}
+
+.event-feed-cover {
+    width: 100%;
+    background: #000;
+    flex-shrink: 0;
+    line-height: 0;
+}
+
+.event-feed-cover img {
+    display: block;
+    width: 100%;
+    height: auto;
+    max-height: 520px;
+    object-fit: contain;
+    object-position: center;
+    background: #000;
+}
+
+.event-feed-collage .portfolio-collage-tile img {
+    object-fit: contain;
+    object-position: center;
+    background: #000;
+}
+
+.event-feed-collage.portfolio-collage--1 .portfolio-collage-tile {
+    aspect-ratio: auto;
+    max-height: 520px;
+    min-height: 220px;
+}
+
+.event-feed-collage.portfolio-collage--1 .portfolio-collage-tile img {
+    object-fit: contain;
+    max-height: 520px;
+}
+
+.event-feed-cover--empty {
+    background: linear-gradient(135deg, rgba(99, 70, 255, 0.15), rgba(79, 70, 229, 0.08));
+}
+
+.event-feed-cover-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    aspect-ratio: 16 / 9;
+    color: rgba(255, 255, 255, 0.35);
+    font-size: 2rem;
+}
+
+.event-feed-footer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.03);
+    border-top: 1px solid var(--ph-border);
+    border-radius: 0 0 12px 12px;
+}
+
+.event-feed-footer-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    padding: 0.45rem 1rem;
+    border: 0;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.08);
+    color: #fff;
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: background 0.15s ease, opacity 0.15s ease;
+}
+
+.event-feed-footer-btn:hover:not(:disabled) {
+    background: rgba(99, 70, 255, 0.35);
+    color: #fff;
+}
+
+.event-feed-footer-btn--applied {
+    background: rgba(99, 70, 255, 0.2);
+    color: #c4b5fd;
+    cursor: default;
+}

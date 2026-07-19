@@ -21,6 +21,7 @@ use App\Http\Controllers\Organizer\CalendarController;
 use App\Http\Controllers\Performer\AvailabilityController;
 use App\Http\Controllers\Performer\BookingController as PerformerBookingController;
 use App\Http\Controllers\Performer\DashboardController as PerformerDashboardController;
+use App\Http\Controllers\Performer\EventApplicationController;
 use App\Http\Controllers\Performer\GoogleCalendarController;
 use App\Http\Controllers\Performer\PortfolioController;
 use App\Http\Controllers\Performer\ProfileController as PerformerProfileController;
@@ -74,6 +75,7 @@ Route::middleware(['auth', 'role:performer'])->prefix('performer')->name('perfor
         Route::post('/bookings/{booking}/accept', [PerformerBookingController::class, 'accept'])->name('bookings.accept');
         Route::post('/bookings/{booking}/reject', [PerformerBookingController::class, 'reject'])->name('bookings.reject');
         Route::post('/bookings/{booking}/confirm-contract', [PerformerBookingController::class, 'confirmContract'])->name('bookings.confirm-contract');
+        Route::post('/events/{event}/apply', [EventApplicationController::class, 'store'])->name('events.apply');
     });
     Route::get('/bookings', [PerformerBookingController::class, 'index'])->name('bookings.index');
     Route::get('/bookings/{booking}', [PerformerBookingController::class, 'show'])->name('bookings.show');
