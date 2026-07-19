@@ -16,6 +16,8 @@ use App\Http\Controllers\Organizer\PerformerSearchController;
 use App\Http\Controllers\Organizer\ProfileController as OrganizerProfileController;
 use App\Http\Controllers\Organizer\EventController as OrganizerEventController;
 use App\Http\Controllers\Organizer\EventHistoryController as EventHistoryController;
+use App\Http\Controllers\Organizer\GoogleCalendarController as OrganizerGoogleCalendarController;
+use App\Http\Controllers\Organizer\CalendarController;
 use App\Http\Controllers\Performer\AvailabilityController;
 use App\Http\Controllers\Performer\BookingController as PerformerBookingController;
 use App\Http\Controllers\Performer\DashboardController as PerformerDashboardController;
@@ -94,12 +96,19 @@ Route::middleware(['auth', 'role:organizer'])->prefix('organizer')->name('organi
     Route::put('/events/{event}', [OrganizerEventController::class, 'update'])->name('events.update');
     Route::delete('/events/{event}', [OrganizerEventController::class, 'destroy'])->name('events.destroy');
     Route::get('/history', [EventHistoryController::class, 'index'])->name('history.index');
+    Route::get('/calendar', [CalendarController::class, 'index'])->name('calendar.index');
 
     Route::middleware('full.access')->group(function () {
         Route::get('/bookings/create/{performer}', [OrganizerBookingController::class, 'create'])->name('bookings.create');
         Route::post('/bookings/{performer}', [OrganizerBookingController::class, 'store'])->name('bookings.store');
         Route::post('/bookings/{booking}/contract', [OrganizerBookingController::class, 'uploadContract'])->name('bookings.contract');
         Route::post('/bookings/{booking}/complete', [OrganizerBookingController::class, 'complete'])->name('bookings.complete');
+    });
+    Route::prefix('calendar')->name('calendar.')->group(function () {
+    Route::get('/connect', [OrganizerGoogleCalendarController::class, 'connect'])->name('connect');
+    Route::get('/callback', [OrganizerGoogleCalendarController::class, 'callback'])->name('callback');
+    Route::post('/sync', [OrganizerGoogleCalendarController::class, 'sync'])->name('sync');
+    Route::delete('/disconnect', [OrganizerGoogleCalendarController::class, 'disconnect'])->name('disconnect');
     });
 });
 

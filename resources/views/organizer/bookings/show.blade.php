@@ -9,6 +9,88 @@
 @section('content')
 <div class="d-flex justify-content-between mb-4">
     <div><h2 class="fw-bold mb-1">{{ $booking->event_name }}</h2><span class="badge {{ $booking->statusBadgeClass() }}">{{ $booking->statusLabel() }}</span></div>
+    <div class="ph-card p-4 mt-4 mb-4">
+
+    <h5 class="fw-bold mb-3">Booking Progress</h5>
+
+    <div class="mb-2">
+
+    <i class="bi bi-check-circle-fill text-success me-2"></i>
+
+    Booking Request Sent
+
+    </div>
+
+    <div class="d-flex align-items-center mb-3">
+
+    @if($booking->status == 'accepted' || $booking->status == 'completed')
+
+        <span class="badge bg-success">Done</span>
+
+    @elseif($booking->status == 'pending')
+        <i class="bi bi-hourglass-split text-warning me-2"></i>
+
+    @else
+        <i class="bi bi-circle text-secondary me-2"></i>
+
+    @endif
+    Performer Accepted
+    </div>
+
+    <div class="d-flex align-items-center mb-3">
+
+    @if($booking->hasContract())
+
+        <span class="badge bg-success">Done</span>
+
+    @elseif($booking->status == 'accepted')
+
+        <span class="badge bg-warning text-dark">Current</span>
+
+    @else
+
+        <span class="badge bg-secondary">Pending</span>
+
+    @endif
+
+    Contract Uploaded
+
+    </div>
+
+    <div class="d-flex align-items-center mb-3">
+
+    @if($booking->performer_confirmed_contract)
+
+        <span class="badge bg-success">Done</span>
+
+    @elseif($booking->hasContract())
+
+        <span class="badge bg-warning text-dark">Current</span>
+
+    @else
+
+        <span class="badge bg-secondary">Pending</span>
+
+    @endif
+
+    Contract Confirmed
+
+    </div>
+
+    <div>
+
+    @if($booking->status == 'completed')
+
+        <span class="badge bg-success">Done</span>
+
+    @else
+        <span class="badge bg-secondary">Pending</span>
+
+    @endif
+        Booking Completed
+    </div>
+    
+    </div>
     <a href="{{ route('organizer.bookings.index') }}" class="btn ph-btn-outline btn-sm">Back</a>
 </div>
 

@@ -46,4 +46,38 @@
         </div>
     </div>
 </div>
+<div class="ph-card p-4 mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4 class="fw-bold mb-0">Available Events</h4>
+    </div>
+
+    @forelse($availableEvents as $event)
+        <div class="border rounded p-3 mb-3">
+            <div class="d-flex justify-content-between">
+                <div>
+                    <h5 class="mb-1">{{ $event->title }}</h5>
+
+                    <p class="text-muted mb-1">
+                        Organizer:
+                        {{ optional($event->organizer)->name ?? 'Unknown Organizer' }}
+                    </p>
+
+                    <small class="text-muted">
+                        {{ $event->event_date }}
+                        |
+                        {{ $event->venue }}
+                    </small>
+                </div>
+
+                <span class="badge bg-primary">
+                    {{ $event->status }}
+                </span>
+            </div>
+        </div>
+    @empty
+        <p class="text-muted mb-0">
+            No events available.
+        </p>
+    @endforelse
+</div>
 @endsection

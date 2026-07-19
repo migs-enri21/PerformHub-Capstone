@@ -9,7 +9,33 @@
 @section('content')
 @include('partials.onboarding-banner')
 
-<h2 class="fw-bold mb-1">Welcome, {{ $profile?->organization_name ?? auth()->user()->name }}</h2>
+<div class="d-flex justify-content-between align-items-center mb-4">
+
+    <div>
+
+        <h2 class="fw-bold mb-1">
+
+            Home
+
+        </h2>
+
+        <p class="text-muted mb-0">
+
+            Stay updated with your events and performer activities.
+
+        </p>
+
+    </div>
+
+    <a href="{{ route('organizer.events.create') }}" class="btn ph-btn-primary">
+
+        <i class="fas fa-plus me-2"></i>
+
+        Create Event
+
+    </a>
+
+</div>
 <p class="text-muted mb-4">
     @if(auth()->user()->hasLimitedAccess())
         Manage your events and discover talent — complete sign-up to book performers.
@@ -18,79 +44,37 @@
     @endif
 </p>
 
-<div class="ph-card p-0 mb-4">
-    <div class="d-flex justify-content-between align-items-center p-4 border-bottom">
-        <h5 class="mb-0 fw-bold">My Events</h5>
+<div class="ph-card p-4 mb-4">
 
-        <a href="{{ route('organizer.events.create') }}"class="btn btn-sm ph-btn-primary">
-            + Create Event
-        </a>
-    </div>
+    <h5 class="fw-bold mb-4">
 
-    @forelse($myEvents as $event)
+    Recent Activity
 
-    <div class="p-4 border-bottom">
-    <div class="card-body">
+    </h5>
 
-        <div class="d-flex justify-content-between align-items-start">
+<div class="text-center py-5">
 
-            <div>
+    <i class="fas fa-stream fa-3x text-muted mb-3"></i>
 
-                <h5 class="fw-bold mb-1">{{ $event->title }}</h5>
-                <p class="text-muted mb-2"> {{ $event->eventType->name }}</p>
+    <h5 class="fw-bold">
 
-            </div>
+        No Recent Activity
 
-            <span class="badge bg-warning text-dark">{{ ucfirst($event->status) }}</span>
+    </h5>
 
-        </div>
+    <p class="text-muted mb-0">
 
-        <div class="row mt-3">
+        Performer portfolio uploads and profile updates will appear here.
 
-            <div class="col-md-4">
-                <small class="text-muted">Date</small>
-                <div>{{ \Carbon\Carbon::parse($event->event_date)->format('F d, Y') }}</div>
-            </div>
-
-            <div class="col-md-4">
-                <small class="text-muted">Venue</small>
-                <div>{{ $event->venue }}</div>
-            </div>
-
-            <div class="col-md-4">
-                <small class="text-muted">Budget</small>
-                <div>₱{{ number_format($event->budget ?? 0) }}</div>
-            </div>
-
-        </div>
-
-        <div class="mt-4 d-flex gap-2">
-
-            <a href="{{ route('organizer.performers.index', ['event' => $event->id]) }}" class="btn ph-btn-primary">Find Performers</a>
-            <a href="{{ route('organizer.events.edit', $event) }}"class="btn ph-btn-secondary">View Event</a>
-
-        </div>
+    </p>
 
     </div>
 </div>
 
-@empty
-<div class="card shadow-sm border-0 mb-3">
-    <div class="card-body text-center py-5">
-        <h5>No events yet</h5>
-        <p class="text-muted">Create your first event to start finding performers.</p>
-
-        <a href="{{ route('organizer.events.create') }}" class="btn ph-btn-primary">
-            Create Event
-        </a>
-    </div>
-</div>
-@endforelse
-
-<h4 class="fw-bold mb-3">Discover Performers</h4>
+<h4 class="fw-bold mb-3">Featured Performers</h4>
 
 <div class="ph-card p-4 mb-4">
-    <h5 class="fw-semibold mb-3">Recommended for you</h5>
+    <h5 class="fw-semibold mb-3">Suggested for you</h5>
     <div class="row g-3">
         @forelse($recommendedPerformers as $p)
             <div class="col-md-4">
@@ -105,9 +89,78 @@
             </div>
         @empty
             <p class="text-muted mb-0">No recommendations available.</p>
+            <div class="mt-4">
+
+    <a href="{{ route('organizer.performers.index') }}"
+       class="btn ph-btn-primary">
+
+        Browse All Performers
+
+    </a>
+
+</div>
         @endforelse
     </div>
 </div>
 
-<a href="{{ route('organizer.performers.index') }}" class="btn ph-btn-primary">Browse All Performers</a>
+<div class="ph-card p-4 mt-4">
+
+    <div class="ph-card p-4 mt-4">
+
+    <h5 class="fw-bold mb-3">
+
+        Organizer Calendar
+
+    </h5>
+
+    <div class="text-center py-4">
+
+        <i class="fas fa-calendar-alt fa-3x text-muted mb-3"></i>
+
+        <p class="text-muted mb-0">
+
+            Your scheduled events will appear here once the calendar feature is added.
+
+        </p>
+
+    </div>
+
+</div>
+
+<div class="ph-card p-4 mt-4">
+
+    <h5 class="fw-bold mb-3">
+
+        Upcoming Reminder
+
+    </h5>
+
+
+    @if($myEvents->isNotEmpty())
+
+        <p class="mb-0">
+
+            Your next scheduled event is
+
+            <strong>{{ $myEvents->first()->title }}</strong>
+
+            on
+
+            <strong>{{ \Carbon\Carbon::parse($myEvents->first()->event_date)->format('F d, Y') }}</strong>.
+
+        </p>
+
+    @else
+
+        <p class="text-muted mb-0">
+
+            You don't have any upcoming events yet. Create one to get started.
+
+        </p>
+
+    @endif
+
+</div>
+
+
 @endsection

@@ -202,6 +202,9 @@ const submitButton = document.getElementById('registerSubmitButton');
 
 function updateContinueState() {
     continueButton.disabled = !termsCheckbox.checked;
+    if (registrationFields.style.display !== 'none' && termsCheckbox.checked) {
+        submitButton.disabled = false;
+    }
 }
 
 if (termsCheckbox) {
@@ -214,8 +217,13 @@ if (continueButton) {
         if (termsCheckbox.checked) {
             registrationFields.style.display = 'block';
             continueButton.closest('.ph-card').style.display = 'none';
+            submitButton.disabled = false;
         }
     });
+}
+
+if (registrationFields && registrationFields.style.display !== 'none' && termsCheckbox && termsCheckbox.checked) {
+    submitButton.disabled = false;
 }
 </script>
 @endpush

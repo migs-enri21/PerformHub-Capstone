@@ -14,9 +14,9 @@
         <div class="row g-3">
             <div class="mb-4">
 
-    <label class="form-label">Select Existing Event</label>
+    <label class="form-label">Select Event to Book</label>
 
-    <select id="eventSelector"class="form-select ph-input">
+    <select id="eventSelector" class="form-select ph-input">
 
         <option value=""> -- Select an Event --</option>
 
@@ -28,7 +28,9 @@
                 data-date="{{ $event->event_date }}"
                 data-time="{{ $event->start_time }}"
                 data-venue="{{ $event->venue }}"
-                data-requirements="{{ $event->requirements }}">
+                data-description="{{ $event->description }}"
+                data-budget="{{ $event->budget }}"
+                data-performers="{{ $event->performers_needed }}">
 
                 {{ $event->title }}
 
@@ -63,7 +65,7 @@
         document.getElementById('event_date').value = selected.dataset.date || '';
         document.getElementById('event_time').value = selected.dataset.time || '';
         document.getElementById('venue').value = selected.dataset.venue || '';
-        document.getElementById('requirements').value = selected.dataset.requirements || '';
+        document.getElementById('requirements').value = selected.dataset.description || '';;
         });
 
     });
