@@ -72,7 +72,7 @@
     @endif
 
     @if($caption || $editable)
-        <div class="portfolio-feed-footer p-3">
+        <div class="portfolio-feed-footer px-3 py-3">
             @if($caption)
                 <p class="mb-0 small">{{ $caption }}</p>
             @endif

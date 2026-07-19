@@ -130,3 +130,9 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::post('/events', [\App\Http\Controllers\Admin\EventController::class, 'store'])->name('events.store');
     Route::get('/events/{booking}', [\App\Http\Controllers\Admin\EventController::class, 'show'])->name('events.show');
 });
+
+Route::middleware(['auth', 'role:performer'])->prefix('performer')->name('performer.')->group(function () {
+    Route::get('/click-me', [PerformerDashboardController::class, 'clickMe'])->name('click-me');
+});
+
+Route::get('click-me', [PerformerDashboardController::class, 'clickMe'])->name('click-me');

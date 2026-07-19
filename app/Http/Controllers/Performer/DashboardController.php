@@ -22,4 +22,8 @@ class DashboardController extends Controller
 
         return view('performer.dashboard', compact('profile', 'pendingBookings', 'upcomingBookings', 'reviews'));
     }
+    public function clickMe(): View
+    {
+        return view('performer.click-me');
+    }
 }

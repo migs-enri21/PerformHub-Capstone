@@ -7,62 +7,71 @@
 @endsection
 
 @section('content')
-<h2 class="fw-bold mb-4">Portfolio</h2>
+<div class="portfolio-page">
+    <div class="portfolio-compose ph-card mb-0">
+        <form method="POST" action="{{ route('performer.portfolio.store') }}" enctype="multipart/form-data" id="portfolioUploadForm">
+            @csrf
 
-<div class="ph-card p-4 mb-4">
-    <h5 class="fw-semibold mb-1">Upload Photos or Videos</h5>
-    <p class="text-muted small mb-3">Select multiple files — they’ll preview here like a post before you upload.</p>
-    <form method="POST" action="{{ route('performer.portfolio.store') }}" enctype="multipart/form-data" id="portfolioUploadForm">
-        @csrf
-        <div class="portfolio-upload-zone mb-3">
-            <input
-                type="file"
-                name="files[]"
-                id="portfolioFiles"
-                class="portfolio-file-input"
-                accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm,video/quicktime,video/*"
-                multiple
-                required
-            >
-            <label for="portfolioFiles" class="portfolio-upload-trigger" id="portfolioUploadTrigger">
-                <i class="fas fa-images fa-2x mb-2"></i>
-                <span class="fw-semibold">Add photos or videos</span>
-                <span class="small text-muted">Click to browse · JPG, PNG, WEBP, GIF, MP4, WEBM · max 500 MB each</span>
-            </label>
-            <div class="portfolio-preview-collage d-none" id="portfolioPreviewCollage" aria-live="polite"></div>
-            <label for="portfolioFiles" class="portfolio-collage-add d-none" id="portfolioAddMore">
-                <i class="fas fa-plus"></i><span>Add more</span>
-            </label>
-            <div class="d-flex justify-content-between align-items-center mt-2 d-none" id="portfolioPreviewActions">
-                <span class="text-muted small" id="portfolioFileCount"></span>
-                <button type="button" class="btn btn-sm ph-btn-outline" id="portfolioClearFiles">Clear all</button>
+            <div class="portfolio-sketch-field">
+                <label class="portfolio-sketch-label" for="portfolioCaption">Caption</label>
+                <textarea
+                    name="caption"
+                    id="portfolioCaption"
+                    class="form-control ph-input portfolio-sketch-input"
+                    rows="2"
+                    maxlength="2000"
+                    placeholder="Describe this performance…"
+                >{{ old('caption') }}</textarea>
             </div>
-        </div>
-        <div class="row g-3">
-            <div class="col-md-8">
-                <label class="form-label text-muted small" for="portfolioCaption">Caption</label>
-                <textarea name="caption" id="portfolioCaption" class="form-control ph-input" rows="3" maxlength="2000" placeholder="e.g. Live set at Sinulog 2026">{{ old('caption') }}</textarea>
-            </div>
-            <div class="col-md-4 d-flex align-items-end">
-                <button type="submit" class="btn ph-btn-primary w-100" id="portfolioSubmitBtn" disabled>Upload</button>
-            </div>
-        </div>
-    </form>
-</div>
 
-<div class="portfolio-feed-list mb-4">
-    @forelse($portfolioGroups as $group)
-        <div class="ph-card overflow-hidden mb-3">
+            <div class="portfolio-sketch-field">
+                <label class="portfolio-sketch-label" for="portfolioFiles">Photos or Videos</label>
+                <div class="portfolio-upload-zone">
+                    <input
+                        type="file"
+                        name="files[]"
+                        id="portfolioFiles"
+                        class="portfolio-file-input"
+                        accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm,video/quicktime,video/*"
+                        multiple
+                        required
+                    >
+                    <label for="portfolioFiles" class="portfolio-upload-trigger" id="portfolioUploadTrigger">
+                        <span class="portfolio-sketch-plus"><i class="fas fa-plus"></i></span>
+                        <span class="fw-semibold">Add photos or videos</span>
+                        <span class="small text-muted">JPG, PNG, WEBP, GIF, MP4, WEBM · max 500 MB each</span>
+                    </label>
+                    <div class="portfolio-preview-collage d-none" id="portfolioPreviewCollage" aria-live="polite"></div>
+                    <label for="portfolioFiles" class="portfolio-collage-add d-none" id="portfolioAddMore">
+                        <i class="fas fa-plus"></i><span>Add more</span>
+                    </label>
+                    <div class="d-flex justify-content-between align-items-center mt-2 d-none" id="portfolioPreviewActions">
+                        <span class="text-muted small" id="portfolioFileCount"></span>
+                        <button type="button" class="btn btn-sm ph-btn-outline" id="portfolioClearFiles">Clear all</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="portfolio-compose-submit">
+                <button type="submit" class="portfolio-sketch-submit-btn" id="portfolioSubmitBtn" disabled aria-label="Upload post">
+                    <i class="fas fa-plus"></i>
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <div class="portfolio-feed-list">
+        @forelse($portfolioGroups as $group)
             @include('partials.portfolio-feed-post', [
                 'items' => $group,
                 'performer' => auth()->user()->performerProfile,
                 'editable' => true,
                 'isOwn' => true,
             ])
-        </div>
-    @empty
-        <p class="text-muted mb-0">No portfolio items yet.</p>
-    @endforelse
+        @empty
+            <div class="portfolio-feed-empty text-muted">No portfolio items yet. Upload your first photo or video above.</div>
+        @endforelse
+    </div>
 </div>
 @endsection
 

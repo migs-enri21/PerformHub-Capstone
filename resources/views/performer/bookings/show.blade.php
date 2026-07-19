@@ -73,11 +73,8 @@
             @if($booking->status === 'pending')
                 <form method="POST" action="{{ route('performer.bookings.accept', $booking) }}" class="mb-2">@csrf<button class="btn ph-btn-primary w-100">Accept Booking</button></form>
                 <form method="POST" action="{{ route('performer.bookings.reject', $booking) }}">@csrf<button class="btn btn-outline-danger w-100">Reject</button></form>
-            @endif
-            @if($booking->needsContractReview())
-                <a href="{{ $booking->contractUrl() }}" target="_blank" class="btn ph-btn-primary w-100 mb-2">
-                    <i class="fas fa-file-signature me-1"></i> Review Contract
-                </a>
+            @elseif($booking->needsContractReview())
+                <p class="text-muted small mb-0">Review and confirm the contract in the section on the left.</p>
             @endif
         </div>
     </div>

@@ -554,34 +554,116 @@ button.av-day:not(:disabled):hover {
     color: var(--ph-text);
 }
 
+/* Portfolio page — full width of main column, edge to edge (not sidebar) */
+.portfolio-page {
+    margin-left: -1.5rem;
+    margin-right: -1.5rem;
+    width: calc(100% + 3rem);
+}
+
+/* Wireframe-style compose box */
+.portfolio-compose {
+    border-radius: 0;
+    border-left: none;
+    border-right: none;
+    border-top: none;
+    padding: 1.25rem 1.5rem 1.5rem;
+}
+
+.portfolio-sketch-field {
+    margin-bottom: 1rem;
+}
+
+.portfolio-sketch-label {
+    display: block;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--ph-text);
+    margin-bottom: 0.5rem;
+}
+
+.portfolio-sketch-input {
+    min-height: 72px;
+    resize: vertical;
+}
+
+.portfolio-sketch-plus {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border: 1px solid var(--ph-border);
+    border-radius: 8px;
+    color: var(--ph-text-muted);
+    margin-bottom: 0.35rem;
+}
+
+.portfolio-compose-submit {
+    display: flex;
+    justify-content: center;
+    padding-top: 0.25rem;
+}
+
+.portfolio-sketch-submit-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 3rem;
+    height: 2.25rem;
+    border: 1px solid var(--ph-border);
+    border-radius: 8px;
+    background: var(--ph-bg-input);
+    color: var(--ph-text);
+    transition: border-color 0.2s ease, background 0.2s ease, color 0.2s ease;
+}
+
+.portfolio-sketch-submit-btn:hover:not(:disabled) {
+    border-color: var(--ph-purple);
+    background: rgba(99, 70, 255, 0.12);
+    color: var(--ph-purple);
+}
+
+.portfolio-sketch-submit-btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
 /* Portfolio upload collage preview */
 /* Upload dropzone container */
 .portfolio-upload-zone {
     position: relative;
-    max-width: 500px;
+    max-width: none;
 }
 
 /* Portfolio feed list */
 .portfolio-feed-list {
     display: flex;
     flex-direction: column;
-    align-items: center;
-    gap: 1rem;
+    gap: 0;
+    width: 100%;
+}
+
+.portfolio-feed-empty {
+    padding: 2rem 1.5rem;
+    text-align: center;
+    border-top: 1px solid var(--ph-border);
 }
 
 /* Feed stream layout */
 .portfolio-feed-stream {
     display: flex;
     flex-direction: column;
-    align-items: center;
-    gap: 1rem;
+    gap: 0;
     width: 100%;
 }
 
-/* Single feed post card */
+/* Single feed post — full main-column width */
 .portfolio-feed-post {
     width: 100%;
-    max-width: 500px;
+    max-width: none;
+    background: var(--ph-bg-card);
+    border-top: 1px solid var(--ph-border);
 }
 
 /* Post header divider */
@@ -615,79 +697,97 @@ button.av-day:not(:disabled):hover {
 .portfolio-preview-collage {
     display: grid;
     gap: 3px;
-    border-radius: 8px;
+    border-radius: 0;
     overflow: hidden;
     background: #000;
     border: none;
     min-height: 0;
+    align-items: stretch;
+    justify-items: stretch;
 }
 
-/* Single item layout */
+/* Feed media — full bleed within main column */
+.portfolio-feed-post .portfolio-feed-collage {
+    border-radius: 0;
+}
+
+/* Single item layout — website-style wide video */
 .portfolio-collage--1 {
     grid-template-columns: 1fr;
 }
 
 /* Single item tile size */
 .portfolio-collage--1 .portfolio-collage-tile {
+    aspect-ratio: 16 / 9;
+    max-height: none;
+    min-height: 240px;
+}
+
+.portfolio-feed-collage.portfolio-collage--1 .portfolio-collage-tile video {
+    object-fit: contain;
+    background: #000;
+}
+
+.portfolio-feed-collage.portfolio-collage--1 .portfolio-collage-tile img {
+    object-fit: cover;
+    object-position: center;
+    background: #000;
+}
+
+/* Multi-photo grids — tiles fill the full width (no black side gaps) */
+.portfolio-preview-collage.portfolio-collage--2 {
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr;
+    aspect-ratio: 16 / 9;
+    min-height: 260px;
+    max-height: min(52vw, 520px);
+}
+
+.portfolio-preview-collage.portfolio-collage--2 .portfolio-collage-tile {
+    aspect-ratio: unset;
+    max-height: none;
+    height: 100%;
+}
+
+.portfolio-preview-collage.portfolio-collage--3 {
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
     aspect-ratio: 4 / 3;
-    max-height: 375px;
+    min-height: 300px;
+    max-height: min(56vw, 560px);
+}
+
+.portfolio-preview-collage.portfolio-collage--3 .portfolio-collage-tile {
+    max-height: none;
+    height: 100%;
     min-height: 0;
 }
 
-/* Two item layout */
-.portfolio-collage--2 {
-    grid-template-columns: 1fr 1fr;
-}
-
-/* Two item tile size */
-.portfolio-collage--2 .portfolio-collage-tile {
-    aspect-ratio: 1;
-    max-height: 240px;
-    min-height: 0;
-}
-
-/* Three item layout */
-.portfolio-collage--3 {
-    grid-template-columns: 1fr 1fr;
-    grid-template-rows: 1fr 1fr;
-}
-
-/* Three item tile size */
-.portfolio-collage--3 .portfolio-collage-tile {
-    min-height: 0;
-    max-height: 180px;
-}
-
-/* First tile spans rows */
-.portfolio-collage--3 .portfolio-collage-tile:first-child {
+.portfolio-preview-collage.portfolio-collage--3 .portfolio-collage-tile:first-child {
     grid-row: span 2;
-    max-height: 363px;
+    max-height: none;
 }
 
-/* Four item layout */
-.portfolio-collage--4 {
+.portfolio-preview-collage.portfolio-collage--4,
+.portfolio-preview-collage.portfolio-collage--many {
     grid-template-columns: 1fr 1fr;
     grid-template-rows: 1fr 1fr;
-}
-
-/* Four item tile size */
-.portfolio-collage--4 .portfolio-collage-tile {
     aspect-ratio: 1;
-    max-height: 180px;
-    min-height: 0;
+    min-height: 300px;
+    max-height: min(68vw, 640px);
 }
 
-/* Five-plus item layout */
-.portfolio-collage--many {
-    grid-template-columns: 1fr 1fr;
-    grid-template-rows: 1fr 1fr;
+.portfolio-preview-collage.portfolio-collage--4 .portfolio-collage-tile,
+.portfolio-preview-collage.portfolio-collage--many .portfolio-collage-tile {
+    aspect-ratio: unset;
+    max-height: none;
+    height: 100%;
 }
 
-/* Five-plus item tile */
-.portfolio-collage--many .portfolio-collage-tile {
-    aspect-ratio: 1;
-    max-height: 180px;
-    min-height: 0;
+/* Slightly favor faces/subjects when cropping portrait photos */
+.portfolio-feed-collage .portfolio-collage-tile img {
+    object-fit: cover;
+    object-position: center 25%;
 }
 
 /* Hidden file input */
@@ -731,6 +831,7 @@ button.av-day:not(:disabled):hover {
     position: relative;
     overflow: hidden;
     min-height: 0;
+    width: 100%;
     background: #000;
 }
 
@@ -781,6 +882,7 @@ button.av-day:not(:disabled):hover {
 /* Feed footer divider */
 .portfolio-feed-footer {
     border-top: 1px solid var(--ph-border);
+    padding: 0.85rem 1rem;
 }
 
 /* "+N more" overlay badge */
