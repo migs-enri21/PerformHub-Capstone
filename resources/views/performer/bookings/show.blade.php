@@ -19,7 +19,23 @@
 </div>
 
 <div class="row g-4">
-    <div class="col-lg-8">
+    <div class="col-lg-12">
+        @if($booking->status === 'pending')
+            <div class="ph-card p-4 mb-4">
+                <h5 class="fw-semibold mb-3">Respond to Booking</h5>
+                <div class="d-flex flex-wrap gap-2">
+                    <form method="POST" action="{{ route('performer.bookings.accept', $booking) }}">
+                        @csrf
+                        <button type="submit" class="btn ph-btn-primary">Accept Booking</button>
+                    </form>
+                    <form method="POST" action="{{ route('performer.bookings.reject', $booking) }}">
+                        @csrf
+                        <button type="submit" class="btn btn-outline-danger">Reject</button>
+                    </form>
+                </div>
+            </div>
+        @endif
+
         <div class="ph-card p-4 mb-4">
             <h5 class="fw-semibold mb-3">Event Details</h5>
             <p><strong>Date:</strong> {{ $booking->event_date->format('F d, Y') }} @if($booking->event_time) at {{ \Carbon\Carbon::parse($booking->event_time)->format('g:i A') }}@endif</p>
@@ -66,17 +82,6 @@
                 @endif
             </div>
         @endif
-    </div>
-    <div class="col-lg-4">
-        <div class="ph-card p-4">
-            <h5 class="fw-semibold mb-3">Actions</h5>
-            @if($booking->status === 'pending')
-                <form method="POST" action="{{ route('performer.bookings.accept', $booking) }}" class="mb-2">@csrf<button class="btn ph-btn-primary w-100">Accept Booking</button></form>
-                <form method="POST" action="{{ route('performer.bookings.reject', $booking) }}">@csrf<button class="btn btn-outline-danger w-100">Reject</button></form>
-            @elseif($booking->needsContractReview())
-                <p class="text-muted small mb-0">Review and confirm the contract in the section on the left.</p>
-            @endif
-        </div>
     </div>
 </div>
 @endsection

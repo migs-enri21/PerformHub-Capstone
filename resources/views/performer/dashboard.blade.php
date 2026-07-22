@@ -47,11 +47,6 @@
     </div>
 </div>
 <div class="event-feed-section mt-4">
-    <div class="text-center mb-4">
-        <h4 class="fw-bold mb-1">Available Events</h4>
-        <p class="text-muted small mb-0">Open gigs posted by organizers</p>
-    </div>
-
     @if($availableEvents->isNotEmpty())
         <div class="event-feed-center">
             @foreach($availableEvents as $event)
@@ -64,7 +59,7 @@
     @else
         <div class="event-feed-center">
             <div class="event-feed-empty text-muted text-center">
-                No events available right now. Check back when organizers post open gigs.
+                No posts yet.
             </div>
         </div>
     @endif
