@@ -7,6 +7,7 @@ use App\Models\Booking;
 use App\Models\Notification;
 use App\Models\Event;
 use App\Models\PerformerProfile;
+use App\Models\EventApplication;
 use App\Services\SupabaseStorageService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -49,18 +50,33 @@ class BookingController extends Controller
             'event_time' => ['nullable', 'date_format:H:i'],
             'venue' => ['nullable', 'string', 'max:255'],
             'requirements' => ['nullable', 'string', 'max:2000'],
-            'duration_hours' => ['nullable', 'integer', 'min:1', 'max:24'],
             'notes' => ['nullable', 'string', 'max:1000'],
             'budget' => ['nullable', 'numeric', 'min:0'],
             'end_time' => ['nullable', 'date_format:H:i'],
             'contract' => ['nullable', 'file', 'mimes:pdf,doc,docx', 'max:10240'],
+            'event_id' => ['required', 'exists:events,id'],
         ]);
+
+        $exists = Booking::where('performer_id', $performer->user_id)
+        ->where('event_name', $validated['event_name'])
+        ->where('status', 'pending')
+        ->exists();
+
+        if ($exists) {
+            return back()->with('error', 'A booking request has already been sent to this performer for this event.');
+        }
 
         $booking = Booking::create([
             ...$validated,
             'organizer_id' => Auth::id(),
             'performer_id' => $performer->user_id,
             'status' => 'pending',
+        ]);
+
+        EventApplication::where('event_id', $validated['event_id'])
+        ->where('performer_id', $performer->user_id)
+        ->update([
+        'status' => 'invited',
         ]);
 
         Notification::send(

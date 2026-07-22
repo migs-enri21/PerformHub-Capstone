@@ -24,6 +24,7 @@
 
             <option
                 value="{{ $event->id }}"
+                data-id="{{ $event->id }}"
                 data-title="{{ $event->title }}"
                 data-date="{{ $event->event_date }}"
                 data-start="{{ $event->start_time }}"
@@ -36,7 +37,9 @@
                 {{ $event->title }}
 
             </option>
-            @endforeach
+        @endforeach
+
+        <input type="hidden" name="event_id" id="event_id" value="{{ $selectedEvent?->id }}">
 
             </select></div>
 
@@ -58,40 +61,28 @@
     document.addEventListener('DOMContentLoaded', () => {
 
     const selector = document.getElementById('eventSelector');
+    const eventTimeInput = document.getElementById('event_time');
+    const endTimeInput = document.getElementById('end_time');
+
+    // Database times include seconds (18:30:00); this form submits hours and minutes (18:30).
+    const removeSeconds = (time) => time ? time.substring(0, 5) : '';
+
+    eventTimeInput.value = removeSeconds(eventTimeInput.value);
+    endTimeInput.value = removeSeconds(endTimeInput.value);
 
     selector.addEventListener('change', function () {
 
-        const selected = this.options[this.selectedIndex];
+            const selected = this.options[this.selectedIndex];
 
-        document.getElementById('event_name').value = selected.dataset.title || '';
-        document.getElementById('event_date').value = selected.dataset.date || '';
-        document.getElementById('event_time').value = selected.dataset.start || '';
-        document.getElementById('end_time').value = selected.dataset.end || '';
-
-        const start = selected.dataset.start;
-        const end = selected.dataset.end;
-
-        if (start && end) {
-
-        const startTime = new Date(`1970-01-01T${start}`);
-        let endTime = new Date(`1970-01-01T${end}`);
-
-        if (endTime <= startTime) {
-            endTime.setDate(endTime.getDate() + 1);
-        }      
-
-        const duration = (endTime - startTime) / (1000 * 60 * 60);
-
-            document.getElementById('duration_hours').value = duration;
-
-            } else {
-            document.getElementById('duration_hours').value = '';
-            }
-
+            document.getElementById('event_name').value = selected.dataset.title || '';
+            document.getElementById('event_id').value = selected.dataset.id || '';
+            document.getElementById('event_date').value = selected.dataset.date || '';
+            eventTimeInput.value = removeSeconds(selected.dataset.start);
+            endTimeInput.value = removeSeconds(selected.dataset.end);
             document.getElementById('venue').value = selected.dataset.venue || '';
             document.getElementById('budget').value = selected.dataset.budget || '';
             document.getElementById('requirements').value = selected.dataset.description || '';;
-            });
+        });
 
     });
     </script>

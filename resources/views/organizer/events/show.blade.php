@@ -89,7 +89,18 @@
                 {{ $application->performer->performerProfile->stage_name ?? $application->performer->name }}
             </h5>
 
-            <small class="text-muted">{{ ucfirst($application->status) }}</small>
+            <span class="badge
+                @if($application->status == 'pending')
+                bg-warning
+                @elseif($application->status == 'invited')
+                bg-info
+                @elseif($application->status == 'accepted')
+                bg-success
+                @elseif($application->status == 'declined')
+                bg-danger
+                @endif">
+                {{ ucfirst($application->status) }}
+            </span>
 
         </div>
         <div>
