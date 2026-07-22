@@ -117,11 +117,6 @@
                     <input type="number" class="form-control @error('budget') is-invalid @enderror" name="budget" value="{{ old('budget', $event->budget) }}">
                     @error('budget')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
-                <div class="col-md-6 mb-3">
-                    <label class="form-label">Number of Performers Needed</label>
-                    <input type="number" class="form-control @error('performers_needed') is-invalid @enderror" name="performers_needed" min="1" value="{{ old('performers_needed', $event->performers_needed) }}" required>
-                    @error('performers_needed')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                </div>
             </div>
 
             <div class="mb-4">

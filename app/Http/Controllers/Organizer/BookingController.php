@@ -25,11 +25,20 @@ class BookingController extends Controller
         return view('organizer.bookings.index', compact('bookings'));
     }
 
-    public function create(PerformerProfile $performer): View
-    {
-        $events = Event::where('organizer_id', Auth::id())->latest()->get();
+    public function create(Request $request, PerformerProfile $performer): View
+{
+    $events = Event::where('organizer_id', Auth::id())
+        ->latest()
+        ->get();
 
-        return view('organizer.bookings.create', compact('performer', 'events'));
+    $selectedEvent = null;
+
+    if ($request->filled('event')) {
+        $selectedEvent = Event::where('organizer_id', Auth::id())
+            ->find($request->event);
+    }
+
+    return view('organizer.bookings.create',compact('performer','events','selectedEvent'));
     }
 
     public function store(Request $request, PerformerProfile $performer): RedirectResponse
@@ -42,6 +51,9 @@ class BookingController extends Controller
             'requirements' => ['nullable', 'string', 'max:2000'],
             'duration_hours' => ['nullable', 'integer', 'min:1', 'max:24'],
             'notes' => ['nullable', 'string', 'max:1000'],
+            'budget' => ['nullable', 'numeric', 'min:0'],
+            'end_time' => ['nullable', 'date_format:H:i'],
+            'contract' => ['nullable', 'file', 'mimes:pdf,doc,docx', 'max:10240'],
         ]);
 
         $booking = Booking::create([

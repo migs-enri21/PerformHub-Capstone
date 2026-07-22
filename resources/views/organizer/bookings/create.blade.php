@@ -26,11 +26,12 @@
                 value="{{ $event->id }}"
                 data-title="{{ $event->title }}"
                 data-date="{{ $event->event_date }}"
-                data-time="{{ $event->start_time }}"
+                data-start="{{ $event->start_time }}"
+                data-end="{{ $event->end_time }}"
                 data-venue="{{ $event->venue }}"
                 data-description="{{ $event->description }}"
                 data-budget="{{ $event->budget }}"
-                data-performers="{{ $event->performers_needed }}">
+                {{ optional($selectedEvent)->id == $event->id ? 'selected' : '' }}>
 
                 {{ $event->title }}
 
@@ -39,12 +40,13 @@
 
             </select></div>
 
-            <div class="col-md-6"><label class="form-label text-muted small">Event Name</label><input type="text" name="event_name"class="form-control ph-input" id="event_name" value="{{ old('event_name') }}"required></div>
-            <div class="col-md-3"><label class="form-label text-muted small">Event Date</label><input type="date" name="event_date"class="form-control ph-input" id="event_date" value="{{ old('event_date') }}"required></div>
-            <div class="col-md-3"><label class="form-label text-muted small">Event Time</label><input type="time" name="event_time" class="form-control ph-input"id="event_time" value="{{ old('event_time') }}"required></div>
-            <div class="col-md-6"><label class="form-label text-muted small">Venue</label><input type="text" name="venue" class="form-control ph-input" id="venue" value="{{ old('venue') }}"required></div>
-            <div class="col-md-3"><label class="form-label text-muted small">Duration (hours)</label><input type="number" name="duration_hours" class="form-control ph-input" min="1" max="24"></div>
-            <div class="col-12"><label class="form-label text-muted small">Requirements</label><textarea id="requirements" name="requirements" class="form-control ph-input">{{ old('requirements') }}</textarea></div>
+            <div class="col-md-6"><label class="form-label text-muted small">Event Name</label><input type="text" name="event_name"class="form-control ph-input" id="event_name" value="{{ old('event_name', $selectedEvent?->title) }}"required></div>
+            <div class="col-md-3"><label class="form-label text-muted small">Event Date</label><input type="date" name="event_date"class="form-control ph-input" id="event_date" value="{{ old('event_date', $selectedEvent?->event_date) }}"required></div>
+            <div class="col-md-3"><label class="form-label text-muted small">Event Time</label><input type="time" name="event_time" class="form-control ph-input"id="event_time" value="{{ old('event_time', $selectedEvent?->start_time) }}"required></div>
+            <div class="col-md-6"><label class="form-label text-muted small">Venue</label><input type="text" name="venue" class="form-control ph-input" id="venue" value="{{ old('venue', $selectedEvent?->venue) }}"required></div>
+            <div class="col-md-4"><label class="form-label text-muted small">Budget Offer (₱)</label><input type="number" name="budget" id="budget" class="form-control ph-input" value="{{ old('budget', $selectedEvent?->budget) }}" min="0" step="0.01"required></div>
+            <div class="col-md-3"><label class="form-label text-muted small">End Time</label><input type="time" name="end_time" id="end_time" class="form-control ph-input" value="{{ old('end_time', $selectedEvent?->end_time) }}"required></div>
+            <div class="col-12"><label class="form-label text-muted small">Requirements</label><textarea id="requirements" name="requirements" class="form-control ph-input">{{ old('requirements', $selectedEvent?->description) }}</textarea></div>
             <div class="col-12"><label class="form-label text-muted small">Notes</label><textarea name="notes" class="form-control ph-input" rows="2"></textarea></div>
 
         </div>
@@ -63,10 +65,33 @@
 
         document.getElementById('event_name').value = selected.dataset.title || '';
         document.getElementById('event_date').value = selected.dataset.date || '';
-        document.getElementById('event_time').value = selected.dataset.time || '';
-        document.getElementById('venue').value = selected.dataset.venue || '';
-        document.getElementById('requirements').value = selected.dataset.description || '';;
-        });
+        document.getElementById('event_time').value = selected.dataset.start || '';
+        document.getElementById('end_time').value = selected.dataset.end || '';
+
+        const start = selected.dataset.start;
+        const end = selected.dataset.end;
+
+        if (start && end) {
+
+        const startTime = new Date(`1970-01-01T${start}`);
+        let endTime = new Date(`1970-01-01T${end}`);
+
+        if (endTime <= startTime) {
+            endTime.setDate(endTime.getDate() + 1);
+        }      
+
+        const duration = (endTime - startTime) / (1000 * 60 * 60);
+
+            document.getElementById('duration_hours').value = duration;
+
+            } else {
+            document.getElementById('duration_hours').value = '';
+            }
+
+            document.getElementById('venue').value = selected.dataset.venue || '';
+            document.getElementById('budget').value = selected.dataset.budget || '';
+            document.getElementById('requirements').value = selected.dataset.description || '';;
+            });
 
     });
     </script>

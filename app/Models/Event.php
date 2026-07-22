@@ -19,7 +19,6 @@ class Event extends Model
         'end_time',
         'venue',
         'budget',
-        'performers_needed',
         'status',
         'cover_photo',
         'preferred_category_id',

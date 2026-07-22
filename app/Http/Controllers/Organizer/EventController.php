@@ -77,7 +77,7 @@ class EventController extends Controller
     {
         $this->authorizeEvent($event);
 
-        $event->load(['eventType', 'preferredCategory', 'photos']);
+        $event->load(['eventType', 'preferredCategory', 'photos','applications.performer.performerProfile']);
 
         return view('organizer.events.show', compact('event'));
     }
@@ -146,7 +146,7 @@ class EventController extends Controller
             'end_time' => ['required'],
             'venue' => ['required', 'string', 'max:255'],
             'budget' => ['nullable', 'numeric'],
-            'performers_needed' => ['required', 'integer', 'min:1'],
+
         ]);
     }
 

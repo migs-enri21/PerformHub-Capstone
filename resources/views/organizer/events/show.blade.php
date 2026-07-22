@@ -71,12 +71,43 @@
                     <span class="text-muted">₱{{ number_format((float) $event->budget, 0) }}</span>
                 </div>
             @endif
-            <div class="col-md-6">
-                <strong class="text-white d-block mb-1">Performers Needed</strong>
-                <span class="text-muted">{{ $event->performers_needed }}</span>
+
             </div>
         </div>
-        </div>
     </div>
+    <hr class="my-4">
+
+    <h3 class="mb-3">Applicants ({{ $event->applications->count() }})</h3>
+
+    @forelse($event->applications as $application)
+
+    <div class="ph-card p-3 mb-3">
+
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h5 class="mb-1">
+                {{ $application->performer->performerProfile->stage_name ?? $application->performer->name }}
+            </h5>
+
+            <small class="text-muted">{{ ucfirst($application->status) }}</small>
+
+        </div>
+        <div>
+
+            <a href="{{ route('organizer.bookings.create', ['performer' => $application->performer->performerProfile, 'event' => $event->id]) }}" class="btn ph-btn-primary">
+                Send Booking
+            </a>
+
+        </div>
+
+    </div>
+
+</div>
+
+@empty
+
+<div class="alert alert-secondary"> No performers have applied yet.</div>
+
+@endforelse    
 </div>
 @endsection

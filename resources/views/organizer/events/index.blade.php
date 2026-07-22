@@ -85,7 +85,7 @@
                         <div class="mt-3 d-flex flex-wrap gap-2">
                             <a href="{{ route('organizer.events.show', $event) }}" class="btn btn-outline-primary btn-sm">View</a>
                             <a href="{{ route('organizer.events.edit', $event) }}" class="btn btn-outline-secondary btn-sm">Edit</a>
-                            <form method="POST" action="{{ route('organizer.events.destroy', $event) }}" onsubmit="return confirm('Delete this event permanently?');">
+                            <form method="POST" action="{{ route('organizer.events.destroy', $event) }}" class="delete-event-form">
                                 @csrf
                                 @method('DELETE')
                                 <button type="submit" class="btn btn-outline-danger btn-sm">Delete</button>
@@ -97,5 +97,88 @@
         @endforeach
     </div>
 @endif
+
+<!-- Delete Event Modal -->
+<div class="modal fade" id="deleteEventModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+
+        <div class="modal-content border-0 shadow">
+
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold">
+                    Delete Event
+                </h5>
+
+                <button type="button"
+                        class="btn-close"
+                        data-bs-dismiss="modal">
+                </button>
+            </div>
+
+            <div class="modal-body">
+
+                <p class="mb-0">
+                    Are you sure you want to permanently delete this event?
+                </p>
+
+                <small class="text-muted">
+                    This action cannot be undone.
+                </small>
+
+            </div>
+
+            <div class="modal-footer">
+
+                <button type="button"
+                        class="btn btn-secondary"
+                        data-bs-dismiss="modal">
+                    Cancel
+                </button>
+
+                <button type="button"
+                        id="confirmDeleteBtn"
+                        class="btn btn-danger">
+                    Delete
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+</div>
+
+<script>
+
+document.addEventListener('DOMContentLoaded', function () {
+
+    let currentForm = null;
+
+    const modal = new bootstrap.Modal(document.getElementById('deleteEventModal'));
+
+    document.querySelectorAll('.delete-event-form').forEach(function(form){
+
+        form.addEventListener('submit', function(e){
+
+            e.preventDefault();
+            currentForm = form;
+            modal.show();
+
+        });
+
+    });
+
+    document.getElementById('confirmDeleteBtn')
+        .addEventListener('click', function(){
+
+            if(currentForm){
+                currentForm.submit();
+            }
+
+        });
+
+});
+
+</script>
 
 @endsection
