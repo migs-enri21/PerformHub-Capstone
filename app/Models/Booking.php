@@ -23,6 +23,8 @@ class Booking extends Model
         'contract_confirmed_at',
         'performer_confirmed_contract',
         'notes',
+        'budget',
+        'end_time',
     ];
 
     protected function casts(): array

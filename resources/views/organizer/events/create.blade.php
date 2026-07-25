@@ -19,15 +19,16 @@
 
                 <div class="mb-4">
 
-                <label class="form-label fw-semibold"> Event Banner Photo</label>
+                <label class="form-label fw-semibold">Event Photos</label>
 
                 <input
                 type="file"
-                name="banner_photo"
+                name="photos[]"
                 class="form-control"
-                accept="image/*">
+                accept="image/*"
+                multiple>
 
-                <small class="text-muted"> Upload a banner photo for your event.</small>
+                <small class="text-muted">Upload one or more photos. Multiple photos show as a collage for performers.</small>
 
                 </div>
                 <div class="mb-3"><label class="form-label">Event Name</label><input type="text" class="form-control" name="title" value="{{ old('title') }}"></div>
@@ -73,8 +74,6 @@
                 <div class="row">
 
                     <div class="col-md-6 mb-3"><label class="form-label">Budget (₱)</label><input type="number" class="form-control" name="budget" value="{{ old('budget') }}"></div>
-                    <div class="col-md-6 mb-3"><label class="form-label">Number of Performers Needed</label><input type="number" class="form-control" name="performers_needed" min="1" value="{{ old('performers_needed',1) }}"></div>
-
                 </div>
 
                 <div class="mb-4"><label class="form-label">Special Requirements</label><textarea class="form-control" rows="4" name="description">{{ old('description') }}</textarea></div>

@@ -25,6 +25,10 @@
             <h2 class="fw-bold mb-1">Sign in to your account</h2>
             <p class="text-muted mb-4">Enter your credentials to continue</p>
 
+            @if(session('warning'))
+                <div class="alert alert-warning py-2">{{ session('warning') }}</div>
+            @endif
+
             @if($errors->any())
                 <div class="alert alert-danger py-2">{{ $errors->first() }}</div>
             @endif

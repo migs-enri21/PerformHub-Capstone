@@ -13,8 +13,8 @@
     $profileUrl = $isOwn ? route('performer.profile.show') : route('talent.show', $performer);
 @endphp
 
-<article class="portfolio-feed-post ph-card overflow-hidden">
-    <div class="portfolio-feed-post-header p-3 d-flex align-items-center gap-3">
+<article class="portfolio-feed-post">
+    <div class="portfolio-feed-post-header px-3 py-3 d-flex align-items-center gap-3">
         <a href="{{ $profileUrl }}" class="flex-shrink-0">
             <img src="{{ $photoUrl }}" alt="" class="rounded-circle portfolio-feed-avatar" width="44" height="44">
         </a>
@@ -27,10 +27,10 @@
                     <span class="badge rounded-pill" style="background: rgba(99, 70, 255, 0.2); color: #c4b5fd;">Your post</span>
                 @endif
             </div>
-            <small class="text-muted">
+            <small class="text-muted d-block">
                 {{ $performer->categoryNames() ?: 'Performer' }}
-                · {{ $postedAt->diffForHumans() }}
             </small>
+            <small class="text-muted">{{ $postedAt->diffForHumans() }}</small>
         </div>
     </div>
 

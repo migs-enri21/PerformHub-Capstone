@@ -11,3 +11,4 @@
 @else
     <link href="{{ asset('css/organizer.css') }}" rel="stylesheet">
 @endauth
+<link href="{{ asset('css/performhub-light.css') }}" rel="stylesheet">

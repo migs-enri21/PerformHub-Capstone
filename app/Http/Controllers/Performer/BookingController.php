@@ -5,21 +5,31 @@ namespace App\Http\Controllers\Performer;
 use App\Http\Controllers\Controller;
 use App\Models\Booking;
 use App\Models\Notification;
+use App\Models\EventApplication;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 
+use Illuminate\Http\Request;
+
 class BookingController extends Controller
 {
-    public function index(): View
-    {
-        $bookings = Booking::where('performer_id', Auth::id())
-            ->with('organizer.organizerProfile')
-            ->latest()
-            ->paginate(10);
 
-        return view('performer.bookings.index', compact('bookings'));
+public function index(Request $request): View
+{
+    $query = Booking::where('performer_id', Auth::id())
+        ->with('organizer.organizerProfile')
+        ->latest();
+
+    // ← copied idea from PerformerSearchController
+    if ($request->filled('status')) {
+        $query->where('status', $request->status);
     }
+
+    $bookings = $query->paginate(10)->withQueryString();
+
+    return view('performer.bookings.index', compact('bookings'));
+}
 
     public function show(Booking $booking): View
     {
@@ -35,6 +45,11 @@ class BookingController extends Controller
         abort_unless($booking->status === 'pending', 400);
 
         $booking->update(['status' => 'accepted']);
+
+        EventApplication::where('event_id', $booking->event_id)
+        ->where('performer_id', $booking->performer_profile_id)
+        ->update(['status' => 'accepted',]);
+
         Notification::send(
             $booking->organizer,
             'booking',
@@ -52,6 +67,11 @@ class BookingController extends Controller
         abort_unless($booking->status === 'pending', 400);
 
         $booking->update(['status' => 'rejected']);
+
+        EventApplication::where('event_id', $booking->event_id)
+        ->where('performer_id', $booking->performer_profile_id)
+        ->update(['status' => 'declined',]);
+
         Notification::send(
             $booking->organizer,
             'booking',

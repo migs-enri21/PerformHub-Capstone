@@ -29,6 +29,11 @@
     @if(auth()->user()->hasLimitedAccess())
         <a class="nav-link text-warning" href="{{ auth()->user()->onboardingRoute() }}"><i class="fas fa-arrow-right me-2"></i> Complete Sign-up</a>
     @endif
+{{--  <a class="nav-link {{ request()->routeIs('performer.click-me') ? 'active' : '' }}"
+   href="{{ route('performer.click-me') }}">
+    <i class="fas fa-star me-2"></i> Click Me 
+    </a> --}}
+
 </nav>
 
 <form action="{{ route('logout') }}" method="POST" class="mt-auto">
