@@ -1,0 +1,122 @@
+:root {
+    --ph-bg: #f7f5ff;
+    --ph-bg-card: #ffffff;
+    --ph-bg-input: #ffffff;
+    --ph-purple: #6d3df5;
+    --ph-purple-hover: #5730cf;
+    --ph-purple-glow: rgba(109, 61, 245, 0.18);
+    --ph-text: #25213a;
+    --ph-text-muted: #403a52;
+    --ph-border: #e3def2;
+    --bs-primary-rgb: 109, 61, 245;
+}
+
+body {
+    background: var(--ph-bg);
+    color: var(--ph-text);
+}
+
+.navbar-ph {
+    background: #ffffff !important;
+    border-bottom-color: var(--ph-border);
+    box-shadow: 0 1px 8px rgba(49, 37, 91, 0.06);
+}
+
+.navbar-dark .navbar-brand,
+.navbar-dark .navbar-brand:hover,
+.navbar-ph .nav-link,
+.navbar-ph .nav-link:hover {
+    color: var(--ph-text);
+}
+
+.navbar-toggler { filter: invert(1); }
+
+.sidebar-ph,
+.ph-card,
+.testimonial-card,
+.modal-content {
+    background: var(--ph-bg-card);
+}
+
+.sidebar-ph .nav-link:hover,
+.sidebar-ph .nav-link.active {
+    background: #f0ebff;
+}
+
+/* Keep photo-based hero areas readable without fading the image into white. */
+.hero-landing {
+    background: linear-gradient(90deg, rgba(28, 18, 66, 0.74) 0%, rgba(28, 18, 66, 0.48) 52%, rgba(28, 18, 66, 0.16) 100%),
+        url('https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=1600&q=80') center/cover;
+}
+
+.auth-hero-content h1 {
+    color: #ffffff;
+}
+
+.ph-input,
+.ph-input:not(.form-select),
+.form-select.ph-input,
+.ph-input:not(.form-select):focus,
+.form-select.ph-input:focus,
+.ph-card .form-control,
+.ph-card .form-select,
+.ph-card textarea {
+    background-color: var(--ph-bg-input) !important;
+    color: var(--ph-text) !important;
+}
+
+.ph-card .form-label,
+.ph-btn-secondary,
+.ph-btn-secondary:hover,
+.organizer-event-card .btn-outline-primary,
+.organizer-event-card .btn-outline-secondary,
+.organizer-event-card .btn-outline-danger {
+    color: var(--ph-text) !important;
+}
+
+.ph-btn-secondary:hover,
+.organizer-event-card .btn-outline-secondary:hover,
+.organizer-event-card .btn-outline-danger:hover {
+    background: #f4f1ff;
+}
+
+.ph-card input[type="date"]::-webkit-calendar-picker-indicator,
+.ph-card input[type="time"]::-webkit-calendar-picker-indicator {
+    filter: none;
+}
+
+.form-select.ph-input option,
+.form-select.ph-input optgroup {
+    background: #ffffff;
+    color: var(--ph-text);
+}
+
+.btn-close { filter: none; }
+
+.profile-photo-overlay,
+.performer-profile-banner-edit,
+.performer-profile-banner-edit:hover,
+.banner-reposition-hint {
+    background: rgba(37, 33, 58, 0.75);
+    color: #ffffff;
+}
+
+.profile-tag {
+    background: #eee8ff;
+    color: #5933cb;
+}
+
+.table-dark {
+    --bs-table-bg: #ffffff;
+    --bs-table-color: var(--ph-text);
+    --bs-table-border-color: var(--ph-border);
+    --bs-table-striped-bg: #faf9ff;
+    --bs-table-striped-color: var(--ph-text);
+    --bs-table-hover-bg: #f4f1ff;
+    --bs-table-hover-color: var(--ph-text);
+    color: var(--ph-text);
+}
+
+.table-dark > :not(caption) > * > * { color: var(--ph-text); }
+
+.sidebar-ph .text-white { color: var(--ph-text) !important; }
