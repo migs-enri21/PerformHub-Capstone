@@ -16,6 +16,7 @@
     <a class="nav-link {{ request()->routeIs('admin.categories.*') ? 'active' : '' }}" href="{{ route('admin.categories.index') }}"><i class="fas fa-tags me-2"></i> Categories</a>
     <a class="nav-link {{ request()->routeIs('admin.events.*') ? 'active' : '' }}" href="{{ route('admin.events.index') }}"><i class="fas fa-calendar-alt me-2"></i> User History</a>
     <a class="nav-link {{ request()->routeIs('admin.monitoring.bookings') ? 'active' : '' }}" href="{{ route('admin.monitoring.bookings') }}"><i class="fas fa-ticket me-2"></i> Bookings</a>
+{{--<a class="nav-link {{ request()->routeIs('admin.users.all') ? 'active' : '' }}" href="{{ route('admin.users.all') }}"><i class="fas fa-user-friends me-2"></i> All Users</a>--}}
 </nav>
 
 <form action="{{ route('logout') }}" method="POST" class="mt-auto">

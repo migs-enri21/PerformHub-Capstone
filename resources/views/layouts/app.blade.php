@@ -80,6 +80,10 @@
             }, 5000);
         });
     </script>
+    {--@if(request()->routeIs('home'))
+        @include('partials.scroll-top')
+    @endif
     @stack('scripts')
+    --}
 </body>
 </html>

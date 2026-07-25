@@ -57,4 +57,14 @@ class UserController extends Controller
 
         return back()->with('success', 'Account status updated.');
     }
+
+    /**
+     * Display a simple list of all users with their role (name + role only).
+     */
+    public function all(): View
+    {
+        $users = User::orderBy('first_name')->orderBy('last_name')->get();
+
+        return view('admin.users.all', compact('users'));
+    }
 }

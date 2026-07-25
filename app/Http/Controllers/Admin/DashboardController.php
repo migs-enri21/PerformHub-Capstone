@@ -23,6 +23,8 @@ class DashboardController extends Controller
 
         $recentBookings = Booking::with(['organizer', 'performer'])->latest()->limit(5)->get();
 
-        return view('admin.dashboard', compact('stats', 'recentBookings'));
+        $organizersForFilter = User::where('role', 'organizer')->orderBy('first_name')->get();
+
+        return view('admin.dashboard', compact('stats', 'recentBookings', 'organizersForFilter'));
     }
 }

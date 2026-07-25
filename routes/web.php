@@ -115,6 +115,7 @@ Route::middleware(['auth', 'role:organizer'])->prefix('organizer')->name('organi
 Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
     Route::get('/users', [AdminUserController::class, 'index'])->name('users.index');
+    Route::get('/users/all', [AdminUserController::class, 'all'])->name('users.all');
     Route::get('/users/{user}', [AdminUserController::class, 'show'])->name('users.show');
     Route::post('/users/{user}/verify', [AdminUserController::class, 'verify'])->name('users.verify');
     Route::post('/users/{user}/toggle', [AdminUserController::class, 'toggleActive'])->name('users.toggle');
