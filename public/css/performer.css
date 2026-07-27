@@ -320,6 +320,17 @@
 }
 
 /* Availability calendar */
+
+/* Calendar month < > arrows + Today (.av-cal-nav; blade: availability-calendar) */
+.av-cal-nav {
+    line-height: 1;
+}
+
+/* Month title between arrows */
+.av-cal-month-label {
+    text-align: center;
+}
+
 /* Calendar grid layout */
 .availability-calendar-weekdays,
 .availability-calendar-grid {
@@ -352,7 +363,7 @@
     transition: border-color 0.15s ease, background 0.15s ease;
 }
 
-/* Clickable day cursor */
+/* Clickable day  */
 button.av-day:not(:disabled) {
     cursor: pointer;
 }
@@ -406,7 +417,7 @@ button.av-day:not(:disabled):hover {
 /* Pending booking (yellow) */
 .av-day--pending {
     background: rgba(234, 179, 8, 0.14);
-    border-color: rgba(234, 179, 8, 0.45);
+    border-color: rgba(230, 176, 14, 0.773);
 }
 
 /* Google Calendar busy */
