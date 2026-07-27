@@ -13,9 +13,12 @@ class DashboardController extends Controller
 {
     public function index(PerformerRecommendationService $recommendations): View
     {
-        $profile = Auth::user()->organizerProfile;
-
-        $myEvents = Event::where('organizer_id', Auth::id())->latest()->take(5)->get();
+        $upcomingEvents = Event::where('organizer_id', Auth::id())
+            ->whereDate('event_date', '>=', today())
+            ->orderBy('event_date')
+            ->orderBy('start_time')
+            ->take(3)
+            ->get();
 
         $pendingBookings = Booking::where('organizer_id', Auth::id())->where('status', 'pending')->count();
 
@@ -23,8 +26,20 @@ class DashboardController extends Controller
             ->where('status', 'accepted')
             ->count();
 
+        $recentNotifications = Auth::user()
+            ->notifications()
+            ->latest()
+            ->take(3)
+            ->get();
+
         $recommendedPerformers = $recommendations->forOrganizer(Auth::user());
 
-        return view('organizer.dashboard', compact('profile', 'myEvents', 'pendingBookings', 'activeBookings', 'recommendedPerformers'));
+        return view('organizer.dashboard', compact(
+            'upcomingEvents',
+            'pendingBookings',
+            'activeBookings',
+            'recentNotifications',
+            'recommendedPerformers',
+        ));
     }
 }
