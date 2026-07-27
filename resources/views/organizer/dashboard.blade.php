@@ -9,158 +9,125 @@
 @section('content')
 @include('partials.onboarding-banner')
 
-<div class="d-flex justify-content-between align-items-center mb-4">
-
+<div class="d-flex justify-content-between align-items-start mb-4">
     <div>
-
-        <h2 class="fw-bold mb-1">
-
-            Home
-
-        </h2>
-
-        <p class="text-muted mb-0">
-
-            Stay updated with your events and performer activities.
-
-        </p>
-
+        <h2 class="fw-bold mb-1">Home</h2>
+        <p class="text-muted mb-0">Manage your events and discover talent.</p>
     </div>
 
     <a href="{{ route('organizer.events.create') }}" class="btn ph-btn-primary">
-
-        <i class="fas fa-plus me-2"></i>
-
-        Create Event
-
+        <i class="fas fa-plus me-2"></i>Create Event
     </a>
-
-</div>
-<p class="text-muted mb-4">
-    @if(auth()->user()->hasLimitedAccess())
-        Manage your events and discover talent — complete sign-up to book performers.
-    @else
-        Manage your events and discover talent
-    @endif
-</p>
-
-<div class="ph-card p-4 mb-4">
-
-    <h5 class="fw-bold mb-4">
-
-    Recent Activity
-
-    </h5>
-
-<div class="text-center py-5">
-
-    <i class="fas fa-stream fa-3x text-muted mb-3"></i>
-
-    <h5 class="fw-bold">
-
-        No Recent Activity
-
-    </h5>
-
-    <p class="text-muted mb-0">
-
-        Performer portfolio uploads and profile updates will appear here.
-
-    </p>
-
-    </div>
 </div>
 
-<h4 class="fw-bold mb-3">Featured Performers</h4>
+<div class="row g-4">
+    <div class="col-xl-8">
+        <div class="org-panel mb-4">
+            <h5 class="fw-bold mb-3">Quick Overview</h5>
 
-<div class="ph-card p-4 mb-4">
-    <h5 class="fw-semibold mb-3">Suggested for you</h5>
-    <div class="row g-3">
-        @forelse($recommendedPerformers as $p)
-            <div class="col-md-4">
-                <div class="d-flex align-items-center gap-3 p-3 rounded" style="background:var(--ph-bg-input);">
-                    <img src="{{ $p->profilePhotoUrl() ?? 'https://ui-avatars.com/api/?name='.urlencode($p->stage_name).'&background=6346ff&color=fff' }}" class="rounded-circle" width="48" height="48" style="object-fit:cover;">
-                    <div class="flex-grow-1">
-                        <h6 class="mb-0">{{ $p->stage_name }}</h6>
-                        <small class="text-muted">{{ $p->categoryNames() }}</small>
-                    </div>
-                    <a href="{{ route('organizer.performers.show', $p) }}" class="btn btn-sm ph-btn-primary">View</a>
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <a href="{{ route('organizer.events.index') }}" class="org-stat">
+                        <i class="fas fa-calendar-plus"></i>
+                        <div>
+                            <strong>{{ $upcomingEvents->count() }}</strong>
+                            <small>Upcoming Events</small>
+                        </div>
+                    </a>
+                </div>
+
+                <div class="col-md-4">
+                    <a href="{{ route('organizer.bookings.index') }}" class="org-stat">
+                        <i class="fas fa-clock"></i>
+                        <div>
+                            <strong>{{ $pendingBookings }}</strong>
+                            <small>Pending Bookings</small>
+                        </div>
+                    </a>
+                </div>
+
+                <div class="col-md-4">
+                    <a href="{{ route('organizer.bookings.index') }}" class="org-stat">
+                        <i class="fas fa-check-circle"></i>
+                        <div>
+                            <strong>{{ $activeBookings }}</strong>
+                            <small>Confirmed Bookings</small>
+                        </div>
+                    </a>
                 </div>
             </div>
-        @empty
-            <p class="text-muted mb-0">No recommendations available.</p>
-            <div class="mt-4">
+        </div>
 
-    <a href="{{ route('organizer.performers.index') }}"
-       class="btn ph-btn-primary">
+        <div class="org-panel mb-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="fw-bold mb-0">Suggested Performers</h5>
+                <a href="{{ route('organizer.performers.index') }}" class="small">Browse all</a>
+            </div>
 
-        Browse All Performers
+            @forelse($recommendedPerformers->take(3) as $performer)
+                <a href="{{ route('organizer.performers.show', $performer) }}" class="org-list-item">
+                    <img src="{{ $performer->profilePhotoUrl() ?? 'https://ui-avatars.com/api/?name='.urlencode($performer->stage_name).'&background=6d3df5&color=fff' }}" alt="{{ $performer->stage_name }}" class="rounded-circle" width="48" height="48">
+                    <div>
+                        <strong>{{ $performer->stage_name }}</strong>
+                        <small class="text-muted d-block">{{ $performer->categoryNames() ?: 'Performer' }}</small>
+                    </div>
+                </a>
+            @empty
+                <p class="text-muted mb-0">No performer recommendations yet.</p>
+            @endforelse
+        </div>
 
-    </a>
-
-</div>
-        @endforelse
-    </div>
-</div>
-
-<div class="ph-card p-4 mt-4">
-
-    <div class="ph-card p-4 mt-4">
-
-    <h5 class="fw-bold mb-3">
-
-        Organizer Calendar
-
-    </h5>
-
-    <div class="text-center py-4">
-
-        <i class="fas fa-calendar-alt fa-3x text-muted mb-3"></i>
-
-        <p class="text-muted mb-0">
-
-            Your scheduled events will appear here once the calendar feature is added.
-
-        </p>
-
+        <div class="org-panel text-center py-5">
+            <i class="fas fa-stream fa-2x text-muted mb-3"></i>
+            <h5 class="fw-bold">No Recent Activity</h5>
+            <p class="text-muted mb-0">Performer applications and booking updates will appear here.</p>
+        </div>
     </div>
 
+    <aside class="col-xl-4">
+        <div class="org-right-column">
+            <div class="org-panel mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="fw-bold mb-0">Up Next</h6>
+                    <a href="{{ route('organizer.events.index') }}" class="small">See all</a>
+                </div>
+
+                @if($upcomingEvents->isNotEmpty())
+                    @php($nextEvent = $upcomingEvents->first())
+                    <a href="{{ route('organizer.events.show', $nextEvent) }}" class="org-list-item">
+                        <span class="org-event-date">
+                            {{ \Illuminate\Support\Carbon::parse($nextEvent->event_date)->format('d M') }}
+                        </span>
+                        <div>
+                            <strong>{{ $nextEvent->title }}</strong>
+                            <small class="text-muted d-block">{{ $nextEvent->venue }}</small>
+                        </div>
+                    </a>
+                @else
+                    <p class="text-muted small mb-0">No upcoming events yet.</p>
+                @endif
+            </div>
+
+            <div class="org-panel mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h6 class="fw-bold mb-0">Notifications</h6>
+                    <a href="{{ route('notifications.index') }}" class="small">See all</a>
+                </div>
+
+                @forelse($recentNotifications as $notification)
+                    <a href="{{ $notification->link ?: route('notifications.index') }}" class="org-list-item">
+                        <i class="fas fa-bell text-primary"></i>
+                        <div>
+                            <strong>{{ $notification->title }}</strong>
+                            <small class="text-muted d-block">{{ $notification->message }}</small>
+                        </div>
+                    </a>
+                @empty
+                    <p class="text-muted small mb-0">No new notifications.</p>
+                @endforelse
+            </div>
+
+        </div>
+    </aside>
 </div>
-
-<div class="ph-card p-4 mt-4">
-
-    <h5 class="fw-bold mb-3">
-
-        Upcoming Reminder
-
-    </h5>
-
-
-    @if($myEvents->isNotEmpty())
-
-        <p class="mb-0">
-
-            Your next scheduled event is
-
-            <strong>{{ $myEvents->first()->title }}</strong>
-
-            on
-
-            <strong>{{ \Carbon\Carbon::parse($myEvents->first()->event_date)->format('F d, Y') }}</strong>.
-
-        </p>
-
-    @else
-
-        <p class="text-muted mb-0">
-
-            You don't have any upcoming events yet. Create one to get started.
-
-        </p>
-
-    @endif
-
-</div>
-
-
 @endsection
