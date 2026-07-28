@@ -14,7 +14,7 @@ class GoogleCalendarController extends Controller
     public function connect(OrganizerGoogleCalendarService $googleCalendar): RedirectResponse
     {
         if (! $googleCalendar->isConfigured()) {
-            return redirect()->route('organizer.profile.show')->withFragment('calendar')->with('error', 'Google Calendar is not configured on this server yet.');
+            return redirect()->route('organizer.calendar.index')->with('error', 'Google Calendar is not configured on this server yet.');
         }
 
         $state = Str::random(40);
@@ -27,8 +27,7 @@ class GoogleCalendarController extends Controller
     {
         if ($request->get('state') !== session('google_oauth_state')) {
             return redirect()
-                ->route('organizer.profile.show')
-                ->withFragment('calendar')
+                ->route('organizer.calendar.index')
                 ->with('error', 'Google Calendar connection failed. Please try again.');
         }
 
@@ -36,8 +35,7 @@ class GoogleCalendarController extends Controller
 
         if ($request->filled('error')) {
             return redirect()
-                ->route('organizer.profile.show')
-                ->withFragment('calendar')
+                ->route('organizer.calendar.index')
                 ->with('error', 'Google Calendar connection was cancelled.');
         }
 
@@ -48,14 +46,12 @@ class GoogleCalendarController extends Controller
             $googleCalendar->connect($profile, $tokens);
         } catch (\Throwable $exception) {
             return redirect()
-                ->route('organizer.profile.show')
-                ->withFragment('calendar')
+                ->route('organizer.calendar.index')
                 ->with('error', $exception->getMessage());
         }
 
         return redirect()
-            ->route('organizer.profile.show')
-            ->withFragment('calendar')
+            ->route('organizer.calendar.index')
             ->with('success', 'Google Calendar connected and synced.');
     }
 
@@ -65,8 +61,7 @@ class GoogleCalendarController extends Controller
 
         if (! $profile->google_calendar_connected) {
             return redirect()
-                ->route('organizer.profile.show')
-                ->withFragment('calendar')
+                ->route('organizer.calendar.index')
                 ->with('error', 'Connect Google Calendar first.');
         }
 
@@ -74,14 +69,12 @@ class GoogleCalendarController extends Controller
             $googleCalendar->syncBusyDates($profile);
         } catch (\Throwable $exception) {
             return redirect()
-                ->route('organizer.profile.show')
-                ->withFragment('calendar')
+                ->route('organizer.calendar.index')
                 ->with('error', $exception->getMessage());
         }
 
         return redirect()
-            ->route('organizer.profile.show')
-            ->withFragment('calendar')
+            ->route('organizer.calendar.index')
             ->with('success', 'Google Calendar synced.');
     }
 
@@ -91,8 +84,7 @@ class GoogleCalendarController extends Controller
         $googleCalendar->disconnect($profile);
 
         return redirect()
-            ->route('organizer.profile.show')
-            ->withFragment('calendar')
+            ->route('organizer.calendar.index')
             ->with('success', 'Google Calendar disconnected.');
     }
 }

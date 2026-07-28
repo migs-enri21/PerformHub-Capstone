@@ -2,7 +2,7 @@
 
 namespace App\Services;
 
-use App\Models\GoogleCalendarBusyDate;
+use App\Models\OrganizerGoogleCalendarBusyDate;
 use App\Models\OrganizerProfile;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Http;
@@ -151,7 +151,7 @@ class OrganizerGoogleCalendarService
         $profile->googleCalendarBusyDates()->delete();
 
         foreach ($busyDates as $date => $summary) {
-            GoogleCalendarBusyDate::create([
+            OrganizerGoogleCalendarBusyDate::create([
                 'organizer_profile_id' => $profile->id,
                 'date' => $date,
                 'summary' => $summary,

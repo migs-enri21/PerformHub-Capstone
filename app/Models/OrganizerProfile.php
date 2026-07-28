@@ -6,6 +6,7 @@ use App\Models\Concerns\HasPhilippineLocation;
 use App\Services\SupabaseStorageService;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class OrganizerProfile extends Model
 {
@@ -46,6 +47,11 @@ class OrganizerProfile extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function googleCalendarBusyDates(): HasMany
+    {
+        return $this->hasMany(OrganizerGoogleCalendarBusyDate::class);
     }
 
     public function profilePhotoUrl(): ?string
