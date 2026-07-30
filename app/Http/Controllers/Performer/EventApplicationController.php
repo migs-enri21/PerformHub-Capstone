@@ -49,7 +49,7 @@ class EventApplicationController extends Controller
             'event_application',
             'New event application',
             "{$performerName} applied to your event \"{$event->title}\".",
-            route('organizer.events.index')
+            route('organizer.events.show', $event)
         );
 
         return back()->with('success', 'Your application was submitted.');

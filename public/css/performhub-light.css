@@ -37,7 +37,10 @@ body {
 .modal-content {
     background: var(--ph-bg-card);
 }
-
+/* .sidebar-ph {
+    background: #d2c8ee;
+} 
+*/
 .sidebar-ph .nav-link:hover,
 .sidebar-ph .nav-link.active {
     background: #f0ebff;

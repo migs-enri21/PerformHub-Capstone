@@ -39,11 +39,28 @@ class DashboardController extends Controller
             }
         }
 
-        $appliedEventIds = EventApplication::where('performer_id', $user->id)
-            ->pluck('event_id')
+        $applicationStatuses = EventApplication::where('performer_id', $user->id)
+            ->pluck('status', 'event_id')
             ->all();
 
-        return view('performer.dashboard', compact('profile', 'pendingBookings', 'upcomingBookings', 'reviews', 'availableEvents', 'appliedEventIds'));
+        $pendingBookingUrls = Booking::where('performer_id', $user->id)
+            ->where('status', 'pending')
+            ->whereNotNull('event_id')
+            ->get()
+            ->mapWithKeys(fn (Booking $booking) => [
+                $booking->event_id => route('performer.bookings.show', $booking),
+            ])
+            ->all();
+
+        return view('performer.dashboard', compact(
+            'profile',
+            'pendingBookings',
+            'upcomingBookings',
+            'reviews',
+            'availableEvents',
+            'applicationStatuses',
+            'pendingBookingUrls',
+        ));
     }
     public function clickMe(): View
     {

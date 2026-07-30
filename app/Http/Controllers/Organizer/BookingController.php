@@ -66,6 +66,8 @@ class BookingController extends Controller
             return back()->with('error', 'A booking request has already been sent to this performer for this event.');
         }
 
+        unset($validated['contract']);
+
         $booking = Booking::create([
             ...$validated,
             'organizer_id' => Auth::id(),

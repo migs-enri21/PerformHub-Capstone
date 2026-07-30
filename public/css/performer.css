@@ -1207,3 +1207,31 @@ button.av-day:not(:disabled):hover {
     color: #c4b5fd;
     cursor: default;
 }
+
+.event-feed-footer-btn--invited {
+    background: rgba(59, 130, 246, 0.2);
+    color: #93c5fd;
+    text-decoration: none;
+}
+
+.event-feed-footer-btn--invited:hover {
+    background: rgba(59, 130, 246, 0.35);
+    color: #fff;
+}
+
+.event-feed-footer-btn--accepted {
+    background: rgba(34, 197, 94, 0.2);
+    color: #86efac;
+    text-decoration: none;
+}
+
+.event-feed-footer-btn--accepted:hover {
+    background: rgba(34, 197, 94, 0.35);
+    color: #fff;
+}
+
+.event-feed-footer-btn--declined {
+    background: rgba(239, 68, 68, 0.15);
+    color: #fca5a5;
+    cursor: default;
+}

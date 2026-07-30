@@ -103,12 +103,22 @@
             </span>
 
         </div>
-        <div>
-
-            <a href="{{ route('organizer.bookings.create', ['performer' => $application->performer->performerProfile, 'event' => $event->id]) }}" class="btn ph-btn-primary">
-                Send Booking
-            </a>
-
+        <div class="d-flex flex-wrap gap-2">
+            @if($application->status === 'pending')
+                <a href="{{ route('organizer.bookings.create', ['performer' => $application->performer->performerProfile, 'event' => $event->id]) }}" class="btn ph-btn-primary btn-sm">
+                    Accept & Send Booking
+                </a>
+                <form method="POST" action="{{ route('organizer.events.applications.decline', [$event, $application]) }}" onsubmit="return confirm('Decline this applicant?');">
+                    @csrf
+                    <button type="submit" class="btn btn-outline-danger btn-sm">Decline</button>
+                </form>
+            @elseif($application->status === 'invited')
+                <span class="text-muted small">Booking request sent — waiting for performer</span>
+            @elseif($application->status === 'accepted')
+                <span class="text-success small"><i class="fas fa-check me-1"></i>Accepted & booked</span>
+            @elseif($application->status === 'declined')
+                <span class="text-muted small">Declined</span>
+            @endif
         </div>
 
     </div>

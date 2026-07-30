@@ -52,7 +52,8 @@
             @foreach($availableEvents as $event)
                 @include('partials.event-feed-post', [
                     'event' => $event,
-                    'hasApplied' => in_array($event->id, $appliedEventIds ?? [], true),
+                    'applicationStatus' => $applicationStatuses[$event->id] ?? null,
+                    'bookingUrl' => $pendingBookingUrls[$event->id] ?? null,
                 ])
             @endforeach
         </div>

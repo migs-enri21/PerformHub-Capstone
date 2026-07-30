@@ -15,6 +15,7 @@ use App\Http\Controllers\Organizer\DashboardController as OrganizerDashboardCont
 use App\Http\Controllers\Organizer\PerformerSearchController;
 use App\Http\Controllers\Organizer\ProfileController as OrganizerProfileController;
 use App\Http\Controllers\Organizer\EventController as OrganizerEventController;
+use App\Http\Controllers\Organizer\EventApplicationController as OrganizerEventApplicationController;
 use App\Http\Controllers\Organizer\EventHistoryController as EventHistoryController;
 use App\Http\Controllers\Organizer\GoogleCalendarController as OrganizerGoogleCalendarController;
 use App\Http\Controllers\Organizer\CalendarController;
@@ -105,6 +106,7 @@ Route::middleware(['auth', 'role:organizer'])->prefix('organizer')->name('organi
         Route::post('/bookings/{performer}', [OrganizerBookingController::class, 'store'])->name('bookings.store');
         Route::post('/bookings/{booking}/contract', [OrganizerBookingController::class, 'uploadContract'])->name('bookings.contract');
         Route::post('/bookings/{booking}/complete', [OrganizerBookingController::class, 'complete'])->name('bookings.complete');
+        Route::post('/events/{event}/applications/{application}/decline', [OrganizerEventApplicationController::class, 'decline'])->name('events.applications.decline');
     });
     Route::prefix('calendar')->name('calendar.')->group(function () {
     Route::get('/connect', [OrganizerGoogleCalendarController::class, 'connect'])->name('connect');
