@@ -39,11 +39,11 @@
 
         <div class="row g-3">
             <div class="col-md-6">
-                <strong class="text-white d-block mb-1">Date</strong>
+                <strong class="event-detail-label d-block mb-1">Date</strong>
                 <span class="text-muted">{{ \Illuminate\Support\Carbon::parse($event->event_date)->format('F j, Y') }}</span>
             </div>
             <div class="col-md-6">
-                <strong class="text-white d-block mb-1">Time</strong>
+                <strong class="event-detail-label d-block mb-1">Time</strong>
                 <span class="text-muted">
                     {{ \Illuminate\Support\Carbon::parse($event->start_time)->format('g:i A') }}
                     @if($event->end_time)
@@ -52,22 +52,22 @@
                 </span>
             </div>
             <div class="col-md-6">
-                <strong class="text-white d-block mb-1">Venue</strong>
+                <strong class="event-detail-label d-block mb-1">Venue</strong>
                 <span class="text-muted">{{ $event->venue }}</span>
             </div>
             <div class="col-md-6">
-                <strong class="text-white d-block mb-1">Event Type</strong>
+                <strong class="event-detail-label d-block mb-1">Event Type</strong>
                 <span class="text-muted">{{ $event->eventType?->name ?? '—' }}</span>
             </div>
             @if($event->preferredCategory)
                 <div class="col-md-6">
-                    <strong class="text-white d-block mb-1">Preferred Category</strong>
+                    <strong class="event-detail-label d-block mb-1">Preferred Category</strong>
                     <span class="text-muted">{{ $event->preferredCategory->name }}</span>
                 </div>
             @endif
             @if($event->budget)
                 <div class="col-md-6">
-                    <strong class="text-white d-block mb-1">Budget</strong>
+                    <strong class="event-detail-label d-block mb-1">Budget</strong>
                     <span class="text-muted">₱{{ number_format((float) $event->budget, 0) }}</span>
                 </div>
             @endif

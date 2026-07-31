@@ -9,7 +9,6 @@ use App\Models\EventType;
 use App\Services\SupabaseStorageService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 
@@ -19,17 +18,7 @@ class EventController extends Controller
     {
         $query = Event::with('photos')->where('organizer_id', Auth::id());
 
-        if ($request->filled('status')) {
-            match ($request->status) {
-                'upcoming' => $query->whereIn('status', ['Open', 'open', 'upcoming'])
-                    ->whereDate('event_date', '>=', now()->toDateString()),
-                'ongoing' => $query->whereDate('event_date', now()->toDateString())
-                    ->whereNotIn('status', ['cancelled', 'Cancelled', 'completed', 'Completed']),
-                'completed' => $query->whereIn('status', ['completed', 'Completed']),
-                'cancelled' => $query->whereIn('status', ['cancelled', 'Cancelled']),
-                default => $query->where('status', $request->status),
-            };
-        }
+        $this->applyEventFilter($query, $request->status);
 
         $events = $query->latest()->get();
 
@@ -131,6 +120,33 @@ class EventController extends Controller
         }
     }
 
+    private function applyEventFilter($query, ?string $filter): void
+    {
+        $today = now()->toDateString();
+
+        if ($filter === 'upcoming') {
+            $query->where('status', 'Open')->whereDate('event_date', '>', $today);
+        }
+
+        if ($filter === 'ongoing') {
+            $query->where('status', 'Open')->whereDate('event_date', $today);
+        }
+
+        if ($filter === 'completed') {
+            $query->where(function ($events) use ($today) {
+                $events->where('status', 'Completed')
+                    ->orWhere(function ($events) use ($today) {
+                        $events->whereDate('event_date', '<', $today)
+                            ->where('status', '!=', 'Cancelled');
+                    });
+            });
+        }
+
+        if ($filter === 'cancelled') {
+            $query->where('status', 'Cancelled');
+        }
+    }
+
     private function validatedEvent(Request $request, bool $updating = false): array
     {
         return $request->validate([
@@ -138,7 +154,7 @@ class EventController extends Controller
             'preferred_category_id' => ['nullable', 'exists:categories,id'],
             'title' => ['required', 'string', 'max:255'],
             'cover_photo' => ['nullable', 'image', 'max:5120'],
-            'photos' => ['nullable', 'array'],
+            'photos' => ['nullable', 'array', 'max:5'],
             'photos.*' => ['image', 'max:5120'],
             'description' => ['nullable', 'string'],
             'event_date' => ['required', 'date'],
@@ -146,23 +162,20 @@ class EventController extends Controller
             'end_time' => ['required'],
             'venue' => ['required', 'string', 'max:255'],
             'budget' => ['nullable', 'numeric'],
+            'status' => $updating ? ['required', 'in:Open,Cancelled'] : ['nullable'],
 
         ]);
     }
 
     private function storeUploadedPhotos(Event $event, Request $request): void
     {
-        $files = [];
+        $photos = $request->file('photos', []);
 
-        if ($request->hasFile('photos')) {
-            $files = array_values(array_filter($request->file('photos'), fn ($file) => $file instanceof UploadedFile && $file->isValid()));
+        if ($photos === [] && $request->hasFile('cover_photo')) {
+            $photos = [$request->file('cover_photo')];
         }
 
-        if ($files === [] && $request->hasFile('cover_photo')) {
-            $files = [$request->file('cover_photo')];
-        }
-
-        if ($files === []) {
+        if ($photos === []) {
             $this->syncLegacyCoverPhoto($event);
 
             return;
@@ -172,8 +185,12 @@ class EventController extends Controller
         $sortOrder = ((int) $event->photos()->max('sort_order')) + 1;
         $firstPath = null;
 
-        foreach ($files as $file) {
-            $path = $supabase->upload($file, 'organizer-files', 'event_banner', Auth::id());
+        foreach ($photos as $photo) {
+            if (! $photo->isValid()) {
+                continue;
+            }
+
+            $path = $supabase->upload($photo, 'organizer-files', 'event_banner', Auth::id());
 
             $event->photos()->create([
                 'file_path' => $path,

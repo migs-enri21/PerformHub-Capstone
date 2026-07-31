@@ -21,11 +21,12 @@
 </div>
 
 <div class="mb-4">
-    <a href="{{ route('organizer.events.index') }}" class="btn btn-outline-primary btn-sm me-2">All</a>
-    <a href="{{ route('organizer.events.index', ['status' => 'upcoming']) }}" class="btn btn-outline-secondary btn-sm me-2">Upcoming</a>
-    <a href="{{ route('organizer.events.index', ['status' => 'ongoing']) }}" class="btn btn-outline-secondary btn-sm me-2">Ongoing</a>
-    <a href="{{ route('organizer.events.index', ['status' => 'completed']) }}" class="btn btn-outline-secondary btn-sm me-2">Completed</a>
-    <a href="{{ route('organizer.events.index', ['status' => 'cancelled']) }}" class="btn btn-outline-secondary btn-sm">Cancelled</a>
+    @php($selectedFilter = request('status'))
+    <a href="{{ route('organizer.events.index') }}" class="btn btn-sm me-2 {{ ! $selectedFilter ? 'btn-primary' : 'btn-outline-primary' }}">All</a>
+    <a href="{{ route('organizer.events.index', ['status' => 'upcoming']) }}" class="btn btn-sm me-2 {{ $selectedFilter === 'upcoming' ? 'btn-primary' : 'btn-outline-secondary' }}">Upcoming</a>
+    <a href="{{ route('organizer.events.index', ['status' => 'ongoing']) }}" class="btn btn-sm me-2 {{ $selectedFilter === 'ongoing' ? 'btn-primary' : 'btn-outline-secondary' }}">Ongoing</a>
+    <a href="{{ route('organizer.events.index', ['status' => 'completed']) }}" class="btn btn-sm me-2 {{ $selectedFilter === 'completed' ? 'btn-primary' : 'btn-outline-secondary' }}">Completed</a>
+    <a href="{{ route('organizer.events.index', ['status' => 'cancelled']) }}" class="btn btn-sm {{ $selectedFilter === 'cancelled' ? 'btn-primary' : 'btn-outline-secondary' }}">Cancelled</a>
 </div>
 
 @if($events->isEmpty())
@@ -52,7 +53,7 @@
                     @endif
 
                     <div class="p-3">
-                        <h5 class="fw-bold text-white mb-2">{{ $event->title }}</h5>
+                        <h5 class="event-card-title mb-2">{{ $event->title }}</h5>
 
                         @if($event->description)
                             <p class="text-muted small mb-3">{{ $event->description }}</p>

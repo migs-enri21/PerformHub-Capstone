@@ -8,11 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class EventPhoto extends Model
 {
-    protected $fillable = [
-        'event_id',
-        'file_path',
-        'sort_order',
-    ];
+    protected $fillable = ['event_id','file_path','sort_order',];
 
     public function event(): BelongsTo
     {
