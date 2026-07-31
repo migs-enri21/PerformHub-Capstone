@@ -65,7 +65,7 @@
                     </div>
 
                     <a href="{{ $booking->contractUrl() }}" target="_blank" class="btn ph-btn-outline btn-sm mb-3">
-                        <i class="fas fa-file-pdf me-1"></i> Review Contract
+                        <i class="fas fa-file me-1"></i> Review Contract File
                     </a>
 
                     @if($booking->canConfirmContract())

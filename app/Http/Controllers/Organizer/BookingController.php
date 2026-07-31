@@ -53,7 +53,6 @@ class BookingController extends Controller
             'notes' => ['nullable', 'string', 'max:1000'],
             'budget' => ['nullable', 'numeric', 'min:0'],
             'end_time' => ['nullable', 'date_format:H:i'],
-            'contract' => ['nullable', 'file', 'mimes:pdf,doc,docx', 'max:10240'],
             'event_id' => ['required', 'exists:events,id'],
         ]);
 
@@ -65,8 +64,6 @@ class BookingController extends Controller
         if ($exists) {
             return back()->with('error', 'A booking request has already been sent to this performer for this event.');
         }
-
-        unset($validated['contract']);
 
         $booking = Booking::create([
             ...$validated,
@@ -104,10 +101,9 @@ class BookingController extends Controller
     public function uploadContract(Request $request, Booking $booking): RedirectResponse
     {
         abort_unless($booking->organizer_id === Auth::id(), 403);
-        abort_unless($booking->status === 'accepted', 400, 'Upload a contract only after the performer accepts the booking.');
 
         $validated = $request->validate([
-            'contract' => ['required', 'file', 'mimes:pdf,doc,docx', 'max:10240'],
+            'contract' => ['required', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:10240'],
         ]);
 
         $supabase = new SupabaseStorageService();
@@ -123,13 +119,15 @@ class BookingController extends Controller
             'contract_confirmed_at' => null,
         ]);
 
-        Notification::send(
-            $booking->performer,
-            'contract',
-            'Contract Uploaded',
-            'A contract has been uploaded for '.$booking->event_name,
-            route('performer.bookings.show', $booking)
-        );
+        if ($booking->status === 'accepted') {
+            Notification::send(
+                $booking->performer,
+                'contract',
+                'Contract Uploaded',
+                'A contract has been uploaded for '.$booking->event_name,
+                route('performer.bookings.show', $booking)
+            );
+        }
 
         return back()->with('success', 'Contract uploaded.');
     }
