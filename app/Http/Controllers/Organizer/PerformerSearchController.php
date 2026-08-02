@@ -25,8 +25,7 @@ class PerformerSearchController extends Controller
             if ($selectedEvent) {
 
             $request->merge([
-            'available_date' => $selectedEvent->event_date,
-            ]);
+            'available_date' => $selectedEvent->event_date,]);
             }
         }
 

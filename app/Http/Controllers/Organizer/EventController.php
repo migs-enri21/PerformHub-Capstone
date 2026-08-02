@@ -6,11 +6,13 @@ use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Models\Event;
 use App\Models\EventType;
+use App\Models\Booking;
 use App\Services\SupabaseStorageService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
+
 
 class EventController extends Controller
 {
@@ -67,8 +69,9 @@ class EventController extends Controller
         $this->authorizeEvent($event);
 
         $event->load(['eventType', 'preferredCategory', 'photos','applications.performer.performerProfile']);
+        $bookings = Booking::where('event_id', $event->id)->get()->keyBy('performer_id');
 
-        return view('organizer.events.show', compact('event'));
+        return view('organizer.events.show', compact('event', 'bookings'));
     }
 
     public function edit(Event $event): View

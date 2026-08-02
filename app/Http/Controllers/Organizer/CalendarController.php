@@ -21,13 +21,11 @@ class CalendarController extends Controller
             ->orderBy('date')
             ->get();
 
-        // The calendar JavaScript needs simple date-keyed arrays.
         $calendarEvents = [];
 
         foreach ($events as $event) {
             $date = (string) $event->event_date;
 
-            // Keep the first event as the clickable event for that date.
             if (! isset($calendarEvents[$date])) {
                 $calendarEvents[$date] = [
                     'title' => $event->title,
@@ -39,9 +37,7 @@ class CalendarController extends Controller
         $googleBusy = [];
 
         foreach ($googleBusyDates as $busyDate) {
-            $googleBusy[$busyDate->date->format('Y-m-d')] = [
-                'summary' => $busyDate->summary,
-            ];
+            $googleBusy[$busyDate->date->format('Y-m-d')] = ['summary' => $busyDate->summary,];
         }
 
         $upcomingEvents = [];
@@ -57,12 +53,6 @@ class CalendarController extends Controller
             }
         }
 
-        return view('organizer.calendar.index', compact(
-            'profile',
-            'events',
-            'calendarEvents',
-            'googleBusy',
-            'upcomingEvents',
-        ));
+        return view('organizer.calendar.index', compact('profile','events','calendarEvents','googleBusy','upcomingEvents',));
     }
 }

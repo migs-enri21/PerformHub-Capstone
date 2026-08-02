@@ -28,9 +28,7 @@ class BookingController extends Controller
 
     public function create(Request $request, PerformerProfile $performer): View
 {
-    $events = Event::where('organizer_id', Auth::id())
-        ->latest()
-        ->get();
+    $events = Event::where('organizer_id', Auth::id())->latest()->get();
 
     $selectedEvent = null;
 
@@ -58,8 +56,7 @@ class BookingController extends Controller
 
         $exists = Booking::where('performer_id', $performer->user_id)
         ->where('event_name', $validated['event_name'])
-        ->where('status', 'pending')
-        ->exists();
+        ->where('status', 'pending')->exists();
 
         if ($exists) {
             return back()->with('error', 'A booking request has already been sent to this performer for this event.');
@@ -74,9 +71,7 @@ class BookingController extends Controller
 
         EventApplication::where('event_id', $validated['event_id'])
         ->where('performer_id', $performer->user_id)
-        ->update([
-        'status' => 'invited',
-        ]);
+        ->update(['status' => 'invited',]);
 
         Notification::send(
             $performer->user,
@@ -86,8 +81,7 @@ class BookingController extends Controller
             route('performer.bookings.show', $booking)
         );
 
-        return redirect()->route('organizer.bookings.show', $booking)
-            ->with('success', 'Booking request sent.');
+        return redirect()->route('organizer.bookings.show', $booking)->with('success', 'Booking request sent.');
     }
 
     public function show(Booking $booking): View

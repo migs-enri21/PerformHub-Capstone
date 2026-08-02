@@ -114,8 +114,9 @@
                 </form>
             @elseif($application->status === 'invited')
                 <span class="text-muted small">Booking request sent — waiting for performer</span>
-            @elseif($application->status === 'accepted')
-                <span class="text-success small"><i class="fas fa-check me-1"></i>Accepted & booked</span>
+           @elseif($application->status === 'accepted' && isset($bookings[$application->performer_id]))<div class="d-flex align-items-center justify-content-between">
+                <span class="text-success">✓ Accepted & Booked</span>
+            <a href="{{ route('organizer.bookings.show', $bookings[$application->performer_id]) }}"class="btn ph-btn-primary btn-sm">View Booking</a></div>
             @elseif($application->status === 'declined')
                 <span class="text-muted small">Declined</span>
             @endif

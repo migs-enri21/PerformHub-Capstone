@@ -67,9 +67,18 @@
             @forelse($recommendedPerformers->take(3) as $performer)
                 <a href="{{ route('organizer.performers.show', $performer) }}" class="org-list-item">
                     <img src="{{ $performer->profilePhotoUrl() ?? 'https://ui-avatars.com/api/?name='.urlencode($performer->stage_name).'&background=6d3df5&color=fff' }}" alt="{{ $performer->stage_name }}" class="rounded-circle" width="48" height="48">
-                    <div>
-                        <strong>{{ $performer->stage_name }}</strong>
+                        
+                    <div class="flex-grow-1"><strong>{{ $performer->stage_name }}</strong>
+
+                        @if($performer->is_verified)
+                            <span class="badge bg-success ms-1">Verified</span>
+                        @endif
+
                         <small class="text-muted d-block">{{ $performer->categoryNames() ?: 'Performer' }}</small>
+
+                        @if($performer->portfolios->count())
+                            <small class="text-primary">{{ $performer->portfolios->count() }}portfolio {{ Str::plural('item', $performer->portfolios->count()) }}</small>
+                        @endif
                     </div>
                 </a>
             @empty
@@ -77,11 +86,42 @@
             @endforelse
         </div>
 
-        <div class="org-panel text-center py-5">
-            <i class="fas fa-stream fa-2x text-muted mb-3"></i>
-            <h5 class="fw-bold">No Recent Activity</h5>
-            <p class="text-muted mb-0">Performer applications and booking updates will appear here.</p>
+    <div class="org-panel">
+
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="fw-bold mb-0">Recent Events</h5>
+            <a href="{{ route('organizer.events.index') }}"class="small">View all</a>
         </div>
+
+        @forelse($recentEvents as $event)
+
+        <a href="{{ route('organizer.events.show', $event) }}"class="text-decoration-none text-dark">
+            <div class="border rounded p-3 mb-3">
+                <div class="d-flex justify-content-between align-items-start">
+
+                    <div><strong>{{ $event->title }}</strong>
+                        <div class="text-muted small">
+                            <i class="fas fa-map-marker-alt me-1"></i>
+                            {{ $event->venue }}
+                        </div>
+                        <span class="badge bg-success mt-2">{{ ucfirst($event->status) }}</span>
+
+                    </div>
+                    <small class="text-muted">{{ date('M d, Y', strtotime($event->event_date)) }}</small>
+                </div>
+            </div>
+        </a>
+
+        @empty
+
+            <div class="text-center py-4">
+                <i class="fas fa-calendar-alt fa-2x text-muted mb-3"></i>
+                <p class="text-muted mb-0">No events yet.</p>
+            </div>
+
+        @endforelse
+        </div>
+
     </div>
 
     <aside class="col-xl-4">
