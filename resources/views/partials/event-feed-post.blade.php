@@ -1,4 +1,4 @@
-@props(['event', 'hasApplied' => false])
+@props(['event', 'applicationStatus' => null, 'bookingUrl' => null])
 
 @php
     $organizer = $event->organizer;
@@ -15,13 +15,13 @@
     <div class="event-feed-post-header">
         <img src="{{ $photoUrl }}" alt="" class="rounded-circle event-feed-avatar flex-shrink-0" width="40" height="40">
         <div class="flex-grow-1 min-w-0">
-            <p class="text-white fw-semibold mb-0 text-truncate">{{ $orgName }}</p>
+            <p class="event-card-organizer mb-0 text-truncate">{{ $orgName }}</p>
             <small class="text-muted">{{ $event->created_at?->diffForHumans() ?? 'Recently' }} · {{ $event->status }}</small>
         </div>
     </div>
 
     <div class="event-feed-body">
-        <h5 class="text-white fw-bold mb-2 event-feed-title">{{ $event->title }}</h5>
+        <h5 class="event-card-title mb-2 event-feed-title">{{ $event->title }}</h5>
 
         @if($event->description)
             <p class="text-muted mb-2 event-feed-description">{{ $event->description }}</p>
@@ -62,9 +62,25 @@
     @endif
 
     <div class="event-feed-footer">
-        @if($hasApplied)
+        @if($applicationStatus === 'accepted')
+            <a href="{{ route('performer.profile.show') }}#availability" class="event-feed-footer-btn event-feed-footer-btn--accepted w-100">
+                <i class="fas fa-check me-1"></i>Accepted — on your calendar
+            </a>
+        @elseif($applicationStatus === 'invited' && $bookingUrl)
+            <a href="{{ $bookingUrl }}" class="event-feed-footer-btn event-feed-footer-btn--invited w-100">
+                <i class="fas fa-envelope me-1"></i>Booking request — respond
+            </a>
+        @elseif($applicationStatus === 'invited')
+            <a href="{{ route('performer.bookings.index', ['status' => 'pending']) }}" class="event-feed-footer-btn event-feed-footer-btn--invited w-100">
+                <i class="fas fa-envelope me-1"></i>Booking request — respond
+            </a>
+        @elseif($applicationStatus === 'declined')
+            <button type="button" class="event-feed-footer-btn event-feed-footer-btn--declined w-100" disabled>
+                <i class="fas fa-times me-1"></i>Declined
+            </button>
+        @elseif($applicationStatus === 'pending')
             <button type="button" class="event-feed-footer-btn event-feed-footer-btn--applied w-100" disabled>
-                <i class="fas fa-check me-1"></i>Applied
+                <i class="fas fa-clock me-1"></i>Pending — awaiting organizer
             </button>
         @elseif(auth()->user()->hasLimitedAccess())
             <a href="{{ auth()->user()->onboardingRoute() }}" class="event-feed-footer-btn w-100">

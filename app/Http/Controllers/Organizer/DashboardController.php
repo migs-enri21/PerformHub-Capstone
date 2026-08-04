@@ -8,6 +8,7 @@ use App\Services\PerformerRecommendationService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 use App\Models\Event;
+use App\Models\PerformerProfile;
 
 class DashboardController extends Controller
 {
@@ -22,24 +23,19 @@ class DashboardController extends Controller
 
         $pendingBookings = Booking::where('organizer_id', Auth::id())->where('status', 'pending')->count();
 
-        $activeBookings = Booking::where('organizer_id', Auth::id())
-            ->where('status', 'accepted')
-            ->count();
+        $activeBookings = Booking::where('organizer_id', Auth::id())->where('status', 'accepted')->count();
 
-        $recentNotifications = Auth::user()
-            ->notifications()
-            ->latest()
-            ->take(3)
-            ->get();
+        $confirmedBookings = Booking::where('organizer_id', auth()->id())->where('status', 'confirmed')->count();
+
+        $recentNotifications = Auth::user()->notifications()->latest()->take(3)->get();
 
         $recommendedPerformers = $recommendations->forOrganizer(Auth::user());
 
-        return view('organizer.dashboard', compact(
-            'upcomingEvents',
-            'pendingBookings',
-            'activeBookings',
-            'recentNotifications',
-            'recommendedPerformers',
-        ));
+        $featuredPerformers = PerformerProfile::with(['user','portfolios'])->whereHas('portfolios')->latest()->take(4)->get();
+
+        $recentEvents = Event::with('organizer')->latest()->take(6)->get();
+
+        return view('organizer.dashboard', compact('upcomingEvents','pendingBookings','activeBookings', 'confirmedBookings',
+        'recentNotifications','recommendedPerformers','featuredPerformers','recentEvents'));
     }
 }

@@ -46,9 +46,11 @@ public function index(Request $request): View
 
         $booking->update(['status' => 'accepted']);
 
-        EventApplication::where('event_id', $booking->event_id)
-        ->where('performer_id', $booking->performer_profile_id)
-        ->update(['status' => 'accepted',]);
+        if ($booking->event_id) {
+            EventApplication::where('event_id', $booking->event_id)
+                ->where('performer_id', $booking->performer_id)
+                ->update(['status' => 'accepted']);
+        }
 
         Notification::send(
             $booking->organizer,
@@ -68,9 +70,11 @@ public function index(Request $request): View
 
         $booking->update(['status' => 'rejected']);
 
-        EventApplication::where('event_id', $booking->event_id)
-        ->where('performer_id', $booking->performer_profile_id)
-        ->update(['status' => 'declined',]);
+        if ($booking->event_id) {
+            EventApplication::where('event_id', $booking->event_id)
+                ->where('performer_id', $booking->performer_id)
+                ->update(['status' => 'declined']);
+        }
 
         Notification::send(
             $booking->organizer,

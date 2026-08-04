@@ -12,9 +12,11 @@ class Booking extends Model
     protected $fillable = [
         'organizer_id',
         'performer_id',
+        'event_id',
         'event_name',
         'event_date',
         'event_time',
+        'end_time',
         'venue',
         'requirements',
         'duration_hours',
@@ -24,7 +26,6 @@ class Booking extends Model
         'performer_confirmed_contract',
         'notes',
         'budget',
-        'end_time',
     ];
 
     protected function casts(): array
@@ -44,6 +45,11 @@ class Booking extends Model
     public function performer(): BelongsTo
     {
         return $this->belongsTo(User::class, 'performer_id');
+    }
+
+    public function event(): BelongsTo
+    {
+        return $this->belongsTo(Event::class);
     }
 
     public function reviews(): HasMany

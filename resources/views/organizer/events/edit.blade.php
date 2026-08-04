@@ -48,7 +48,7 @@
                     accept="image/*"
                     multiple
                 >
-                <small class="text-muted">Add more photos. Multiple photos show as a collage for performers.</small>
+                <small class="text-muted">Add up to 5 photos at once, 5 MB each. Multiple photos show as a collage for performers.</small>
                 @error('photos')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
                 @error('photos.*')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
             </div>
@@ -116,6 +116,14 @@
                     <label class="form-label">Budget (₱)</label>
                     <input type="number" class="form-control @error('budget') is-invalid @enderror" name="budget" value="{{ old('budget', $event->budget) }}">
                     @error('budget')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Event Status</label>
+                    <select name="status" class="form-select @error('status') is-invalid @enderror">
+                        <option value="Open" @selected(old('status', $event->status) === 'Open')>Open</option>
+                        <option value="Cancelled" @selected(old('status', $event->status) === 'Cancelled')>Cancelled</option>
+                    </select>
+                    @error('status')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
             </div>
 

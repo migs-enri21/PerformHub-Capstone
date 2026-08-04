@@ -28,9 +28,7 @@ class BookingController extends Controller
 
     public function create(Request $request, PerformerProfile $performer): View
 {
-    $events = Event::where('organizer_id', Auth::id())
-        ->latest()
-        ->get();
+    $events = Event::where('organizer_id', Auth::id())->latest()->get();
 
     $selectedEvent = null;
 
@@ -53,14 +51,12 @@ class BookingController extends Controller
             'notes' => ['nullable', 'string', 'max:1000'],
             'budget' => ['nullable', 'numeric', 'min:0'],
             'end_time' => ['nullable', 'date_format:H:i'],
-            'contract' => ['nullable', 'file', 'mimes:pdf,doc,docx', 'max:10240'],
             'event_id' => ['required', 'exists:events,id'],
         ]);
 
         $exists = Booking::where('performer_id', $performer->user_id)
         ->where('event_name', $validated['event_name'])
-        ->where('status', 'pending')
-        ->exists();
+        ->where('status', 'pending')->exists();
 
         if ($exists) {
             return back()->with('error', 'A booking request has already been sent to this performer for this event.');
@@ -75,9 +71,7 @@ class BookingController extends Controller
 
         EventApplication::where('event_id', $validated['event_id'])
         ->where('performer_id', $performer->user_id)
-        ->update([
-        'status' => 'invited',
-        ]);
+        ->update(['status' => 'invited',]);
 
         Notification::send(
             $performer->user,
@@ -87,8 +81,7 @@ class BookingController extends Controller
             route('performer.bookings.show', $booking)
         );
 
-        return redirect()->route('organizer.bookings.show', $booking)
-            ->with('success', 'Booking request sent.');
+        return redirect()->route('organizer.bookings.show', $booking)->with('success', 'Booking request sent.');
     }
 
     public function show(Booking $booking): View
@@ -102,10 +95,9 @@ class BookingController extends Controller
     public function uploadContract(Request $request, Booking $booking): RedirectResponse
     {
         abort_unless($booking->organizer_id === Auth::id(), 403);
-        abort_unless($booking->status === 'accepted', 400, 'Upload a contract only after the performer accepts the booking.');
 
         $validated = $request->validate([
-            'contract' => ['required', 'file', 'mimes:pdf,doc,docx', 'max:10240'],
+            'contract' => ['required', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:10240'],
         ]);
 
         $supabase = new SupabaseStorageService();
@@ -121,13 +113,15 @@ class BookingController extends Controller
             'contract_confirmed_at' => null,
         ]);
 
-        Notification::send(
-            $booking->performer,
-            'contract',
-            'Contract Uploaded',
-            'A contract has been uploaded for '.$booking->event_name,
-            route('performer.bookings.show', $booking)
-        );
+        if ($booking->status === 'accepted') {
+            Notification::send(
+                $booking->performer,
+                'contract',
+                'Contract Uploaded',
+                'A contract has been uploaded for '.$booking->event_name,
+                route('performer.bookings.show', $booking)
+            );
+        }
 
         return back()->with('success', 'Contract uploaded.');
     }

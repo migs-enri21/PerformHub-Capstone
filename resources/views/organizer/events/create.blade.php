@@ -28,7 +28,7 @@
                 accept="image/*"
                 multiple>
 
-                <small class="text-muted">Upload one or more photos. Multiple photos show as a collage for performers.</small>
+                <small class="text-muted">Upload one or more photos, up to 5 MB each. Multiple photos show as a collage for performers.</small>
 
                 </div>
                 <div class="mb-3"><label class="form-label">Event Name</label><input type="text" class="form-control" name="title" value="{{ old('title') }}"></div>

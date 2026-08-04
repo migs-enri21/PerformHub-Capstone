@@ -12,10 +12,6 @@
         <h2 class="fw-bold mb-1">Calendar</h2>
         <p class="text-muted mb-0">View your events and schedule in one place.</p>
     </div>
-
-    <a href="{{ route('organizer.events.create') }}" class="btn ph-btn-primary">
-        <i class="fas fa-plus me-2"></i>Create Event
-    </a>
 </div>
 
 <div class="row g-4">
