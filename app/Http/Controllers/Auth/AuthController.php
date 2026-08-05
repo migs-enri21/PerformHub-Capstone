@@ -23,12 +23,14 @@ class AuthController extends Controller
 
     public function login(Request $request): RedirectResponse
     {
-        $credentials = $request->validate([
-            'email' => ['required', 'email'],
+        $login = $request->validate([
+            'login' => ['required', 'string', 'max:255'],
             'password' => ['required'],
         ]);
 
-        if (Auth::attempt($credentials, $request->boolean('remember'))) {
+        $field = filter_var($login['login'], FILTER_VALIDATE_EMAIL) ? 'email' : 'username';
+
+        if (Auth::attempt([$field => $login['login'], 'password' => $login['password']], $request->boolean('remember'))) {
             $request->session()->regenerate();
             $user = Auth::user();
 
@@ -41,7 +43,7 @@ class AuthController extends Controller
             return redirect()->intended($user->dashboardRoute());
         }
 
-        return back()->withErrors(['email' => 'Invalid credentials.'])->onlyInput('email');
+        return back()->withErrors(['login' => 'Invalid username, email, or password.'])->onlyInput('login');
     }
 
     public function showRegister(Request $request): View

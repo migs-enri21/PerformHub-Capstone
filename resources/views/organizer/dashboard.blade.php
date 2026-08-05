@@ -14,45 +14,30 @@
         <h2 class="fw-bold mb-1">Home</h2>
         <p class="text-muted mb-0">Manage your events and discover talent.</p>
     </div>
-
-    <a href="{{ route('organizer.events.create') }}" class="btn ph-btn-primary">
-        <i class="fas fa-plus me-2"></i>Create Event
-    </a>
+    <a href="{{ route('organizer.events.create') }}" class="btn ph-btn-primary"><i class="fas fa-plus me-2"></i>Create Event</a>
 </div>
 
 <div class="row g-4">
     <div class="col-xl-8">
         <div class="org-panel mb-4">
             <h5 class="fw-bold mb-3">Quick Overview</h5>
-
             <div class="row g-3">
                 <div class="col-md-4">
                     <a href="{{ route('organizer.events.index') }}" class="org-stat">
                         <i class="fas fa-calendar-plus"></i>
-                        <div>
-                            <strong>{{ $upcomingEvents->count() }}</strong>
-                            <small>Upcoming Events</small>
-                        </div>
+                        <div><strong>{{ $upcomingEvents->count() }}</strong><small>Upcoming Events</small></div>
                     </a>
                 </div>
-
                 <div class="col-md-4">
                     <a href="{{ route('organizer.bookings.index') }}" class="org-stat">
                         <i class="fas fa-clock"></i>
-                        <div>
-                            <strong>{{ $pendingBookings }}</strong>
-                            <small>Pending Bookings</small>
-                        </div>
+                        <div><strong>{{ $pendingBookings }}</strong><small>Pending Bookings</small></div>
                     </a>
                 </div>
-
                 <div class="col-md-4">
                     <a href="{{ route('organizer.bookings.index') }}" class="org-stat">
                         <i class="fas fa-check-circle"></i>
-                        <div>
-                            <strong>{{ $activeBookings }}</strong>
-                            <small>Confirmed Bookings</small>
-                        </div>
+                        <div><strong>{{ $activeBookings }}</strong><small>Confirmed Bookings</small></div>
                     </a>
                 </div>
             </div>
@@ -67,17 +52,14 @@
             @forelse($recommendedPerformers->take(3) as $performer)
                 <a href="{{ route('organizer.performers.show', $performer) }}" class="org-list-item">
                     <img src="{{ $performer->profilePhotoUrl() ?? 'https://ui-avatars.com/api/?name='.urlencode($performer->stage_name).'&background=6d3df5&color=fff' }}" alt="{{ $performer->stage_name }}" class="rounded-circle" width="48" height="48">
-                        
-                    <div class="flex-grow-1"><strong>{{ $performer->stage_name }}</strong>
-
+                    <div class="flex-grow-1">
+                        <strong>{{ $performer->stage_name }}</strong>
                         @if($performer->is_verified)
                             <span class="badge bg-success ms-1">Verified</span>
                         @endif
-
                         <small class="text-muted d-block">{{ $performer->categoryNames() ?: 'Performer' }}</small>
-
                         @if($performer->portfolios->count())
-                            <small class="text-primary">{{ $performer->portfolios->count() }}portfolio {{ Str::plural('item', $performer->portfolios->count()) }}</small>
+                            <small class="text-primary">{{ $performer->portfolios->count() }} portfolio {{ Str::plural('item', $performer->portfolios->count()) }}</small>
                         @endif
                     </div>
                 </a>
@@ -86,42 +68,24 @@
             @endforelse
         </div>
 
-    <div class="org-panel">
+        <section class="mb-4">
+            <h5 class="fw-bold mb-3">Activity Feed</h5>
 
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <h5 class="fw-bold mb-0">Recent Events</h5>
-            <a href="{{ route('organizer.events.index') }}"class="small">View all</a>
-        </div>
-
-        @forelse($recentEvents as $event)
-
-        <a href="{{ route('organizer.events.show', $event) }}"class="text-decoration-none text-dark">
-            <div class="border rounded p-3 mb-3">
-                <div class="d-flex justify-content-between align-items-start">
-
-                    <div><strong>{{ $event->title }}</strong>
-                        <div class="text-muted small">
-                            <i class="fas fa-map-marker-alt me-1"></i>
-                            {{ $event->venue }}
-                        </div>
-                        <span class="badge bg-success mt-2">{{ ucfirst($event->status) }}</span>
-
-                    </div>
-                    <small class="text-muted">{{ date('M d, Y', strtotime($event->event_date)) }}</small>
-                </div>
+            <div class="portfolio-feed-stream">
+                @forelse($feedPosts as $post)
+                    @if($post['type'] === 'event')
+                        @include('partials.event-activity-post', ['event' => $post['event']])
+                    @else
+                        @include('partials.portfolio-feed-post', [
+                            'items' => $post['items'],
+                            'performer' => $post['performer']
+                        ])
+                    @endif
+                @empty
+                    <div class="org-panel text-center text-muted">No activity yet.</div>
+                @endforelse
             </div>
-        </a>
-
-        @empty
-
-            <div class="text-center py-4">
-                <i class="fas fa-calendar-alt fa-2x text-muted mb-3"></i>
-                <p class="text-muted mb-0">No events yet.</p>
-            </div>
-
-        @endforelse
-        </div>
-
+        </section>
     </div>
 
     <aside class="col-xl-4">
@@ -135,9 +99,7 @@
                 @if($upcomingEvents->isNotEmpty())
                     @php($nextEvent = $upcomingEvents->first())
                     <a href="{{ route('organizer.events.show', $nextEvent) }}" class="org-list-item">
-                        <span class="org-event-date">
-                            {{ \Illuminate\Support\Carbon::parse($nextEvent->event_date)->format('d M') }}
-                        </span>
+                        <span class="org-event-date">{{ \Illuminate\Support\Carbon::parse($nextEvent->event_date)->format('d M') }}</span>
                         <div>
                             <strong>{{ $nextEvent->title }}</strong>
                             <small class="text-muted d-block">{{ $nextEvent->venue }}</small>
@@ -166,7 +128,6 @@
                     <p class="text-muted small mb-0">No new notifications.</p>
                 @endforelse
             </div>
-
         </div>
     </aside>
 </div>

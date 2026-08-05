@@ -37,8 +37,8 @@
                 @csrf
 
                 <div class="mb-3">
-                    <label class="form-label text-muted small">Email Address</label>
-                    <input type="email" name="email" class="form-control ph-input" placeholder="you@example.com" value="{{ old('email') }}" required>
+                    <label class="form-label text-muted small">Username or Email</label>
+                    <input type="text" name="login" class="form-control ph-input" placeholder="your_username" value="{{ old('login') }}" required>
                 </div>
 
                 <div class="mb-4">
@@ -58,4 +58,3 @@
     </div>
 </div>
 @endsection
-
