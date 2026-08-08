@@ -143,17 +143,19 @@ document.querySelectorAll('.organizer-calendar').forEach(calendar => {
         for (let day = 1; day <= daysInMonth; day++) {
             const key = dateKey(viewYear, viewMonth, day);
             const date = new Date(viewYear, viewMonth, day);
-            const event = events[key];
+            const dayEvents = events[key] || [];
+            const event = dayEvents[0];
             const googleBusy = googleBusyDates[key];
-            const cell = document.createElement(event ? 'a' : 'div');
+            const cell = document.createElement('div');
 
             cell.className = 'av-day';
 
             if (event) {
-                cell.href = event.url;
                 cell.classList.add('av-day--booked', 'organizer-calendar-event');
-                cell.title = event.title;
-            } else if (googleBusy) {
+                cell.title = dayEvents.map(item => item.title).join(', ');
+            }
+
+            if (! event && googleBusy) {
                 cell.classList.add('av-day--google-busy');
                 cell.title = googleBusy.summary || 'Busy on Google Calendar';
             }
@@ -172,10 +174,19 @@ document.querySelectorAll('.organizer-calendar').forEach(calendar => {
             cell.appendChild(number);
 
             if (event) {
-                const label = document.createElement('span');
+                const label = document.createElement('a');
                 label.className = 'av-day-event';
+                label.href = event.url;
                 label.textContent = event.title.length > 14 ? `${event.title.slice(0, 14)}…` : event.title;
                 cell.appendChild(label);
+
+                dayEvents.slice(1).forEach(item => {
+                    const more = document.createElement('a');
+                    more.className = 'av-day-event';
+                    more.href = item.url;
+                    more.textContent = item.title.length > 14 ? `${item.title.slice(0, 14)}...` : item.title;
+                    cell.appendChild(more);
+                });
             } else if (googleBusy) {
                 const label = document.createElement('span');
                 label.className = 'av-day-google-label';

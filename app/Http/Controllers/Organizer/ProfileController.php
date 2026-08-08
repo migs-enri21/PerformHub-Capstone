@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Organizer;
 
 use App\Http\Controllers\Controller;
+use App\Models\OrganizerProfile;
 use App\Services\SupabaseStorageService;
 use App\Support\PhilippineLocations;
 use Illuminate\Http\RedirectResponse;
@@ -14,23 +15,42 @@ class ProfileController extends Controller
 {
     public function show(): View
     {
-        $profile = Auth::user()->organizerProfile;
+        $profile = $this->getProfile();
 
         return view('organizer.profile.show', compact('profile'));
     }
 
     public function edit(): View
     {
-        $profile = Auth::user()->organizerProfile;
+        $profile = $this->getProfile();
 
         return view('organizer.profile.edit', compact('profile'));
     }
 
     public function update(Request $request): RedirectResponse
     {
-        $profile = Auth::user()->organizerProfile;
+        $profile = $this->getProfile();
+        $validated = $this->validateProfile($request);
 
-        $validated = $request->validate(array_merge([
+        $validated = $this->storePhoto($request, $profile, $validated, 'profile_photo', 'profile_picture');
+        $validated = $this->storePhoto($request, $profile, $validated, 'banner_photo', 'banner_photo');
+
+        $this->updateUserName($validated);
+        $this->updateProfileDetails($profile, $validated);
+
+        return redirect()
+            ->route('organizer.profile.show')
+            ->with('success', 'Profile updated successfully.');
+    }
+
+    private function getProfile(): OrganizerProfile
+    {
+        return Auth::user()->organizerProfile()->firstOrFail();
+    }
+
+    private function validateProfile(Request $request): array
+    {
+        return $request->validate(array_merge([
             'first_name' => ['required', 'string', 'max:100'],
             'last_name' => ['required', 'string', 'max:100'],
             'organization_name' => ['required', 'string', 'max:255'],
@@ -41,36 +61,50 @@ class ProfileController extends Controller
             'banner_photo' => ['nullable', 'image', 'max:5120'],
             'banner_position_y' => ['nullable', 'integer', 'min:0', 'max:100'],
         ], PhilippineLocations::locationFieldsRules(required: false)));
+    }
 
-        if ($request->hasFile('profile_photo')) {
-            $supabase = new SupabaseStorageService();
-
-            if ($profile->profile_photo) {
-                $supabase->delete('organizer-files', $profile->profile_photo);
-            }
-            $validated['profile_photo'] = $supabase->upload($request->file('profile_photo'), 'organizer-files', 'profile_picture', Auth::id());
+    private function storePhoto(Request $request, OrganizerProfile $profile, array $data, string $field, string $type): array
+    {
+        if (! $request->hasFile($field)) {
+            return $data;
         }
 
-        if ($request->hasFile('banner_photo')) {
-            $supabase = new SupabaseStorageService();
+        $storage = new SupabaseStorageService();
 
-            if ($profile->banner_photo) {
-                $supabase->delete('organizer-files', $profile->banner_photo);
-            }
-            $validated['banner_photo'] = $supabase->upload($request->file('banner_photo'), 'organizer-files', 'banner_photo', Auth::id());
+        if ($profile->$field) {
+            $storage->delete('organizer-files', $profile->$field);
         }
 
+        $data[$field] = $storage->upload(
+            $request->file($field),
+            'organizer-files',
+            $type,
+            Auth::id()
+        );
+
+        return $data;
+    }
+
+    private function updateUserName(array $data): void
+    {
         Auth::user()->update([
-            'first_name' => $validated['first_name'],
-            'last_name' => $validated['last_name'],
+            'first_name' => $data['first_name'],
+            'last_name' => $data['last_name'],
         ]);
+    }
 
-        $profile->update(collect($validated)->except(['first_name', 'last_name', 'region', 'city', 'barangay'])->all());
+    private function updateProfileDetails(OrganizerProfile $profile, array $data): void
+    {
+        $profile->update(collect($data)->except([
+            'first_name',
+            'last_name',
+            'region',
+            'city',
+            'barangay',
+        ])->all());
 
-        if (! empty($validated['region']) && ! empty($validated['city']) && ! empty($validated['barangay'])) {
-            $profile->update(PhilippineLocations::profileLocationAttributes($validated));
+        if (! empty($data['region']) && ! empty($data['city']) && ! empty($data['barangay'])) {
+            $profile->update(PhilippineLocations::profileLocationAttributes($data));
         }
-
-        return redirect()->route('organizer.profile.show')->with('success', 'Profile updated successfully.');
     }
 }
