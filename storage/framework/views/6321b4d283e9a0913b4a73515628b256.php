@@ -1,22 +1,20 @@
-@extends('layouts.app')
+<?php $__env->startSection('title', 'Admin Dashboard'); ?>
 
-@section('title', 'Admin Dashboard')
+<?php $__env->startSection('sidebar'); ?>
+<?php echo $__env->make('admin.partials.sidebar', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
+<?php $__env->stopSection(); ?>
 
-@section('sidebar')
-@include('admin.partials.sidebar')
-@endsection
-
-@section('content')
+<?php $__env->startSection('content'); ?>
 <h2 class="fw-bold mb-4">Admin Dashboard</h2>
 <div class="row g-4 mb-4">
-    @foreach([['label'=>'Total Users','value'=>$stats['users']],['label'=>'Performers','value'=>$stats['performers']],['label'=>'Organizers','value'=>$stats['organizers']],['label'=>'Bookings','value'=>$stats['bookings']],['label'=>'Pending Verifications','value'=>$stats['pending_verifications']]] as $stat)
+    <?php $__currentLoopData = [['label'=>'Total Users','value'=>$stats['users']],['label'=>'Performers','value'=>$stats['performers']],['label'=>'Organizers','value'=>$stats['organizers']],['label'=>'Bookings','value'=>$stats['bookings']],['label'=>'Pending Verifications','value'=>$stats['pending_verifications']]]; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $stat): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
         <div class="col-md-4 col-lg-2">
             <div class="ph-card p-3 stat-card text-center">
-                <h4 class="fw-bold mb-0">{{ $stat['value'] }}</h4>
-                <small class="text-muted">{{ $stat['label'] }}</small>
+                <h4 class="fw-bold mb-0"><?php echo e($stat['value']); ?></h4>
+                <small class="text-muted"><?php echo e($stat['label']); ?></small>
             </div>
         </div>
-    @endforeach
+    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
 </div>
 <div class="ph-card p-4">
     <div class="d-flex justify-content-between align-items-center mb-3">
@@ -24,53 +22,25 @@
         
     </div>
 
-  {{-- <div id="dashboardFilters" class="mb-3" style="display:block !important;">
-        <form class="row g-2 align-items-end">
-            <div class="col-md-4">
-                <label class="form-label small text-muted">Search</label>
-                <input id="dashboardSearch" type="text" class="form-control form-control-sm" placeholder="Event, organizer, performer">
-            </div>
-            <div class="col-md-3">
-                <label class="form-label small text-muted">Status</label>
-                <select id="dashboardStatus" class="form-select form-select-sm">
-                    <option value="">All</option>
-                    <option value="pending">Pending</option>
-                    <option value="accepted">Accepted</option>
-                    <option value="rejected">Rejected</option>
-                    <option value="completed">Completed</option>
-                </select>
-            </div>
-            <div class="col-md-3">
-                <label class="form-label small text-muted">Organizer</label>
-                <select id="dashboardOrganizer" class="form-select form-select-sm">
-                    <option value="">All Organizers</option>
-                    @foreach($organizersForFilter as $org)
-                        <option value="{{ strtolower($org->name) }}">{{ $org->name }}</option>
-                    @endforeach
-                </select>
-            </div>
-            <div class="col-md-2 text-end">
-                <button type="button" id="dashboardResetFilters" class="btn btn-outline-secondary btn-sm">Reset</button>
-            </div>
-            --}}
+  
         </form> 
     </div>
 
     <table class="table table-dark table-sm mb-0">
         <thead><tr><th>Event</th><th>Organizer</th><th>Performer</th><th>Status</th></tr></thead>
         <tbody>
-            @foreach($recentBookings as $b)
+            <?php $__currentLoopData = $recentBookings; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $b): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                 <tr>
-                    <td>{{ $b->event_name }}</td>
-                    <td>{{ $b->organizer->name }}</td>
-                    <td>{{ $b->performer->name }}</td>
-                    <td><span class="badge {{ $b->statusBadgeClass() }}">{{ $b->statusLabel() }}</span></td>
+                    <td><?php echo e($b->event_name); ?></td>
+                    <td><?php echo e($b->organizer->name); ?></td>
+                    <td><?php echo e($b->performer->name); ?></td>
+                    <td><span class="badge <?php echo e($b->statusBadgeClass()); ?>"><?php echo e($b->statusLabel()); ?></span></td>
                 </tr>
-            @endforeach
+            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
         </tbody>
     </table>
 </div>
-@push('scripts')
+<?php $__env->startPush('scripts'); ?>
 <script>
     (function(){
         const toggleBtn = document.getElementById('dashboardToggleFilters');
@@ -117,5 +87,7 @@
         filterRows();
     })();
 </script>
-@endpush
-@endsection
+<?php $__env->stopPush(); ?>
+<?php $__env->stopSection(); ?>
+
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH D:\GitHub\PerformHub-Capstone\resources\views/admin/dashboard.blade.php ENDPATH**/ ?>

@@ -22,7 +22,11 @@ class UserController extends Controller
             $query->where('is_active', $request->status === 'active');
         }
 
-        $users = $query->with(['performerProfile', 'organizerProfile'])->latest()->paginate(15);
+        $users = $query
+            ->with(['performerProfile', 'organizerProfile'])
+            ->orderBy('first_name')
+            ->orderBy('last_name')
+            ->paginate(15);
 
         return view('admin.users.index', compact('users'));
     }

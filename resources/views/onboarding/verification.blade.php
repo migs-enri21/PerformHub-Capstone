@@ -43,6 +43,48 @@
 
         <p class="text-muted small mb-3">Upload Documents <span class="text-muted">(Required items marked)</span></p>
 
+        @php
+            $businessPermitRequired = old('organization_type', $user->organizerProfile?->organization_type) !== 'individual';
+        @endphp
+
+        @php
+            $governmentIdType = old('government_id_type', '');
+        @endphp
+
+        <div class="mb-3">
+            <label class="form-label text-muted small mb-2" for="government_id_type">Government ID Type <span class="text-danger">*</span></label>
+            <select name="government_id_type" id="government_id_type" class="form-select ph-input @error('government_id_type') is-invalid @enderror" required>
+                <option value="" disabled {{ $governmentIdType === '' ? 'selected' : '' }}>Select Government ID Type</option>
+                @foreach([
+                    'PhilSys National ID' => 'PhilSys National ID',
+                    'Passport' => 'Passport',
+                    'Driver\'s License' => 'Driver\'s License',
+                    'UMID' => 'UMID',
+                    'PhilHealth ID' => 'PhilHealth ID',
+                    'Postal ID' => 'Postal ID',
+                    'PRC ID' => 'PRC ID',
+                    'SSS ID' => 'SSS ID',
+                    'GSIS eCard' => 'GSIS eCard',
+                    'OWWA ID' => 'OWWA ID',
+                    'NBI Clearance' => 'NBI Clearance',
+                    'Police Clearance' => 'Police Clearance',
+                    'PWD ID' => 'PWD ID',
+                    'Senior Citizen ID' => 'Senior Citizen ID',
+                    'Solo Parent ID' => 'Solo Parent ID',
+                    'Other Government-Issued ID' => 'Other Government-Issued ID',
+                ] as $value => $label)
+                    <option value="{{ $value }}" {{ $governmentIdType === $value ? 'selected' : '' }}>{{ $label }}</option>
+                @endforeach
+            </select>
+            @error('government_id_type')<div class="invalid-feedback">{{ $message }}</div>@enderror
+        </div>
+
+        <div class="mb-3" id="government_id_other_group" style="display: {{ $governmentIdType === 'Other Government-Issued ID' ? 'block' : 'none' }};">
+            <label class="form-label text-muted small mb-2" for="government_id_other">Specify Other Government ID</label>
+            <input type="text" name="government_id_other" id="government_id_other" class="form-control ph-input @error('government_id_other') is-invalid @enderror" value="{{ old('government_id_other') }}" placeholder="Enter government ID type">
+            @error('government_id_other')<div class="invalid-feedback">{{ $message }}</div>@enderror
+        </div>
+
         @include('onboarding.partials.upload-field', [
             'name' => 'government_id',
             'title' => 'Government-Issued ID',
@@ -54,7 +96,7 @@
         @include('onboarding.partials.upload-field', [
             'name' => 'business_permit',
             'title' => 'Business / Organization Permit',
-            'required' => true,
+            'required' => $businessPermitRequired,
             'desc' => 'DTI Certificate, SEC Registration, Mayor\'s Permit, or equivalent.',
             'formats' => '.jpg .png .pdf — max 10 MB',
             'icon' => 'fa-file-alt',
@@ -76,6 +118,44 @@
             'icon' => 'fa-certificate',
         ])
     @else
+        @php
+            $governmentIdType = old('government_id_type', '');
+        @endphp
+
+        <div class="mb-3">
+            <label class="form-label text-muted small mb-2" for="government_id_type">Government ID Type <span class="text-danger">*</span></label>
+            <select name="government_id_type" id="government_id_type" class="form-select ph-input @error('government_id_type') is-invalid @enderror" required>
+                <option value="" disabled {{ $governmentIdType === '' ? 'selected' : '' }}>Select Government ID Type</option>
+                @foreach([
+                    'PhilSys National ID' => 'PhilSys National ID',
+                    'Passport' => 'Passport',
+                    'Driver\'s License' => 'Driver\'s License',
+                    'UMID' => 'UMID',
+                    'PhilHealth ID' => 'PhilHealth ID',
+                    'Postal ID' => 'Postal ID',
+                    'PRC ID' => 'PRC ID',
+                    'SSS ID' => 'SSS ID',
+                    'GSIS eCard' => 'GSIS eCard',
+                    'OWWA ID' => 'OWWA ID',
+                    'NBI Clearance' => 'NBI Clearance',
+                    'Police Clearance' => 'Police Clearance',
+                    'PWD ID' => 'PWD ID',
+                    'Senior Citizen ID' => 'Senior Citizen ID',
+                    'Solo Parent ID' => 'Solo Parent ID',
+                    'Other Government-Issued ID' => 'Other Government-Issued ID',
+                ] as $value => $label)
+                    <option value="{{ $value }}" {{ $governmentIdType === $value ? 'selected' : '' }}>{{ $label }}</option>
+                @endforeach
+            </select>
+            @error('government_id_type')<div class="invalid-feedback">{{ $message }}</div>@enderror
+        </div>
+
+        <div class="mb-3" id="government_id_other_group" style="display: {{ $governmentIdType === 'Other Government-Issued ID' ? 'block' : 'none' }};">
+            <label class="form-label text-muted small mb-2" for="government_id_other">Specify Other Government ID</label>
+            <input type="text" name="government_id_other" id="government_id_other" class="form-control ph-input @error('government_id_other') is-invalid @enderror" value="{{ old('government_id_other') }}" placeholder="Enter government ID type">
+            @error('government_id_other')<div class="invalid-feedback">{{ $message }}</div>@enderror
+        </div>
+
         @include('onboarding.partials.upload-field', [
             'name' => 'government_id',
             'title' => 'Government-Issued ID',
@@ -105,12 +185,59 @@
 
 @push('scripts')
 <script>
+function updateDocumentRequirements() {
+    const selectedType = document.querySelector('.org-type-card input[type=radio]:checked')?.value;
+    const businessPermitField = document.querySelector('.upload-field[data-field-name="business_permit"]');
+
+    if (!businessPermitField) {
+        return;
+    }
+
+    const badge = businessPermitField.querySelector('.upload-field-label .badge');
+    const input = businessPermitField.querySelector('input.upload-input');
+
+    if (selectedType === 'individual') {
+        input.removeAttribute('required');
+        if (badge) {
+            badge.textContent = 'Optional';
+            badge.classList.remove('bg-danger');
+            badge.classList.add('bg-secondary');
+        }
+    } else {
+        input.required = true;
+        if (badge) {
+            badge.textContent = 'Required';
+            badge.classList.remove('bg-secondary');
+            badge.classList.add('bg-danger');
+        }
+    }
+}
+
 document.querySelectorAll('.org-type-card').forEach(card => {
     card.addEventListener('click', () => {
         document.querySelectorAll('.org-type-card').forEach(c => c.classList.remove('active'));
         card.classList.add('active');
         card.querySelector('input[type=radio]').checked = true;
+        updateDocumentRequirements();
     });
 });
+
+    const governmentIdTypeSelect = document.getElementById('government_id_type');
+    const governmentIdOtherGroup = document.getElementById('government_id_other_group');
+
+    if (governmentIdTypeSelect) {
+        governmentIdTypeSelect.addEventListener('change', () => {
+            if (governmentIdTypeSelect.value === 'Other Government-Issued ID') {
+                governmentIdOtherGroup.style.display = 'block';
+                document.getElementById('government_id_other').required = true;
+            } else {
+                governmentIdOtherGroup.style.display = 'none';
+                document.getElementById('government_id_other').required = false;
+            }
+        });
+    }
+
+    updateDocumentRequirements();
 </script>
 @endpush
+

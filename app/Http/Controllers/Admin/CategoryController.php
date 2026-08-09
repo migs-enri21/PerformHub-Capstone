@@ -28,13 +28,13 @@ class CategoryController extends Controller
             $query->where('is_active', $status === 'active');
         }
 
-        $categories = $query->latest()->paginate(15);
+        $categories = $query->orderBy('name')->paginate(15);
 
         $eventTypes = EventType::query()
             ->when($search, fn($query) => $query->where('name', 'like', "%$search%")
                 ->orWhere('description', 'like', "%$search%"))
             ->when($status !== null, fn($query) => $query->where('is_active', $status === 'active'))
-            ->latest()
+            ->orderBy('name')
             ->paginate(15, ['*'], 'event_types_page');
 
         return view('admin.categories.index', compact('categories', 'eventTypes', 'search', 'status'));
