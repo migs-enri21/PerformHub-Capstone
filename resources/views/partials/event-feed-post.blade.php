@@ -15,13 +15,13 @@
     <div class="event-feed-post-header">
         <img src="{{ $photoUrl }}" alt="" class="rounded-circle event-feed-avatar flex-shrink-0" width="40" height="40">
         <div class="flex-grow-1 min-w-0">
-            <p class="text-white fw-semibold mb-0 text-truncate">{{ $orgName }}</p>
+            <p class="event-card-organizer mb-0 text-truncate">{{ $orgName }}</p>
             <small class="text-muted">{{ $event->created_at?->diffForHumans() ?? 'Recently' }} · {{ $event->status }}</small>
         </div>
     </div>
 
     <div class="event-feed-body">
-        <h5 class="text-white fw-bold mb-2 event-feed-title">{{ $event->title }}</h5>
+        <h5 class="event-card-title mb-2 event-feed-title">{{ $event->title }}</h5>
 
         @if($event->description)
             <p class="text-muted mb-2 event-feed-description">{{ $event->description }}</p>

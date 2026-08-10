@@ -22,7 +22,11 @@ class UserController extends Controller
             $query->where('is_active', $request->status === 'active');
         }
 
-        $users = $query->with(['performerProfile', 'organizerProfile'])->latest()->paginate(15);
+        $users = $query
+            ->with(['performerProfile', 'organizerProfile'])
+            ->orderBy('first_name')
+            ->orderBy('last_name')
+            ->paginate(15);
 
         return view('admin.users.index', compact('users'));
     }
@@ -56,5 +60,15 @@ class UserController extends Controller
         $user->update(['is_active' => ! $user->is_active]);
 
         return back()->with('success', 'Account status updated.');
+    }
+
+    /**
+     * Display a simple list of all users with their role (name + role only).
+     */
+    public function all(): View
+    {
+        $users = User::orderBy('first_name')->orderBy('last_name')->get();
+
+        return view('admin.users.all', compact('users'));
     }
 }

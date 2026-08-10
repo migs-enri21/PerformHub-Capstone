@@ -10,6 +10,8 @@ class VerificationDocument extends Model
     protected $fillable = [
         'user_id',
         'document_type',
+        'government_id_type',
+        'government_id_other',
         'file_path',
         'original_name',
     ];

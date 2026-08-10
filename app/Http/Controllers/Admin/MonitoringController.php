@@ -10,7 +10,10 @@ class MonitoringController extends Controller
 {
     public function bookings(): View
     {
-        $bookings = Booking::with(['organizer', 'performer'])->latest()->paginate(20);
+        $bookings = Booking::with(['organizer', 'performer'])
+            ->orderBy('event_name')
+            ->orderBy('event_date')
+            ->paginate(20);
 
         return view('admin.monitoring.bookings', compact('bookings'));
     }

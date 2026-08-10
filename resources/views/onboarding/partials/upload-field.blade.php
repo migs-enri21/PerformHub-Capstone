@@ -1,5 +1,5 @@
 @props(['name', 'title', 'required' => false, 'desc' => '', 'formats' => '', 'icon' => 'fa-file'])
-<div class="upload-field mb-3">
+<div class="upload-field mb-3" data-field-name="{{ $name }}">
     <label class="upload-field-label w-100">
         <input type="file" name="{{ $name }}" class="d-none upload-input" accept=".jpg,.jpeg,.png,.pdf{{ str_contains($formats, 'zip') ? ',.zip' : '' }}{{ str_contains($formats, 'mp4') ? ',.mp4,.mov' : '' }}" {{ $required ? 'required' : '' }} data-max-size="{{ preg_match('/max (\d+(?:\.\d+)?)\s*(MB|GB|KB)/i', $formats, $m) ? (int)($m[2] === 'GB' ? $m[1] * 1024 : ($m[2] === 'MB' ? $m[1] : $m[1] / 1024)) : 5 }}">
         <div class="upload-field-inner d-flex align-items-start gap-3">

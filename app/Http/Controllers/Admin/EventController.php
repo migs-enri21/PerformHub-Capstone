@@ -40,7 +40,7 @@ class EventController extends Controller
             $query->whereDate('event_date', '<=', $request->date_to);
         }
 
-        $events = $query->latest()->paginate(15);
+        $events = $query->orderBy('event_name')->orderBy('event_date')->paginate(15);
         $organizers = User::where('role', User::ROLE_ORGANIZER)->orderBy('first_name')->get();
 
         return view('admin.events.index', compact('events', 'organizers'));

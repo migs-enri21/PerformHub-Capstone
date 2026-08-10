@@ -18,6 +18,7 @@
 <nav class="nav flex-column">
     <a class="nav-link {{ request()->routeIs('organizer.dashboard') ? 'active' : '' }}" href="{{ route('organizer.dashboard') }}"><i class="fas fa-home me-2"></i> Dashboard</a>
     <a class="nav-link {{ request()->routeIs('organizer.events.*') ? 'active' : '' }}" href="{{ route('organizer.events.index') }}"><i class="fas fa-plus me-2"></i> Events</a>
+    <a class="nav-link {{ request()->routeIs('organizer.bookings.*') ? 'active' : '' }}" href="{{ route('organizer.bookings.index') }}"><i class="fas fa-handshake me-2"></i> Bookings</a>
     <a class="nav-link {{ request()->routeIs('organizer.calendar.*') ? 'active' : '' }}" href="{{ route('organizer.calendar.index') }}"><i class="fas fa-calendar-alt me-2"></i> Calendar</a>
     <a class="nav-link {{ request()->routeIs('organizer.performers.*') ? 'active' : '' }}" href="{{ route('organizer.performers.index') }}"><i class="fas fa-search me-2"></i> Find Performers</a>
     @if(auth()->user()->hasLimitedAccess())

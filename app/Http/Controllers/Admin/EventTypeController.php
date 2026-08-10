@@ -28,7 +28,7 @@ class EventTypeController extends Controller
             $query->where('is_active', $status === 'active');
         }
 
-        $eventTypes = $query->latest()->paginate(15);
+        $eventTypes = $query->orderBy('name')->paginate(15);
 
         return view('admin.event-types.index', compact('eventTypes', 'search', 'status'));
     }

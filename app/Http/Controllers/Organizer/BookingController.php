@@ -4,14 +4,15 @@ namespace App\Http\Controllers\Organizer;
 
 use App\Http\Controllers\Controller;
 use App\Models\Booking;
-use App\Models\Notification;
 use App\Models\Event;
-use App\Models\PerformerProfile;
 use App\Models\EventApplication;
+use App\Models\Notification;
+use App\Models\PerformerProfile;
 use App\Services\SupabaseStorageService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class BookingController extends Controller
@@ -27,46 +28,20 @@ class BookingController extends Controller
     }
 
     public function create(Request $request, PerformerProfile $performer): View
-{
-    $events = Event::where('organizer_id', Auth::id())
-        ->latest()
-        ->get();
+    {
+        $events = Event::where('organizer_id', Auth::id())->latest()->get();
+        $selectedEvent = $this->getSelectedEvent($request);
 
-    $selectedEvent = null;
-
-    if ($request->filled('event')) {
-        $selectedEvent = Event::where('organizer_id', Auth::id())
-            ->find($request->event);
-    }
-
-    return view('organizer.bookings.create',compact('performer','events','selectedEvent'));
+        return view('organizer.bookings.create', compact('performer', 'events', 'selectedEvent'));
     }
 
     public function store(Request $request, PerformerProfile $performer): RedirectResponse
     {
-        $validated = $request->validate([
-            'event_name' => ['required', 'string', 'max:255'],
-            'event_date' => ['required', 'date', 'after_or_equal:today'],
-            'event_time' => ['nullable', 'date_format:H:i'],
-            'venue' => ['nullable', 'string', 'max:255'],
-            'requirements' => ['nullable', 'string', 'max:2000'],
-            'notes' => ['nullable', 'string', 'max:1000'],
-            'budget' => ['nullable', 'numeric', 'min:0'],
-            'end_time' => ['nullable', 'date_format:H:i'],
-            'contract' => ['nullable', 'file', 'mimes:pdf,doc,docx', 'max:10240'],
-            'event_id' => ['required', 'exists:events,id'],
-        ]);
+        $validated = $this->validateBooking($request);
 
-        $exists = Booking::where('performer_id', $performer->user_id)
-        ->where('event_name', $validated['event_name'])
-        ->where('status', 'pending')
-        ->exists();
-
-        if ($exists) {
+        if ($this->hasPendingBooking($performer, $validated['event_id'])) {
             return back()->with('error', 'A booking request has already been sent to this performer for this event.');
         }
-
-        unset($validated['contract']);
 
         $booking = Booking::create([
             ...$validated,
@@ -75,27 +50,17 @@ class BookingController extends Controller
             'status' => 'pending',
         ]);
 
-        EventApplication::where('event_id', $validated['event_id'])
-        ->where('performer_id', $performer->user_id)
-        ->update([
-        'status' => 'invited',
-        ]);
+        $this->updateApplicationStatus($booking);
+        $this->sendBookingNotification($booking, $performer);
 
-        Notification::send(
-            $performer->user,
-            'booking',
-            'New Booking Request',
-            Auth::user()->name.' sent you a booking request for '.$booking->event_name,
-            route('performer.bookings.show', $booking)
-        );
-
-        return redirect()->route('organizer.bookings.show', $booking)
+        return redirect()
+            ->route('organizer.bookings.show', $booking)
             ->with('success', 'Booking request sent.');
     }
 
     public function show(Booking $booking): View
     {
-        abort_unless($booking->organizer_id === Auth::id(), 403);
+        $this->ensureBookingOwner($booking);
         $booking->load('performer.performerProfile');
 
         return view('organizer.bookings.show', compact('booking'));
@@ -103,40 +68,23 @@ class BookingController extends Controller
 
     public function uploadContract(Request $request, Booking $booking): RedirectResponse
     {
-        abort_unless($booking->organizer_id === Auth::id(), 403);
-        abort_unless($booking->status === 'accepted', 400, 'Upload a contract only after the performer accepts the booking.');
+        $this->ensureBookingOwner($booking);
+        $file = $request->validate([
+            'contract' => ['required', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:10240'],
+        ])['contract'];
 
-        $validated = $request->validate([
-            'contract' => ['required', 'file', 'mimes:pdf,doc,docx', 'max:10240'],
-        ]);
+        $this->saveContract($booking, $file);
 
-        $supabase = new SupabaseStorageService();
-
-        if ($booking->contract_path) {
-            $supabase->delete('organizer-files', $booking->contract_path);
+        if ($booking->status === 'accepted') {
+            $this->sendContractNotification($booking);
         }
-
-        $path = $supabase->upload($request->file('contract'), 'organizer-files', 'contract', Auth::id());
-        $booking->update([
-            'contract_path' => $path,
-            'performer_confirmed_contract' => false,
-            'contract_confirmed_at' => null,
-        ]);
-
-        Notification::send(
-            $booking->performer,
-            'contract',
-            'Contract Uploaded',
-            'A contract has been uploaded for '.$booking->event_name,
-            route('performer.bookings.show', $booking)
-        );
 
         return back()->with('success', 'Contract uploaded.');
     }
 
     public function complete(Booking $booking): RedirectResponse
     {
-        abort_unless($booking->organizer_id === Auth::id(), 403);
+        $this->ensureBookingOwner($booking);
         abort_unless($booking->status === 'accepted', 400);
 
         if ($booking->hasContract() && ! $booking->performer_confirmed_contract) {
@@ -146,5 +94,92 @@ class BookingController extends Controller
         $booking->update(['status' => 'completed']);
 
         return back()->with('success', 'Booking marked as completed.');
+    }
+
+    private function getSelectedEvent(Request $request): ?Event
+    {
+        if (! $request->filled('event')) {
+            return null;
+        }
+
+        return Event::where('organizer_id', Auth::id())->find($request->event);
+    }
+
+    private function validateBooking(Request $request): array
+    {
+        return $request->validate([
+            'event_name' => ['required', 'string', 'max:255'],
+            'event_date' => ['required', 'date', 'after_or_equal:today'],
+            'event_time' => ['nullable', 'date_format:H:i'],
+            'end_time' => ['nullable', 'date_format:H:i'],
+            'venue' => ['nullable', 'string', 'max:255'],
+            'requirements' => ['nullable', 'string', 'max:2000'],
+            'notes' => ['nullable', 'string', 'max:1000'],
+            'budget' => ['nullable', 'numeric', 'min:0'],
+            'event_id' => [
+                'required',
+                Rule::exists('events', 'id')->where(fn ($query) => $query->where('organizer_id', Auth::id())),
+            ],
+        ]);
+    }
+
+    private function hasPendingBooking(PerformerProfile $performer, int $eventId): bool
+    {
+        return Booking::where('organizer_id', Auth::id())
+            ->where('performer_id', $performer->user_id)
+            ->where('event_id', $eventId)
+            ->where('status', 'pending')
+            ->exists();
+    }
+
+    private function updateApplicationStatus(Booking $booking): void
+    {
+        EventApplication::where('event_id', $booking->event_id)
+            ->where('performer_id', $booking->performer_id)
+            ->update(['status' => 'invited']);
+    }
+
+    private function sendBookingNotification(Booking $booking, PerformerProfile $performer): void
+    {
+        Notification::send(
+            $performer->user,
+            'booking',
+            'New Booking Request',
+            Auth::user()->name.' sent you a booking request for '.$booking->event_name,
+            route('performer.bookings.show', $booking)
+        );
+    }
+
+    private function ensureBookingOwner(Booking $booking): void
+    {
+        abort_unless($booking->organizer_id === Auth::id(), 403);
+    }
+
+    private function saveContract(Booking $booking, $file): void
+    {
+        $storage = new SupabaseStorageService();
+
+        if ($booking->contract_path) {
+            $storage->delete('organizer-files', $booking->contract_path);
+        }
+
+        $path = $storage->upload($file, 'organizer-files', 'contract', Auth::id());
+
+        $booking->update([
+            'contract_path' => $path,
+            'performer_confirmed_contract' => false,
+            'contract_confirmed_at' => null,
+        ]);
+    }
+
+    private function sendContractNotification(Booking $booking): void
+    {
+        Notification::send(
+            $booking->performer,
+            'contract',
+            'Contract Uploaded',
+            'A contract has been uploaded for '.$booking->event_name,
+            route('performer.bookings.show', $booking)
+        );
     }
 }

@@ -64,7 +64,6 @@
     const eventTimeInput = document.getElementById('event_time');
     const endTimeInput = document.getElementById('end_time');
 
-    // Database times include seconds (18:30:00); this form submits hours and minutes (18:30).
     const removeSeconds = (time) => time ? time.substring(0, 5) : '';
 
     eventTimeInput.value = removeSeconds(eventTimeInput.value);

@@ -137,3 +137,15 @@ body {
 .table-dark > :not(caption) > * > * { color: var(--ph-text); }
 
 .sidebar-ph .text-white { color: var(--ph-text) !important; }
+
+/* Text used inside white event cards. */
+.event-card-title,
+.event-card-organizer,
+.event-detail-label {
+    color: var(--ph-text);
+    font-weight: 700;
+}
+
+.portfolio-feed-post .text-white {
+    color: var(--ph-text) !important;
+}

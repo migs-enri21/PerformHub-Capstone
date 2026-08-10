@@ -158,8 +158,10 @@ class OnboardingController extends Controller
         if ($user->isOrganizer()) {
             $validated = $request->validate([
                 'organization_type' => ['required', 'in:company,individual,nonprofit'],
+                'government_id_type' => ['required', 'string', 'max:100'],
+                'government_id_other' => ['required_if:government_id_type,Other Government-Issued ID', 'string', 'max:100'],
                 'government_id' => ['required', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'],
-                'business_permit' => ['required', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:10240'],
+                'business_permit' => ['required_unless:organization_type,individual', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:10240'],
                 'proof_of_events' => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf,zip', 'max:51200'],
                 'bir_certificate' => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'],
             ]);
@@ -169,7 +171,10 @@ class OnboardingController extends Controller
                 ['organization_type' => $validated['organization_type']]
             );
 
-            $this->storeDocument($user, 'government_id', $request->file('government_id'));
+            $this->storeDocument($user, 'government_id', $request->file('government_id'), [
+                'government_id_type' => $validated['government_id_type'],
+                'government_id_other' => $validated['government_id_other'] ?? null,
+            ]);
             $this->storeDocument($user, 'business_permit', $request->file('business_permit'));
 
             if ($request->hasFile('proof_of_events')) {
@@ -181,13 +186,18 @@ class OnboardingController extends Controller
             }
         } else {
             $validated = $request->validate([
+                'government_id_type' => ['required', 'string', 'max:100'],
+                'government_id_other' => ['required_if:government_id_type,Other Government-Issued ID', 'string', 'max:100'],
                 'government_id' => ['required', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'],
                 'performance_sample' => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf,mp4,mov', 'max:512000'],
             ], [
                 'performance_sample.max' => 'The performance sample must be 500 MB or smaller.',
             ]);
 
-            $this->storeDocument($user, 'government_id', $request->file('government_id'));
+            $this->storeDocument($user, 'government_id', $request->file('government_id'), [
+                'government_id_type' => $validated['government_id_type'],
+                'government_id_other' => $validated['government_id_other'] ?? null,
+            ]);
 
             if ($request->hasFile('performance_sample')) {
                 $this->storeDocument($user, 'performance_sample', $request->file('performance_sample'));
@@ -232,23 +242,27 @@ class OnboardingController extends Controller
         return back();
     }
 
-    private function storeDocument(User $user, string $type, \Illuminate\Http\UploadedFile $file): void
-{
-    $existing = $user->verificationDocuments()->where('document_type', $type)->first();
+    private function storeDocument(User $user, string $type, \Illuminate\Http\UploadedFile $file, array $meta = []): void
+    {
+        $existing = $user->verificationDocuments()->where('document_type', $type)->first();
 
-    if ($existing) {$existing->delete();}
+        if ($existing) {
+            $existing->delete();
+        }
 
-    $supabase = new SupabaseStorageService();
+        $supabase = new SupabaseStorageService();
 
-    $bucket = $user->isPerformer()? 'performer-files': 'organizer-files';
+        $bucket = $user->isPerformer() ? 'performer-files' : 'organizer-files';
 
-    $path = $supabase->upload($file,$bucket,$type,$user->id);
+        $path = $supabase->upload($file, $bucket, $type, $user->id);
 
-    VerificationDocument::create([
-        'user_id' => $user->id,
-        'document_type' => $type,
-        'file_path' => $path,
-        'original_name' => $file->getClientOriginalName(),
-    ]);
+        VerificationDocument::create([
+            'user_id' => $user->id,
+            'document_type' => $type,
+            'file_path' => $path,
+            'original_name' => $file->getClientOriginalName(),
+            'government_id_type' => $meta['government_id_type'] ?? null,
+            'government_id_other' => $meta['government_id_other'] ?? null,
+        ]);
     }
 }

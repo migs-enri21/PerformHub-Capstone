@@ -16,7 +16,6 @@ use App\Http\Controllers\Organizer\PerformerSearchController;
 use App\Http\Controllers\Organizer\ProfileController as OrganizerProfileController;
 use App\Http\Controllers\Organizer\EventController as OrganizerEventController;
 use App\Http\Controllers\Organizer\EventApplicationController as OrganizerEventApplicationController;
-use App\Http\Controllers\Organizer\EventHistoryController as EventHistoryController;
 use App\Http\Controllers\Organizer\GoogleCalendarController as OrganizerGoogleCalendarController;
 use App\Http\Controllers\Organizer\CalendarController;
 use App\Http\Controllers\Performer\AvailabilityController;
@@ -98,7 +97,6 @@ Route::middleware(['auth', 'role:organizer'])->prefix('organizer')->name('organi
     Route::get('/events/{event}/edit', [OrganizerEventController::class, 'edit'])->name('events.edit');
     Route::put('/events/{event}', [OrganizerEventController::class, 'update'])->name('events.update');
     Route::delete('/events/{event}', [OrganizerEventController::class, 'destroy'])->name('events.destroy');
-    Route::get('/history', [EventHistoryController::class, 'index'])->name('history.index');
     Route::get('/calendar', [CalendarController::class, 'index'])->name('calendar.index');
 
     Route::middleware('full.access')->group(function () {
@@ -119,6 +117,7 @@ Route::middleware(['auth', 'role:organizer'])->prefix('organizer')->name('organi
 Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
     Route::get('/users', [AdminUserController::class, 'index'])->name('users.index');
+    Route::get('/users/all', [AdminUserController::class, 'all'])->name('users.all');
     Route::get('/users/{user}', [AdminUserController::class, 'show'])->name('users.show');
     Route::post('/users/{user}/verify', [AdminUserController::class, 'verify'])->name('users.verify');
     Route::post('/users/{user}/toggle', [AdminUserController::class, 'toggleActive'])->name('users.toggle');

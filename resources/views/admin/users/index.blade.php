@@ -21,7 +21,7 @@
         <tbody>
             @foreach($users as $user)
                 <tr>
-                    <td>{{ $user->first_name }} {{ $user->last_name }}</td>
+                    <td>{{ Str::title($user->first_name) }} {{ Str::title($user->last_name) }}</td>
                     <td><span class="badge bg-secondary">{{ ucfirst($user->role) }}</span></td>
                     <td class="text-center">@if($user->is_verified)<span class="badge bg-primary">Yes</span>@else<span class="badge bg-warning text-dark">No</span>@endif</td>
                     <td class="text-center">@if($user->is_active)<span class="badge bg-success">Active</span>@else<span class="badge bg-danger">Suspended</span>@endif</td>
