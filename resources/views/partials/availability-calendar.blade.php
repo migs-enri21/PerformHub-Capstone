@@ -42,26 +42,26 @@
 <div
     class="availability-calendar"
     data-editable="{{ $editable ? '1' : '0' }}"
-    data-schedules='@json($scheduleMap)'
-    data-pending='@json($pendingMap)'
-    data-confirmed='@json($confirmedMap)'
-    data-google-busy='@json($googleBusy)'
+    data-schedules="{{ json_encode($scheduleMap) }}"
+    data-pending="{{ json_encode($pendingMap) }}"
+    data-confirmed="{{ json_encode($confirmedMap) }}"
+    data-google-busy="{{ json_encode($googleBusy) }}"
     @if($editable && $storeUrl)
         data-store-url="{{ $storeUrl }}"
         data-destroy-url="{{ route('performer.availability.destroy', '__ID__') }}"
     @endif
 >
-    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
-        <div class="d-flex align-items-center gap-2">
-            <button type="button" class="btn btn-sm ph-btn-outline av-cal-nav" data-action="prev" aria-label="Previous month">
-                <i class="fas fa-chevron-left"></i>
+    <div class="availability-calendar-toolbar d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+        <div class="availability-calendar-nav d-flex align-items-center gap-2">
+            <button type="button" class="btn btn-sm ph-btn-outline av-cal-nav calendar-prev-btn" data-action="prev" aria-label="Previous month">
+                <i class="fas fa-chevron-left" aria-hidden="true"></i>
             </button>
             <h5 class="fw-semibold mb-0 av-cal-month-label"></h5>
-            <button type="button" class="btn btn-sm ph-btn-outline av-cal-nav" data-action="next" aria-label="Next month">
-                <i class="fas fa-chevron-right"></i>
+            <button type="button" class="btn btn-sm ph-btn-outline av-cal-nav calendar-next-btn" data-action="next" aria-label="Next month">
+                <i class="fas fa-chevron-right" aria-hidden="true"></i>
             </button>
         </div>
-        <button type="button" class="btn btn-sm ph-btn-outline av-cal-nav" data-action="today">Today</button>
+        <button type="button" class="btn btn-sm ph-btn-outline calendar-today-btn" data-action="today">Today</button>
     </div>
 
     <div class="availability-calendar-weekdays">
@@ -153,10 +153,19 @@
     @push('scripts')
         <script>
         document.querySelectorAll('.availability-calendar').forEach(calendar => {
-            const schedules = JSON.parse(calendar.dataset.schedules || '{}');
-            const pendingDates = JSON.parse(calendar.dataset.pending || '{}');
-            const confirmedDates = JSON.parse(calendar.dataset.confirmed || '{}');
-            const googleBusyDates = JSON.parse(calendar.dataset.googleBusy || '{}');
+            function parseDataset(value, fallback = {}) {
+                try {
+                    return JSON.parse(value || '{}');
+                } catch (error) {
+                    console.error('Availability calendar data parse error', error);
+                    return fallback;
+                }
+            }
+
+            const schedules = parseDataset(calendar.dataset.schedules);
+            const pendingDates = parseDataset(calendar.dataset.pending);
+            const confirmedDates = parseDataset(calendar.dataset.confirmed);
+            const googleBusyDates = parseDataset(calendar.dataset.googleBusy);
             const editable = calendar.dataset.editable === '1';
             const grid = calendar.querySelector('.availability-calendar-grid');
             const monthLabel = calendar.querySelector('.av-cal-month-label');
@@ -167,7 +176,15 @@
             }
 
             const modalEl = document.getElementById('availabilityModal');
-            const modal = modalEl ? new bootstrap.Modal(modalEl) : null;
+            let modal = null;
+
+            function getModal() {
+                if (!modal && modalEl && typeof bootstrap !== 'undefined') {
+                    modal = new bootstrap.Modal(modalEl);
+                }
+
+                return modal;
+            }
             const form = document.getElementById('availabilityForm');
             const deleteForm = document.getElementById('availabilityDeleteForm');
             const dateInput = document.getElementById('availabilityDateInput');
@@ -387,7 +404,9 @@
             }
 
             function openEditor(dateKey, entry) {
-                if (!modal || !form) {
+                const availabilityModal = getModal();
+
+                if (!availabilityModal || !form) {
                     return;
                 }
 
@@ -419,10 +438,10 @@
                     deleteForm.classList.add('d-none');
                 }
 
-                modal.show();
+                availabilityModal.show();
             }
 
-            calendar.querySelectorAll('.av-cal-nav').forEach(button => {
+            calendar.querySelectorAll('[data-action]').forEach(button => {
                 button.addEventListener('click', () => {
                     const action = button.dataset.action;
 

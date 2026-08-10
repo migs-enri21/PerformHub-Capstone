@@ -22,13 +22,21 @@ class ProfileController extends Controller
         $profile = Auth::user()->performerProfile()->with('categories')->firstOrFail();
         $profile = AvailabilityCalendar::loadCalendarRelations($profile);
 
+        $wasGoogleConnected = $profile->google_calendar_connected;
+
         if ($googleCalendar->shouldSync($profile)) {
             try {
                 $googleCalendar->syncBusyDates($profile);
                 $profile = AvailabilityCalendar::loadCalendarRelations($profile->fresh('categories'));
-            } catch (\Throwable) {
-                // Keep the page usable even if Google sync fails.
+            } catch (\Throwable $exception) {
+                if (str_contains($exception->getMessage(), 'link expired')
+                    || str_contains($exception->getMessage(), 'link is invalid')) {
+                    session()->flash('error', $exception->getMessage());
+                    $profile = AvailabilityCalendar::loadCalendarRelations($profile->fresh('categories'));
+                }
             }
+        } elseif ($wasGoogleConnected && ! $profile->google_calendar_connected) {
+            session()->flash('error', 'Your Google Calendar link is invalid. Click Connect Google Calendar to sign in again.');
         }
 
         $calendar = AvailabilityCalendar::calendarData($profile);

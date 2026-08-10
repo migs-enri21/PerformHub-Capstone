@@ -68,9 +68,23 @@ body {
     color: var(--ph-text) !important;
 }
 
+.btn.ph-btn-outline,
+.btn.ph-btn-outline i {
+    color: var(--ph-text) !important;
+}
+
+.btn.ph-btn-outline:hover,
+.btn.ph-btn-outline:hover i {
+    color: var(--ph-purple) !important;
+    background: transparent !important;
+}
+
 .ph-card .form-label,
 .ph-btn-secondary,
-.ph-btn-secondary:hover,
+.ph-btn-secondary:hover {
+    color: var(--ph-text) !important;
+}
+
 .organizer-event-card .btn-outline-primary,
 .organizer-event-card .btn-outline-secondary,
 .organizer-event-card .btn-outline-danger {

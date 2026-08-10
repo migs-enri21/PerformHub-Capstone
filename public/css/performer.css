@@ -1,10 +1,6 @@
-/**
- * PerformHub ? Performer module
- * Owner: Performer teammate
- * Profile, portfolio, availability, social media
- */
+/* PerformHub — Performer module (profile, social, calendar, portfolio, events, bookings) */
 
-/* Performer profile header */
+/* --- Profile --- */
 /* Profile card wrapper */
 .performer-profile-card {
     overflow: hidden;
@@ -189,6 +185,34 @@
     color: var(--ph-text-muted);
 }
 
+/* Multi-select category grid (profile edit) */
+.category-checkbox-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 0.5rem;
+}
+
+.category-checkbox-option {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid var(--ph-border);
+    border-radius: 8px;
+    background: var(--ph-bg-input);
+    cursor: pointer;
+    transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.category-checkbox-option:hover {
+    border-color: var(--ph-purple);
+}
+
+.category-checkbox-option:has(input:checked) {
+    border-color: var(--ph-purple);
+    background: rgba(99, 70, 255, 0.15);
+}
+
 /* Draggable banner reposition control */
 .banner-reposition {
     position: relative;
@@ -237,7 +261,7 @@
     pointer-events: none;
 }
 
-/* Social media stats & embeds */
+/* --- Social media --- */
 /* Social platform stat card */
 .social-stat-card {
     display: flex;
@@ -319,16 +343,57 @@
     font-size: 0.8rem;
 }
 
-/* Availability calendar */
+/* --- Availability / calendar --- */
+.availability-calendar-toolbar {
+    width: 100%;
+}
 
-/* Calendar month < > arrows + Today (.av-cal-nav; blade: availability-calendar) */
+.availability-calendar-nav {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
 .av-cal-nav {
     line-height: 1;
+}
+
+.calendar-prev-btn,
+.calendar-next-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    min-width: 2rem;
+    padding: 0 !important;
+    flex-shrink: 0;
+}
+
+.calendar-prev-btn i,
+.calendar-next-btn i {
+    color: var(--ph-text);
+    font-size: 0.7rem;
+    line-height: 1;
+    pointer-events: none;
+}
+
+.calendar-prev-btn:hover,
+.calendar-next-btn:hover {
+    color: #ffffff;
+    background: var(--ph-purple);
+    border-color: var(--ph-purple);
+}
+
+.calendar-prev-btn:hover i,
+.calendar-next-btn:hover i {
+    color: #ffffff;
 }
 
 /* Month title between arrows */
 .av-cal-month-label {
     text-align: center;
+    min-width: 9rem;
+    white-space: nowrap;
 }
 
 /* Calendar grid layout */
@@ -565,7 +630,8 @@ button.av-day:not(:disabled):hover {
     color: var(--ph-text);
 }
 
-/* Portfolio page — full width of main column, edge to edge (not sidebar) */
+/* --- Portfolio --- */
+/* Full width of main column, edge to edge (not sidebar) */
 .portfolio-page {
     margin-left: -1.5rem;
     margin-right: -1.5rem;
@@ -1025,38 +1091,7 @@ button.av-day:not(:disabled):hover {
     color: var(--ph-purple);
 }
 
-/* Multi-select category grid */
-.category-checkbox-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-    gap: 0.5rem;
-}
-
-/* Single category checkbox pill */
-.category-checkbox-option {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.5rem 0.75rem;
-    border: 1px solid var(--ph-border);
-    border-radius: 8px;
-    background: var(--ph-bg-input);
-    cursor: pointer;
-    transition: border-color 0.15s ease, background 0.15s ease;
-}
-
-/* Hover state for category pill */
-.category-checkbox-option:hover {
-    border-color: var(--ph-purple);
-}
-
-/* Checked category pill highlight */
-.category-checkbox-option:has(input:checked) {
-    border-color: var(--ph-purple);
-    background: rgba(99, 70, 255, 0.15);
-}
-
-/* Event cards — centered Facebook-style posts */
+/* --- Dashboard / event feed --- */
 .event-feed-section {
     width: 100%;
 }
@@ -1189,8 +1224,8 @@ button.av-day:not(:disabled):hover {
     padding: 0.45rem 1rem;
     border: 0;
     border-radius: 999px;
-    background: rgba(255, 255, 255, 0.08);
-    color: #fff;
+    background: #c4b5fd;
+    color: #3a3838;
     font-size: 0.875rem;
     font-weight: 600;
     text-decoration: none;
@@ -1198,13 +1233,13 @@ button.av-day:not(:disabled):hover {
 }
 
 .event-feed-footer-btn:hover:not(:disabled) {
-    background: rgba(99, 70, 255, 0.35);
-    color: #fff;
+    background: var(--ph-purple);
+    color: #3a3838;
 }
 
 .event-feed-footer-btn--applied {
     background: rgba(99, 70, 255, 0.2);
-    color: #c4b5fd;
+    color: #3a3838;
     cursor: default;
 }
 
@@ -1216,7 +1251,7 @@ button.av-day:not(:disabled):hover {
 
 .event-feed-footer-btn--invited:hover {
     background: rgba(59, 130, 246, 0.35);
-    color: #fff;
+    color: #ffffff;
 }
 
 .event-feed-footer-btn--accepted {
@@ -1230,8 +1265,19 @@ button.av-day:not(:disabled):hover {
     color: #fff;
 }
 
-.event-feed-footer-btn--declined {
-    background: rgba(239, 68, 68, 0.15);
-    color: #fca5a5;
-    cursor: default;
+
+/* --- Bookings --- */
+.booking-back-btn:hover:not(:disabled) {
+    background: var(--ph-purple);
+    color: #ffffff;
+}
+
+.booking-decline-btn:hover:not(:disabled) {
+    background: rgba(221, 41, 50, 0.955);
+    color: #090909;
+}
+
+.booking-view-btn:hover:not(:disabled) {
+    background:var(--ph-purple);
+    color: #f9f8f8;
 }

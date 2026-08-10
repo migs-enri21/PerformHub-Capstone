@@ -22,7 +22,7 @@ class NotificationController extends Controller
         $notification->update(['is_read' => true]);
 
         return $notification->link
-            ? redirect($notification->link)
-            : back();
+        ? redirect($notification->link . '?from=notifications')
+        : back();
     }
 }

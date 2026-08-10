@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\GoogleCalendarBusyDate;
 use App\Models\PerformerProfile;
 use Carbon\Carbon;
+use Illuminate\Contracts\Encryption\DecryptException;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 use RuntimeException;
@@ -54,7 +55,7 @@ class GoogleCalendarService
 
     public function shouldSync(PerformerProfile $profile): bool
     {
-        if (! $profile->google_calendar_connected || blank($profile->google_refresh_token)) {
+        if (! $profile->google_calendar_connected || blank($this->refreshToken($profile))) {
             return false;
         }
 
@@ -87,18 +88,20 @@ class GoogleCalendarService
     {
         $profile->googleCalendarBusyDates()->delete();
 
-        $profile->update([
+        PerformerProfile::whereKey($profile->id)->update([
             'google_calendar_connected' => false,
             'google_calendar_id' => null,
             'google_refresh_token' => null,
             'google_token_expires_at' => null,
             'google_calendar_synced_at' => null,
         ]);
+
+        $profile->refresh();
     }
 
     public function syncBusyDates(PerformerProfile $profile): void
     {
-        if (! $profile->google_calendar_connected || blank($profile->google_refresh_token)) {
+        if (! $profile->google_calendar_connected || blank($this->refreshToken($profile))) {
             return;
         }
 
@@ -170,15 +173,29 @@ class GoogleCalendarService
 
     private function refreshAccessToken(PerformerProfile $profile): string
     {
+        $refreshToken = $this->refreshToken($profile);
+
+        if (blank($refreshToken)) {
+            throw new RuntimeException('Your Google Calendar link is invalid. Click Connect Google Calendar to sign in again.');
+        }
+
         $response = Http::asForm()->post('https://oauth2.googleapis.com/token', [
             'client_id' => config('services.google.client_id'),
             'client_secret' => config('services.google.client_secret'),
             'grant_type' => 'refresh_token',
-            'refresh_token' => $profile->google_refresh_token,
+            'refresh_token' => $refreshToken,
         ]);
 
         if ($response->failed()) {
-            throw new RuntimeException('Google Calendar authorization expired. Please reconnect.');
+            $error = (string) $response->json('error', '');
+
+            if (in_array($error, ['invalid_grant', 'invalid_token', 'unauthorized_client'], true)) {
+                $this->disconnect($profile);
+
+                throw new RuntimeException('Your Google Calendar link expired. Click Connect Google Calendar to sign in again.');
+            }
+
+            throw new RuntimeException('Unable to refresh Google Calendar access. Please try again or reconnect.');
         }
 
         $payload = $response->json();
@@ -207,5 +224,20 @@ class GoogleCalendarService
         }
 
         return null;
+    }
+
+    private function refreshToken(PerformerProfile $profile): ?string
+    {
+        if (! $profile->google_calendar_connected) {
+            return null;
+        }
+
+        try {
+            return filled($profile->google_refresh_token) ? $profile->google_refresh_token : null;
+        } catch (DecryptException) {
+            $this->disconnect($profile);
+
+            return null;
+        }
     }
 }

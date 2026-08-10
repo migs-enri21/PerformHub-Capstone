@@ -44,16 +44,16 @@
         <div class="ph-card p-4">
             <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
                 <h5 class="fw-semibold mb-0">Availability Calendar</h5>
-                <div class="d-flex flex-wrap gap-2">
+                <div class="d-flex flex-wrap align-items-center gap-2">
                     @if(! auth()->user()->hasLimitedAccess())
                         @if($profile->google_calendar_connected)
-                            <form method="POST" action="{{ route('performer.google-calendar.sync') }}">
+                            <form method="POST" action="{{ route('performer.google-calendar.sync') }}" class="d-inline m-0">
                                 @csrf
                                 <button type="submit" class="btn btn-sm ph-btn-outline">
                                     <i class="fab fa-google me-1"></i> Sync Google Calendar
                                 </button>
                             </form>
-                            <form method="POST" action="{{ route('performer.google-calendar.disconnect') }}">
+                            <form method="POST" action="{{ route('performer.google-calendar.disconnect') }}" class="d-inline m-0">
                                 @csrf
                                 <button type="submit" class="btn btn-sm ph-btn-outline">
                                     Disconnect Google

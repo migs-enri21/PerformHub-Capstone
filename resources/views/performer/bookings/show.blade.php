@@ -15,7 +15,15 @@
             <span class="badge bg-warning text-dark ms-1">Contract needs review</span>
         @endif
     </div>
-    <a href="{{ route('performer.bookings.index') }}" class="btn ph-btn-outline btn-sm">Back</a>
+    @php
+    $backUrl = request('from') === 'notifications'
+        ? route('notifications.index')
+        : route('performer.bookings.index');
+@endphp
+
+<a href="{{ $backUrl }}" class="btn ph-btn-outline btn-sm booking-back-btn">
+    <i class="fas fa-arrow-left me-1"></i> Back
+</a>
 </div>
 
 <div class="row g-4">
@@ -26,11 +34,11 @@
                 <div class="d-flex flex-wrap gap-2">
                     <form method="POST" action="{{ route('performer.bookings.accept', $booking) }}">
                         @csrf
-                        <button type="submit" class="btn ph-btn-primary">Accept Booking</button>
+                        <button type="submit" class="btn ph-btn-primary booking-accept-btn">Accept Booking</button>
                     </form>
                     <form method="POST" action="{{ route('performer.bookings.reject', $booking) }}">
                         @csrf
-                        <button type="submit" class="btn btn-outline-danger">Reject</button>
+                        <button type="submit" class="btn ph-btn-outline booking-decline-btn">Decline</button>
                     </form>
                 </div>
             </div>
