@@ -22,6 +22,8 @@ class Booking extends Model
         'duration_hours',
         'status',
         'contract_path',
+        'signed_contract_path',
+        'signed_contract_uploaded_at',
         'contract_confirmed_at',
         'performer_confirmed_contract',
         'notes',
@@ -32,6 +34,7 @@ class Booking extends Model
     {
         return [
             'event_date' => 'date',
+            'signed_contract_uploaded_at' => 'datetime',
             'contract_confirmed_at' => 'datetime',
             'performer_confirmed_contract' => 'boolean',
         ];
@@ -93,45 +96,17 @@ class Booking extends Model
         return (new SupabaseStorageService)->url('organizer-files', $this->contract_path);
     }
 
-    public function needsContractReview(): bool
+    public function hasSignedContract(): bool
     {
-        return $this->status === 'accepted'
-            && $this->hasContract()
-            && ! $this->performer_confirmed_contract;
+        return filled($this->signed_contract_path);
     }
 
-    public function canConfirmContract(): bool
+    public function signedContractUrl(): ?string
     {
-        return $this->needsContractReview();
-    }
-
-    public function contractStatusLabel(bool $forPerformer = false): string
-    {
-        if (! $this->hasContract()) {
-            return 'No contract';
+        if (! $this->hasSignedContract()) {
+            return null;
         }
 
-        if ($this->performer_confirmed_contract) {
-            return 'Confirmed';
-        }
-
-        if ($this->status === 'accepted') {
-            return $forPerformer ? 'Awaiting your review' : 'Awaiting performer';
-        }
-
-        return 'Uploaded';
-    }
-
-    public function contractStatusBadgeClass(): string
-    {
-        if (! $this->hasContract()) {
-            return 'bg-secondary';
-        }
-
-        if ($this->performer_confirmed_contract) {
-            return 'bg-success';
-        }
-
-        return $this->status === 'accepted' ? 'bg-warning text-dark' : 'bg-info';
+        return (new SupabaseStorageService)->url('organizer-files', $this->signed_contract_path);
     }
 }

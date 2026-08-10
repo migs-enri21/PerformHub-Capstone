@@ -87,8 +87,8 @@ class BookingController extends Controller
         $this->ensureBookingOwner($booking);
         abort_unless($booking->status === 'accepted', 400);
 
-        if ($booking->hasContract() && ! $booking->performer_confirmed_contract) {
-            return back()->with('warning', 'Wait for the performer to review and confirm the contract before marking this booking complete.');
+        if (! $booking->hasSignedContract()) {
+            return back()->with('warning', 'Wait for the performer to upload the signed contract before confirming this booking.');
         }
 
         $booking->update(['status' => 'completed']);
@@ -163,10 +163,16 @@ class BookingController extends Controller
             $storage->delete('organizer-files', $booking->contract_path);
         }
 
+        if ($booking->signed_contract_path) {
+            $storage->delete('organizer-files', $booking->signed_contract_path);
+        }
+
         $path = $storage->upload($file, 'organizer-files', 'contract', Auth::id());
 
         $booking->update([
             'contract_path' => $path,
+            'signed_contract_path' => null,
+            'signed_contract_uploaded_at' => null,
             'performer_confirmed_contract' => false,
             'contract_confirmed_at' => null,
         ]);
