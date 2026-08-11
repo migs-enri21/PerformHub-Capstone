@@ -58,6 +58,13 @@ class Event extends Model
         return $this->photos()->exists() || $this->cover_photo !== null;
     }
 
+    public static function completePastEvents(): int
+    {
+        return static::whereIn('status', ['Open', 'open'])
+            ->whereDate('event_date', '<', today())
+            ->update(['status' => 'Completed']);
+    }
+
     public function coverPhotoUrl(): ?string
     {
         if (! $this->cover_photo) {

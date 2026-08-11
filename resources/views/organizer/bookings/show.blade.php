@@ -70,7 +70,7 @@
                         <button class="btn btn-success w-100">Confirm Booking</button>
                     </form>
                 @else
-                    <p class="text-warning small mb-0">The performer must upload the signed contract first.</p>
+                    <p class="text-primary small mb-0">The performer must upload the signed contract first.</p>
                 @endif
             </div>
         @endif

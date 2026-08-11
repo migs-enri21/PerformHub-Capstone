@@ -37,7 +37,7 @@
                 <div class="col-md-4">
                     <a href="{{ route('organizer.bookings.index') }}" class="org-stat">
                         <i class="fas fa-check-circle"></i>
-                        <div><strong>{{ $activeBookings }}</strong><small>Confirmed Bookings</small></div>
+                        <div><strong>{{ $activeBookings }}</strong><small>Accepted Bookings</small></div>
                     </a>
                 </div>
             </div>

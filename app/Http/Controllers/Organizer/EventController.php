@@ -18,6 +18,8 @@ class EventController extends Controller
 {
     public function index(Request $request): View
     {
+        Event::completePastEvents();
+
         $query = Event::with('photos')->where('organizer_id', Auth::id());
 
         $this->applyEventFilter($query, $request->status);
