@@ -57,7 +57,11 @@ class PerformerSearchController extends Controller
         $this->applyGenreFilter($query, $request->genre);
         $this->applyRatingFilter($query, $request->min_rating);
 
-        $date = $request->available_date ?: $selectedEvent?->event_date;
+        $date = $request->available_date;
+
+        if (! $date && $selectedEvent) {
+            $date = $selectedEvent->event_date;
+        }
         $this->applyAvailabilityFilter($query, $date);
 
         return $query->latest()->paginate(12)->withQueryString();

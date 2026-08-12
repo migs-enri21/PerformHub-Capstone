@@ -55,7 +55,11 @@
         <div class="col-md-6 col-lg-4">
             <div class="ph-card p-4 h-100">
                 <div class="d-flex gap-3 mb-3">
-                    <img src="{{ $p->profilePhotoUrl() ?? 'https://ui-avatars.com/api/?name='.urlencode($p->stage_name).'&background=6346ff&color=fff' }}" class="performer-avatar" alt="">
+                    @if($p->profilePhotoUrl())
+                        <img src="{{ $p->profilePhotoUrl() }}" class="performer-avatar" alt="{{ $p->stage_name }}">
+                    @else
+                        <img src="https://ui-avatars.com/api/?name={{ urlencode($p->stage_name) }}&background=6346ff&color=fff" class="performer-avatar" alt="{{ $p->stage_name }}">
+                    @endif
                     <div>
                         <h6 class="mb-0">{{ $p->stage_name }} @if($p->is_verified_badge)<i class="fas fa-circle-check verified-badge"></i>@endif</h6>
                         <small class="text-muted">{{ $p->categoryNames() }} · {{ $p->genre }}</small>

@@ -32,7 +32,7 @@
                 data-venue="{{ $event->venue }}"
                 data-description="{{ $event->description }}"
                 data-budget="{{ $event->budget }}"
-                {{ optional($selectedEvent)->id == $event->id ? 'selected' : '' }}>
+                @selected(optional($selectedEvent)->id == $event->id)>
 
                 {{ $event->title }}
 
@@ -64,7 +64,13 @@
     const eventTimeInput = document.getElementById('event_time');
     const endTimeInput = document.getElementById('end_time');
 
-    const removeSeconds = (time) => time ? time.substring(0, 5) : '';
+    function removeSeconds(time) {
+        if (time) {
+            return time.substring(0, 5);
+        }
+
+        return '';
+    }
 
     eventTimeInput.value = removeSeconds(eventTimeInput.value);
     endTimeInput.value = removeSeconds(endTimeInput.value);

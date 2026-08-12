@@ -94,10 +94,11 @@ class EventController extends Controller
         $validated = $this->validatedEvent($request, true);
         unset($validated['cover_photo'], $validated['photos']);
 
-        $event->update([
-            ...$validated,
-            'preferred_category_id' => $validated['preferred_category_id'] ?? null,
-        ]);
+        if (! array_key_exists('preferred_category_id', $validated)) {
+            $validated['preferred_category_id'] = null;
+        }
+
+        $event->update($validated);
 
         $this->storeUploadedPhotos($event, $request);
 
@@ -167,7 +168,7 @@ class EventController extends Controller
             'end_time' => ['required'],
             'venue' => ['required', 'string', 'max:255'],
             'budget' => ['nullable', 'numeric'],
-            'status' => $updating ? ['required', 'in:Open,Cancelled'] : ['nullable'],
+            'status' => $this->statusRules($updating),
 
         ]);
     }
@@ -210,6 +211,15 @@ class EventController extends Controller
         if (! $event->cover_photo && $firstPath) {
             $event->update(['cover_photo' => $firstPath]);
         }
+    }
+
+    private function statusRules(bool $updating): array
+    {
+        if ($updating) {
+            return ['required', 'in:Open,Cancelled'];
+        }
+
+        return ['nullable'];
     }
 
     private function syncLegacyCoverPhoto(Event $event): void

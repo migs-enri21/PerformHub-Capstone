@@ -177,14 +177,22 @@ document.querySelectorAll('.organizer-calendar').forEach(calendar => {
                 const label = document.createElement('a');
                 label.className = 'av-day-event';
                 label.href = event.url;
-                label.textContent = event.title.length > 14 ? `${event.title.slice(0, 14)}…` : event.title;
+                if (event.title.length > 14) {
+                    label.textContent = `${event.title.slice(0, 14)}…`;
+                } else {
+                    label.textContent = event.title;
+                }
                 cell.appendChild(label);
 
                 dayEvents.slice(1).forEach(item => {
                     const more = document.createElement('a');
                     more.className = 'av-day-event';
                     more.href = item.url;
-                    more.textContent = item.title.length > 14 ? `${item.title.slice(0, 14)}...` : item.title;
+                    if (item.title.length > 14) {
+                        more.textContent = `${item.title.slice(0, 14)}...`;
+                    } else {
+                        more.textContent = item.title;
+                    }
                     cell.appendChild(more);
                 });
             } else if (googleBusy) {

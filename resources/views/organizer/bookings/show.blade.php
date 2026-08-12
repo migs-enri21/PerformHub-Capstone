@@ -34,16 +34,29 @@
 
             <form method="POST" action="{{ route('organizer.bookings.contract', $booking) }}" enctype="multipart/form-data" class="border-top pt-3">
                 @csrf
-                <input type="file" name="contract" class="form-control ph-input mb-2" accept=".pdf,.jpg,.jpeg,.png" {{ $booking->hasContract() ? '' : 'required' }}>
+                @if($booking->hasContract())
+                    <input type="file" name="contract" class="form-control ph-input mb-2" accept=".pdf,.jpg,.jpeg,.png">
+                @else
+                    <input type="file" name="contract" class="form-control ph-input mb-2" accept=".pdf,.jpg,.jpeg,.png" required>
+                @endif
                 <small class="text-muted d-block mb-2">PDF, JPG, JPEG, or PNG. Maximum 10 MB.</small>
-                <button class="btn ph-btn-primary btn-sm">{{ $booking->hasContract() ? 'Replace Contract' : 'Upload Contract' }}</button>
+                @if($booking->hasContract())
+                    <button class="btn ph-btn-primary btn-sm">Replace Contract</button>
+                @else
+                    <button class="btn ph-btn-primary btn-sm">Upload Contract</button>
+                @endif
             </form>
 
             <hr>
 
             <h6 class="fw-semibold mb-2">Signed Contract from Performer</h6>
             @if($booking->hasSignedContract())
-                <p class="text-success small mb-2">The performer uploaded the signed copy{{ $booking->signed_contract_uploaded_at ? ' on '.$booking->signed_contract_uploaded_at->format('M d, Y g:i A') : '' }}.</p>
+                <p class="text-success small mb-2">
+                    The performer uploaded the signed copy.
+                    @if($booking->signed_contract_uploaded_at)
+                        Uploaded on {{ $booking->signed_contract_uploaded_at->format('M d, Y g:i A') }}.
+                    @endif
+                </p>
                 <a href="{{ $booking->signedContractUrl() }}" target="_blank" class="btn ph-btn-outline btn-sm">View Signed Contract</a>
             @else
                 <p class="text-muted small mb-0">Waiting for the performer to upload the signed contract.</p>
@@ -55,10 +68,38 @@
         <div class="ph-card p-4 mb-4">
             <h5 class="fw-semibold mb-3">Booking Progress</h5>
             <p><span class="badge bg-success">Done</span> Booking Request Sent</p>
-            <p><span class="badge {{ in_array($booking->status, ['accepted', 'completed']) ? 'bg-success' : 'bg-secondary' }}">{{ in_array($booking->status, ['accepted', 'completed']) ? 'Done' : 'Pending' }}</span> Performer Accepted</p>
-            <p><span class="badge {{ $booking->hasContract() ? 'bg-success' : 'bg-secondary' }}">{{ $booking->hasContract() ? 'Done' : 'Pending' }}</span> Contract Uploaded</p>
-            <p><span class="badge {{ $booking->hasSignedContract() ? 'bg-success' : 'bg-secondary' }}">{{ $booking->hasSignedContract() ? 'Done' : 'Pending' }}</span> Signed Contract Returned</p>
-            <p class="mb-0"><span class="badge {{ $booking->status === 'completed' ? 'bg-success' : 'bg-secondary' }}">{{ $booking->status === 'completed' ? 'Done' : 'Pending' }}</span> Booking Confirmed</p>
+            <p>
+                @if(in_array($booking->status, ['accepted', 'completed']))
+                    <span class="badge bg-success">Done</span>
+                @else
+                    <span class="badge bg-secondary">Pending</span>
+                @endif
+                Performer Accepted
+            </p>
+            <p>
+                @if($booking->hasContract())
+                    <span class="badge bg-success">Done</span>
+                @else
+                    <span class="badge bg-secondary">Pending</span>
+                @endif
+                Contract Uploaded
+            </p>
+            <p>
+                @if($booking->hasSignedContract())
+                    <span class="badge bg-success">Done</span>
+                @else
+                    <span class="badge bg-secondary">Pending</span>
+                @endif
+                Signed Contract Returned
+            </p>
+            <p class="mb-0">
+                @if($booking->status === 'completed')
+                    <span class="badge bg-success">Done</span>
+                @else
+                    <span class="badge bg-secondary">Pending</span>
+                @endif
+                Booking Confirmed
+            </p>
         </div>
 
         @if($booking->status === 'accepted')
