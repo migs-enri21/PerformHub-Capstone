@@ -24,9 +24,10 @@ class EventApplicationController extends Controller
 
         $performer = $application->performer;
         $performerName = $performer->name;
+        $performerProfile = $performer->performerProfile;
 
-        if ($performer->performerProfile?->stage_name) {
-            $performerName = $performer->performerProfile->stage_name;
+        if ($performerProfile && $performerProfile->stage_name) {
+            $performerName = $performerProfile->stage_name;
         }
 
         Notification::send(

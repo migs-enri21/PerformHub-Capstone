@@ -7,6 +7,14 @@
 @endsection
 
 @section('content')
+@php
+    $eventTypeName = 'N/A';
+
+    if ($selectedEvent && $selectedEvent->eventType) {
+        $eventTypeName = $selectedEvent->eventType->name;
+    }
+@endphp
+
 <h2 class="fw-bold mb-4">Search Performers</h2>
 
 @if($selectedEvent)
@@ -18,7 +26,7 @@
 
     <small>
         <strong>Category:</strong>
-        {{ $selectedEvent->eventType->name ?? 'N/A' }}
+        {{ $eventTypeName }}
     </small>
 
     <br>

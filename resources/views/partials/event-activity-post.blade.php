@@ -2,10 +2,29 @@
 
 @php
     $organizer = $event->organizer;
-    $profile = $organizer?->organizerProfile;
-    $name = $profile?->organization_name ?: ($organizer?->name ?? 'Organizer');
-    $photoUrl = $profile?->profilePhotoUrl()
-        ?? 'https://ui-avatars.com/api/?name='.urlencode($name).'&background=6346ff&color=fff&size=128';
+    $profile = null;
+    $name = 'Organizer';
+    $photoUrl = null;
+
+    if ($organizer) {
+        $profile = $organizer->organizerProfile;
+    }
+
+    if ($organizer && $organizer->name) {
+        $name = $organizer->name;
+    }
+
+    if ($profile && $profile->organization_name) {
+        $name = $profile->organization_name;
+    }
+
+    if ($profile && $profile->profilePhotoUrl()) {
+        $photoUrl = $profile->profilePhotoUrl();
+    }
+
+    if (! $photoUrl) {
+        $photoUrl = 'https://ui-avatars.com/api/?name='.urlencode($name).'&background=6346ff&color=fff&size=128';
+    }
 @endphp
 
 <article class="event-feed-post mb-3">

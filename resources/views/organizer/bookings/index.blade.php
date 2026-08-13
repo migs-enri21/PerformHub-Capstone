@@ -13,9 +13,17 @@
         <thead><tr><th>Event</th><th>Performer</th><th>Date</th><th>Status</th><th></th></tr></thead>
         <tbody>
             @forelse($bookings as $booking)
+                @php
+                    $performerName = $booking->performer->name;
+                    $performerProfile = $booking->performer->performerProfile;
+
+                    if ($performerProfile && $performerProfile->stage_name) {
+                        $performerName = $performerProfile->stage_name;
+                    }
+                @endphp
                 <tr>
                     <td>{{ $booking->event_name }}</td>
-                    <td>{{ $booking->performer->performerProfile?->stage_name ?? $booking->performer->name }}</td>
+                    <td>{{ $performerName }}</td>
                     <td>{{ $booking->event_date->format('M d, Y') }}</td>
                     <td><span class="badge {{ $booking->statusBadgeClass() }}">{{ $booking->statusLabel() }}</span></td>
                     <td><a href="{{ route('organizer.bookings.show', $booking) }}" class="btn btn-sm ph-btn-outline">View</a></td>

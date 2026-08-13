@@ -7,6 +7,26 @@
 @endsection
 
 @section('content')
+@php
+    $performerName = $booking->performer->name;
+    $performerProfile = $booking->performer->performerProfile;
+
+    if ($performerProfile && $performerProfile->stage_name) {
+        $performerName = $performerProfile->stage_name;
+    }
+
+    $venue = 'TBD';
+    $requirements = 'None';
+
+    if ($booking->venue) {
+        $venue = $booking->venue;
+    }
+
+    if ($booking->requirements) {
+        $requirements = $booking->requirements;
+    }
+@endphp
+
 <div class="d-flex justify-content-between align-items-start mb-4">
     <div>
         <h2 class="fw-bold mb-1">{{ $booking->event_name }}</h2>
@@ -18,10 +38,10 @@
 <div class="row g-4">
     <div class="col-lg-8">
         <div class="ph-card p-4 mb-4">
-            <p><strong>Performer:</strong> {{ $booking->performer->performerProfile?->stage_name }}</p>
+            <p><strong>Performer:</strong> {{ $performerName }}</p>
             <p><strong>Date:</strong> {{ $booking->event_date->format('F d, Y') }}</p>
-            <p><strong>Venue:</strong> {{ $booking->venue ?? 'TBD' }}</p>
-            <p class="mb-0"><strong>Requirements:</strong> {{ $booking->requirements ?? 'None' }}</p>
+            <p><strong>Venue:</strong> {{ $venue }}</p>
+            <p class="mb-0"><strong>Requirements:</strong> {{ $requirements }}</p>
         </div>
 
         <div class="ph-card p-4">

@@ -52,10 +52,16 @@ class EventController extends Controller
         $validated = $this->validatedEvent($request);
         unset($validated['cover_photo'], $validated['photos']);
 
+        $preferredCategoryId = null;
+
+        if (isset($validated['preferred_category_id'])) {
+            $preferredCategoryId = $validated['preferred_category_id'];
+        }
+
         $event = Event::create([
             ...$validated,
             'organizer_id' => Auth::id(),
-            'preferred_category_id' => $validated['preferred_category_id'] ?? null,
+            'preferred_category_id' => $preferredCategoryId,
             'status' => 'Open',
         ]);
 

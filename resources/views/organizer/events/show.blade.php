@@ -7,6 +7,14 @@
 @endsection
 
 @section('content')
+@php
+    $eventTypeName = 'Not set';
+
+    if ($event->eventType) {
+        $eventTypeName = $event->eventType->name;
+    }
+@endphp
+
 <div class="container">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
@@ -57,7 +65,7 @@
                 </div>
                 <div class="col-md-6">
                     <strong class="event-detail-label d-block mb-1">Event Type</strong>
-                    <span class="text-muted">{{ $event->eventType?->name ?? 'Not set' }}</span>
+                    <span class="text-muted">{{ $eventTypeName }}</span>
                 </div>
                 @if($event->preferredCategory)
                     <div class="col-md-6">
@@ -80,11 +88,20 @@
     <h3 class="mb-3">Applicants ({{ $event->applications->count() }})</h3>
 
     @forelse($event->applications as $application)
+        @php
+            $applicant = $application->performer;
+            $applicantName = $applicant->name;
+            $applicantProfile = $applicant->performerProfile;
+
+            if ($applicantProfile && $applicantProfile->stage_name) {
+                $applicantName = $applicantProfile->stage_name;
+            }
+        @endphp
         <div class="ph-card p-3 mb-3">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
                     <h5 class="mb-1">
-                        {{ $application->performer->performerProfile->stage_name ?? $application->performer->name }}
+                        {{ $applicantName }}
                     </h5>
 
                     <span class="badge

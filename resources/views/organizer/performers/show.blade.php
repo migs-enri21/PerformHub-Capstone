@@ -7,18 +7,24 @@
 @endsection
 
 @section('content')
+@php
+    $bookingUrl = route('organizer.bookings.create', [
+        'performer' => $performer,
+        'event' => request('event'),
+    ]);
+    $onboardingRoute = null;
+
+    if (auth()->user()->hasLimitedAccess()) {
+        $bookingUrl = null;
+        $onboardingRoute = auth()->user()->onboardingRoute();
+    }
+@endphp
+
 @include('partials.performer-profile-header', [
     'performer' => $performer,
     'editable' => false,
-    'bookingUrl' => auth()->user()->hasLimitedAccess()
-        ? null
-        : route('organizer.bookings.create', [
-            'performer' => $performer,
-            'event' => request('event'),
-        ]),
-    'onboardingRoute' => auth()->user()->hasLimitedAccess()
-        ? auth()->user()->onboardingRoute()
-        : null,
+    'bookingUrl' => $bookingUrl,
+    'onboardingRoute' => $onboardingRoute,
 ])
 
 @if($performer->socialLinks())
