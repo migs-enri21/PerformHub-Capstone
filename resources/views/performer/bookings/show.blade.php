@@ -16,10 +16,12 @@
         @endif
     </div>
     @php
-    $backUrl = request('from') === 'notifications'
-        ? route('notifications.index')
-        : route('performer.bookings.index');
-@endphp
+        if (request('from') === 'notifications') {
+            $backUrl = route('notifications.index');
+        } else {
+            $backUrl = route('performer.bookings.index');
+        }
+    @endphp
 
 <a href="{{ $backUrl }}" class="btn ph-btn-outline btn-sm booking-back-btn">
     <i class="fas fa-arrow-left me-1"></i> Back
@@ -48,7 +50,14 @@
             <h5 class="fw-semibold mb-3">Event Details</h5>
             <p><strong>Date:</strong> {{ $booking->event_date->format('F d, Y') }} @if($booking->event_time) at {{ \Carbon\Carbon::parse($booking->event_time)->format('g:i A') }}@endif</p>
             <p><strong>Venue:</strong> {{ $booking->venue ?? 'TBD' }}</p>
-            <p><strong>Duration:</strong> {{ $booking->duration_hours ? $booking->duration_hours.' hours' : 'N/A' }}</p>
+            @php
+                if ($booking->duration_hours) {
+                    $durationLabel = $booking->duration_hours.' hours';
+                } else {
+                    $durationLabel = 'N/A';
+                }
+            @endphp
+            <p><strong>Duration:</strong> {{ $durationLabel }}</p>
             <p><strong>Requirements:</strong> {{ $booking->requirements ?? 'None specified' }}</p>
             <p class="mb-0"><strong>Organizer:</strong> {{ $booking->organizer->organizerProfile?->organization_name ?? $booking->organizer->name }}</p>
         </div>
@@ -75,6 +84,30 @@
                     <a href="{{ $booking->contractUrl() }}" target="_blank" class="btn ph-btn-outline btn-sm mb-3">
                         <i class="fas fa-file me-1"></i> Review Contract File
                     </a>
+
+                    @if($booking->hasSignedContract())
+                        <div class="mb-3">
+                            <a href="{{ $booking->signedContractUrl() }}" target="_blank" class="btn ph-btn-outline btn-sm">
+                                <i class="fas fa-file-signature me-1"></i> View Your Signed Contract
+                            </a>
+                        </div>
+                    @endif
+
+                    @if(! $booking->performer_confirmed_contract)
+                        <form method="POST" action="{{ route('performer.bookings.signed-contract', $booking) }}" enctype="multipart/form-data" class="border-top pt-3 mb-3" style="border-color: var(--ph-border) !important;">
+                            @csrf
+                            @if(! $booking->hasSignedContract())
+                                <p class="small text-muted mb-2">Upload your signed contract before confirming.</p>
+                            @else
+                                <p class="small text-muted mb-2">Need to replace your signed copy? Upload a new one below.</p>
+                            @endif
+                            <input type="file" name="signed_contract" class="form-control ph-input mb-2" accept=".pdf,.jpg,.jpeg,.png" {{ $booking->hasSignedContract() ? '' : 'required' }}>
+                            <small class="text-muted d-block mb-2">Accepted files: PDF, JPG, JPEG, or PNG. Maximum 10 MB.</small>
+                            <button type="submit" class="btn ph-btn-outline btn-sm">
+                                {{ $booking->hasSignedContract() ? 'Replace Signed Contract' : 'Upload Signed Contract' }}
+                            </button>
+                        </form>
+                    @endif
 
                     @if($booking->canConfirmContract())
                         <form method="POST" action="{{ route('performer.bookings.confirm-contract', $booking) }}" class="border-top pt-3" style="border-color: var(--ph-border) !important;">

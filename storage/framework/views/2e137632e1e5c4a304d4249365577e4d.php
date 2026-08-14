@@ -1,0 +1,220 @@
+<?php $__env->startSection('title', 'Portfolio'); ?>
+
+<?php $__env->startSection('sidebar'); ?>
+<?php echo $__env->make('performer.partials.sidebar', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
+<?php $__env->stopSection(); ?>
+
+<?php $__env->startSection('content'); ?>
+<div class="portfolio-page">
+    <div class="portfolio-compose ph-card mb-0">
+        <form method="POST" action="<?php echo e(route('performer.portfolio.store')); ?>" enctype="multipart/form-data" id="portfolioUploadForm">
+            <?php echo csrf_field(); ?>
+
+            <div class="portfolio-sketch-field">
+                <label class="portfolio-sketch-label" for="portfolioCaption">Caption</label>
+                <textarea
+                    name="caption"
+                    id="portfolioCaption"
+                    class="form-control ph-input portfolio-sketch-input"
+                    rows="2"
+                    maxlength="2000"
+                    placeholder="Describe this performance…"
+                ><?php echo e(old('caption')); ?></textarea>
+            </div>
+
+            <div class="portfolio-sketch-field">
+                <label class="portfolio-sketch-label" for="portfolioFiles">Photos or Videos</label>
+                <div class="portfolio-upload-zone">
+                    <input
+                        type="file"
+                        name="files[]"
+                        id="portfolioFiles"
+                        class="portfolio-file-input"
+                        accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm,video/quicktime,video/*"
+                        multiple
+                        required
+                    >
+                    <label for="portfolioFiles" class="portfolio-upload-trigger" id="portfolioUploadTrigger">
+                        <span class="portfolio-sketch-plus"><i class="fas fa-plus"></i></span>
+                        <span class="fw-semibold">Add photos or videos</span>
+                        <span class="small text-muted">JPG, PNG, WEBP, GIF, MP4, WEBM · max 500 MB each</span>
+                    </label>
+                    <div class="portfolio-preview-collage d-none" id="portfolioPreviewCollage" aria-live="polite"></div>
+                    <label for="portfolioFiles" class="portfolio-collage-add d-none" id="portfolioAddMore">
+                        <i class="fas fa-plus"></i><span>Add more</span>
+                    </label>
+                    <div class="d-flex justify-content-between align-items-center mt-2 d-none" id="portfolioPreviewActions">
+                        <span class="text-muted small" id="portfolioFileCount"></span>
+                        <button type="button" class="btn btn-sm ph-btn-outline" id="portfolioClearFiles">Clear all</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="portfolio-compose-submit">
+                <button type="submit" class="portfolio-sketch-submit-btn" id="portfolioSubmitBtn" disabled aria-label="Upload post">
+                    <i class="fas fa-plus"></i>
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <div class="portfolio-feed-list">
+        <?php $__empty_1 = true; $__currentLoopData = $portfolioGroups; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $group): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+            <?php echo $__env->make('partials.portfolio-feed-post', [
+                'items' => $group,
+                'performer' => auth()->user()->performerProfile,
+                'editable' => true,
+                'isOwn' => true,
+            ], array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
+        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
+            <div class="portfolio-feed-empty text-muted">No portfolio items yet. Upload your first photo or video above.</div>
+        <?php endif; ?>
+    </div>
+</div>
+<?php $__env->stopSection(); ?>
+
+<?php $__env->startPush('scripts'); ?>
+<script>
+(() => {
+    const input = document.getElementById('portfolioFiles');
+    const trigger = document.getElementById('portfolioUploadTrigger');
+    const collage = document.getElementById('portfolioPreviewCollage');
+    const actions = document.getElementById('portfolioPreviewActions');
+    const fileCount = document.getElementById('portfolioFileCount');
+    const clearBtn = document.getElementById('portfolioClearFiles');
+    const submitBtn = document.getElementById('portfolioSubmitBtn');
+    const addMore = document.getElementById('portfolioAddMore');
+
+    if (!input || !collage) {
+        return;
+    }
+
+    let selectedFiles = [];
+    let objectUrls = [];
+
+    function revokeUrls() {
+        objectUrls.forEach(url => URL.revokeObjectURL(url));
+        objectUrls = [];
+    }
+
+    function syncInputFiles() {
+        const dataTransfer = new DataTransfer();
+        selectedFiles.forEach(file => dataTransfer.items.add(file));
+        input.files = dataTransfer.files;
+        submitBtn.disabled = selectedFiles.length === 0;
+    }
+
+    function collageLayoutClass(count) {
+        if (count === 1) return 'portfolio-collage--1';
+        if (count === 2) return 'portfolio-collage--2';
+        if (count === 3) return 'portfolio-collage--3';
+        if (count === 4) return 'portfolio-collage--4';
+        return 'portfolio-collage--many';
+    }
+
+    function renderPreview() {
+        revokeUrls();
+
+        if (selectedFiles.length === 0) {
+            collage.innerHTML = '';
+            collage.classList.add('d-none');
+            trigger.classList.remove('d-none');
+            actions.classList.add('d-none');
+            addMore?.classList.add('d-none');
+            syncInputFiles();
+            return;
+        }
+
+        trigger.classList.add('d-none');
+        collage.classList.remove('d-none');
+        actions.classList.remove('d-none');
+        addMore?.classList.remove('d-none');
+        collage.className = `portfolio-preview-collage ${collageLayoutClass(selectedFiles.length)}`;
+        fileCount.textContent = `${selectedFiles.length} file${selectedFiles.length === 1 ? '' : 's'} selected`;
+
+        collage.innerHTML = '';
+
+        const visibleFiles = selectedFiles.length > 4 ? selectedFiles.slice(0, 4) : selectedFiles;
+
+        visibleFiles.forEach((file, index) => {
+            const tile = document.createElement('div');
+            tile.className = 'portfolio-collage-tile';
+
+            const isVideo = file.type.startsWith('video/');
+            const url = URL.createObjectURL(file);
+            objectUrls.push(url);
+
+            if (isVideo) {
+                const video = document.createElement('video');
+                video.src = url;
+                video.muted = true;
+                video.playsInline = true;
+                tile.appendChild(video);
+                const badge = document.createElement('span');
+                badge.className = 'portfolio-collage-badge';
+                badge.innerHTML = '<i class="fas fa-play me-1"></i>Video';
+                tile.appendChild(badge);
+            } else {
+                const img = document.createElement('img');
+                img.src = url;
+                img.alt = '';
+                tile.appendChild(img);
+            }
+
+            if (selectedFiles.length > 4 && index === 3) {
+                const more = document.createElement('div');
+                more.className = 'portfolio-collage-more';
+                more.textContent = `+${selectedFiles.length - 4}`;
+                tile.appendChild(more);
+            }
+
+            const removeBtn = document.createElement('button');
+            removeBtn.type = 'button';
+            removeBtn.className = 'portfolio-collage-remove';
+            removeBtn.setAttribute('aria-label', 'Remove file');
+            removeBtn.innerHTML = '<i class="fas fa-times"></i>';
+            removeBtn.addEventListener('click', (event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                const actualIndex = selectedFiles.indexOf(file);
+                if (actualIndex !== -1) {
+                    selectedFiles.splice(actualIndex, 1);
+                }
+                renderPreview();
+            });
+            tile.appendChild(removeBtn);
+
+            collage.appendChild(tile);
+        });
+
+        syncInputFiles();
+    }
+
+    input.addEventListener('change', () => {
+        const incoming = Array.from(input.files || []);
+        const merged = [...selectedFiles];
+
+        incoming.forEach(file => {
+            const duplicate = merged.some(existing =>
+                existing.name === file.name &&
+                existing.size === file.size &&
+                existing.lastModified === file.lastModified
+            );
+            if (!duplicate) {
+                merged.push(file);
+            }
+        });
+
+        selectedFiles = merged;
+        renderPreview();
+    });
+
+    clearBtn?.addEventListener('click', () => {
+        selectedFiles = [];
+        renderPreview();
+    });
+})();
+</script>
+<?php $__env->stopPush(); ?>
+
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\Users\Erico\Documents\PerformHub-Capstone\resources\views\performer\portfolio\index.blade.php ENDPATH**/ ?>

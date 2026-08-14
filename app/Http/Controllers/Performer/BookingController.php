@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Booking;
 use App\Models\Notification;
 use App\Models\EventApplication;
+use App\Services\SupabaseStorageService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
@@ -85,6 +86,41 @@ public function index(Request $request): View
         );
 
         return back()->with('success', 'Booking rejected.');
+    }
+
+    public function uploadSignedContract(Request $request, Booking $booking): RedirectResponse
+    {
+        abort_unless($booking->performer_id === Auth::id(), 403);
+        abort_unless($booking->status === 'accepted', 400);
+        abort_unless($booking->hasContract(), 400, 'Wait for the organizer to upload a contract first.');
+
+        $file = $request->validate([
+            'signed_contract' => ['required', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:10240'],
+        ])['signed_contract'];
+
+        $storage = new SupabaseStorageService();
+
+        if ($booking->signed_contract_path) {
+            $storage->delete('performer-files', $booking->signed_contract_path);
+        }
+
+        $path = $storage->upload($file, 'performer-files', 'signed_contract', Auth::id());
+
+        $booking->update([
+            'signed_contract_path' => $path,
+            'performer_confirmed_contract' => false,
+            'contract_confirmed_at' => null,
+        ]);
+
+        Notification::send(
+            $booking->organizer,
+            'contract',
+            'Signed Contract Uploaded',
+            Auth::user()->name.' uploaded a signed contract for '.$booking->event_name,
+            route('organizer.bookings.show', $booking)
+        );
+
+        return back()->with('success', 'Signed contract uploaded. Confirm below to notify the organizer.');
     }
 
     public function confirmContract(Booking $booking): RedirectResponse

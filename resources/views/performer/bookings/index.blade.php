@@ -45,9 +45,18 @@
                         @endif
                     </td>
                     <td>
-                        <a href="{{ route('performer.bookings.show', $booking) }}" 
-                        class="btn btn-sm {{ $booking->needsContractReview() ? 'ph-btn-primary' : 'ph-btn-outline' }} booking-view-btn">
-                            <i class="fas fa-eye me-1"></i> {{ $booking->needsContractReview() ? 'Review' : 'View' }} </a>
+                        @php
+                            if ($booking->needsContractReview()) {
+                                $viewBtnClass = 'ph-btn-primary';
+                                $viewBtnLabel = 'Review';
+                            } else {
+                                $viewBtnClass = 'ph-btn-outline';
+                                $viewBtnLabel = 'View';
+                            }
+                        @endphp
+                        <a href="{{ route('performer.bookings.show', $booking) }}"
+                        class="btn btn-sm {{ $viewBtnClass }} booking-view-btn">
+                            <i class="fas fa-eye me-1"></i> {{ $viewBtnLabel }}
                         </a>
                     </td>
                 </tr>

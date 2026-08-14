@@ -22,6 +22,7 @@ class Booking extends Model
         'duration_hours',
         'status',
         'contract_path',
+        'signed_contract_path',
         'contract_confirmed_at',
         'performer_confirmed_contract',
         'notes',
@@ -93,6 +94,20 @@ class Booking extends Model
         return (new SupabaseStorageService)->url('organizer-files', $this->contract_path);
     }
 
+    public function hasSignedContract(): bool
+    {
+        return filled($this->signed_contract_path);
+    }
+
+    public function signedContractUrl(): ?string
+    {
+        if (! $this->hasSignedContract()) {
+            return null;
+        }
+
+        return (new SupabaseStorageService)->url('performer-files', $this->signed_contract_path);
+    }
+
     public function needsContractReview(): bool
     {
         return $this->status === 'accepted'
@@ -102,7 +117,8 @@ class Booking extends Model
 
     public function canConfirmContract(): bool
     {
-        return $this->needsContractReview();
+        return $this->needsContractReview()
+            && $this->hasSignedContract();
     }
 
     public function contractStatusLabel(bool $forPerformer = false): string
@@ -116,7 +132,11 @@ class Booking extends Model
         }
 
         if ($this->status === 'accepted') {
-            return $forPerformer ? 'Awaiting your review' : 'Awaiting performer';
+            if (! $this->hasSignedContract()) {
+                return $forPerformer ? 'Upload signed copy' : 'Awaiting signed copy';
+            }
+
+            return $forPerformer ? 'Awaiting your confirmation' : 'Awaiting performer';
         }
 
         return 'Uploaded';

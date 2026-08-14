@@ -74,6 +74,7 @@ Route::middleware(['auth', 'role:performer'])->prefix('performer')->name('perfor
         Route::post('/google-calendar/disconnect', [GoogleCalendarController::class, 'disconnect'])->name('google-calendar.disconnect');
         Route::post('/bookings/{booking}/accept', [PerformerBookingController::class, 'accept'])->name('bookings.accept');
         Route::post('/bookings/{booking}/reject', [PerformerBookingController::class, 'reject'])->name('bookings.reject');
+        Route::post('/bookings/{booking}/signed-contract', [PerformerBookingController::class, 'uploadSignedContract'])->name('bookings.signed-contract');
         Route::post('/bookings/{booking}/confirm-contract', [PerformerBookingController::class, 'confirmContract'])->name('bookings.confirm-contract');
         Route::post('/events/{event}/apply', [EventApplicationController::class, 'store'])->name('events.apply');
     });
