@@ -38,25 +38,20 @@
                     <td>{{ $booking->event_date->format('M d, Y') }}</td>
                     <td><span class="badge {{ $booking->statusBadgeClass() }}">{{ $booking->statusLabel() }}</span></td>
                     <td>
-                        @if($booking->status === 'accepted' || $booking->hasContract())
-                            <span class="badge {{ $booking->contractStatusBadgeClass() }}">{{ $booking->contractStatusLabel(true) }}</span>
+                        @if($booking->hasSignedContract())
+                            <span class="badge bg-success">Signed copy sent</span>
+                        @elseif($booking->status === 'accepted' && $booking->hasContract())
+                            <span class="badge bg-warning text-dark">Sign contract</span>
+                        @elseif($booking->hasContract())
+                            <span class="badge bg-info">Contract uploaded</span>
                         @else
                             <span class="text-muted small">—</span>
                         @endif
                     </td>
                     <td>
-                        @php
-                            if ($booking->needsContractReview()) {
-                                $viewBtnClass = 'ph-btn-primary';
-                                $viewBtnLabel = 'Review';
-                            } else {
-                                $viewBtnClass = 'ph-btn-outline';
-                                $viewBtnLabel = 'View';
-                            }
-                        @endphp
-                        <a href="{{ route('performer.bookings.show', $booking) }}"
-                        class="btn btn-sm {{ $viewBtnClass }} booking-view-btn">
-                            <i class="fas fa-eye me-1"></i> {{ $viewBtnLabel }}
+                        <a href="{{ route('performer.bookings.show', $booking) }}" 
+                        class="btn btn-sm {{ $booking->status === 'accepted' && $booking->hasContract() && ! $booking->hasSignedContract() ? 'ph-btn-primary' : 'ph-btn-outline' }} booking-view-btn">
+                            <i class="fas fa-eye me-1"></i> {{ $booking->status === 'accepted' && $booking->hasContract() && ! $booking->hasSignedContract() ? 'Sign' : 'View' }}
                         </a>
                     </td>
                 </tr>

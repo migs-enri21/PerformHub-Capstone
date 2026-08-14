@@ -22,11 +22,11 @@
 
 <div class="mb-4">
     @php($selectedFilter = request('status'))
-    <a href="{{ route('organizer.events.index') }}" class="btn btn-sm me-2 {{ ! $selectedFilter ? 'btn-primary' : 'btn-outline-primary' }}">All</a>
-    <a href="{{ route('organizer.events.index', ['status' => 'upcoming']) }}" class="btn btn-sm me-2 {{ $selectedFilter === 'upcoming' ? 'btn-primary' : 'btn-outline-secondary' }}">Upcoming</a>
-    <a href="{{ route('organizer.events.index', ['status' => 'ongoing']) }}" class="btn btn-sm me-2 {{ $selectedFilter === 'ongoing' ? 'btn-primary' : 'btn-outline-secondary' }}">Ongoing</a>
-    <a href="{{ route('organizer.events.index', ['status' => 'completed']) }}" class="btn btn-sm me-2 {{ $selectedFilter === 'completed' ? 'btn-primary' : 'btn-outline-secondary' }}">Completed</a>
-    <a href="{{ route('organizer.events.index', ['status' => 'cancelled']) }}" class="btn btn-sm {{ $selectedFilter === 'cancelled' ? 'btn-primary' : 'btn-outline-secondary' }}">Cancelled</a>
+    <a href="{{ route('organizer.events.index') }}" class="btn btn-sm me-2 @if(! $selectedFilter) btn-primary @else btn-outline-primary @endif">All</a>
+    <a href="{{ route('organizer.events.index', ['status' => 'upcoming']) }}" class="btn btn-sm me-2 @if($selectedFilter === 'upcoming') btn-primary @else btn-outline-secondary @endif">Upcoming</a>
+    <a href="{{ route('organizer.events.index', ['status' => 'ongoing']) }}" class="btn btn-sm me-2 @if($selectedFilter === 'ongoing') btn-primary @else btn-outline-secondary @endif">Ongoing</a>
+    <a href="{{ route('organizer.events.index', ['status' => 'completed']) }}" class="btn btn-sm me-2 @if($selectedFilter === 'completed') btn-primary @else btn-outline-secondary @endif">Completed</a>
+    <a href="{{ route('organizer.events.index', ['status' => 'cancelled']) }}" class="btn btn-sm @if($selectedFilter === 'cancelled') btn-primary @else btn-outline-secondary @endif">Cancelled</a>
 </div>
 
 @if($events->isEmpty())

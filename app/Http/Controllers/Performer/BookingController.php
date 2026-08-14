@@ -22,7 +22,7 @@ public function index(Request $request): View
         ->with('organizer.organizerProfile')
         ->latest();
 
-    // ← copied idea from PerformerSearchController
+    // copied idea from PerformerSearchController
     if ($request->filled('status')) {
         $query->where('status', $request->status);
     }
@@ -91,8 +91,7 @@ public function index(Request $request): View
     public function uploadSignedContract(Request $request, Booking $booking): RedirectResponse
     {
         abort_unless($booking->performer_id === Auth::id(), 403);
-        abort_unless($booking->status === 'accepted', 400);
-        abort_unless($booking->hasContract(), 400, 'Wait for the organizer to upload a contract first.');
+        abort_unless($booking->status === 'accepted' && $booking->hasContract(), 400);
 
         $file = $request->validate([
             'signed_contract' => ['required', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:10240'],
@@ -101,46 +100,24 @@ public function index(Request $request): View
         $storage = new SupabaseStorageService();
 
         if ($booking->signed_contract_path) {
-            $storage->delete('performer-files', $booking->signed_contract_path);
+            $storage->delete('organizer-files', $booking->signed_contract_path);
         }
 
-        $path = $storage->upload($file, 'performer-files', 'signed_contract', Auth::id());
+        $path = $storage->upload($file, 'organizer-files', 'signed_contract', Auth::id());
 
         $booking->update([
             'signed_contract_path' => $path,
-            'performer_confirmed_contract' => false,
-            'contract_confirmed_at' => null,
+            'signed_contract_uploaded_at' => now(),
         ]);
 
         Notification::send(
             $booking->organizer,
             'contract',
             'Signed Contract Uploaded',
-            Auth::user()->name.' uploaded a signed contract for '.$booking->event_name,
+            Auth::user()->name.' uploaded the signed contract for '.$booking->event_name,
             route('organizer.bookings.show', $booking)
         );
 
-        return back()->with('success', 'Signed contract uploaded. Confirm below to notify the organizer.');
-    }
-
-    public function confirmContract(Booking $booking): RedirectResponse
-    {
-        abort_unless($booking->performer_id === Auth::id(), 403);
-        abort_unless($booking->canConfirmContract(), 400, 'This contract cannot be confirmed right now.');
-
-        $booking->update([
-            'performer_confirmed_contract' => true,
-            'contract_confirmed_at' => now(),
-        ]);
-
-        Notification::send(
-            $booking->organizer,
-            'contract',
-            'Contract Confirmed',
-            Auth::user()->name.' confirmed the contract for '.$booking->event_name,
-            route('organizer.bookings.show', $booking)
-        );
-
-        return back()->with('success', 'Contract confirmed. The organizer has been notified.');
+        return back()->with('success', 'Signed contract sent to the organizer.');
     }
 }

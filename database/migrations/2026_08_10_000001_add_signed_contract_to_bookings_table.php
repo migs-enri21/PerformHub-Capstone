@@ -9,18 +9,15 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('bookings', function (Blueprint $table) {
-            if (! Schema::hasColumn('bookings', 'signed_contract_path')) {
-                $table->string('signed_contract_path')->nullable()->after('contract_path');
-            }
+            $table->string('signed_contract_path')->nullable()->after('contract_path');
+            $table->timestamp('signed_contract_uploaded_at')->nullable()->after('signed_contract_path');
         });
     }
 
     public function down(): void
     {
         Schema::table('bookings', function (Blueprint $table) {
-            if (Schema::hasColumn('bookings', 'signed_contract_path')) {
-                $table->dropColumn('signed_contract_path');
-            }
+            $table->dropColumn(['signed_contract_path', 'signed_contract_uploaded_at']);
         });
     }
 };

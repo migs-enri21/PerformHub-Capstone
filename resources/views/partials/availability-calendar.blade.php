@@ -7,13 +7,27 @@
 ])
 
 @php
+    $formatTime = function ($time) {
+        if ($time) {
+            return \Illuminate\Support\Str::substr($time, 0, 5);
+        }
+
+        return null;
+    };
+
+    $editableValue = '0';
+
+    if ($editable) {
+        $editableValue = '1';
+    }
+
     $scheduleMap = $schedules
         ->mapWithKeys(fn ($schedule) => [
             $schedule->date->format('Y-m-d') => [
                 'id' => $schedule->id,
                 'is_available' => (bool) $schedule->is_available,
-                'start_time' => $schedule->start_time ? \Illuminate\Support\Str::substr($schedule->start_time, 0, 5) : null,
-                'end_time' => $schedule->end_time ? \Illuminate\Support\Str::substr($schedule->end_time, 0, 5) : null,
+                'start_time' => $formatTime($schedule->start_time),
+                'end_time' => $formatTime($schedule->end_time),
                 'notes' => $schedule->notes,
             ],
         ])
@@ -41,7 +55,7 @@
 
 <div
     class="availability-calendar"
-    data-editable="{{ $editable ? '1' : '0' }}"
+    data-editable="{{ $editableValue }}"
     data-schedules="{{ json_encode($scheduleMap) }}"
     data-pending="{{ json_encode($pendingMap) }}"
     data-confirmed="{{ json_encode($confirmedMap) }}"
@@ -193,7 +207,11 @@
             const notesInput = document.getElementById('availabilityNotes');
             const isAvailableInput = document.getElementById('availabilityIsAvailable');
             const eventWrap = document.getElementById('availabilityEventWrap');
-            const modeInputs = form ? form.querySelectorAll('input[name="availability_mode"]') : [];
+            let modeInputs = [];
+
+            if (form) {
+                modeInputs = form.querySelectorAll('input[name="availability_mode"]');
+            }
             const modalDateLabel = document.getElementById('availabilityModalDate');
 
             function syncAvailabilityMode() {
@@ -201,7 +219,12 @@
                     return;
                 }
 
-                const mode = form.querySelector('input[name="availability_mode"]:checked')?.value || 'available';
+                const checkedMode = form.querySelector('input[name="availability_mode"]:checked');
+                let mode = 'available';
+
+                if (checkedMode) {
+                    mode = checkedMode.value;
+                }
 
                 if (mode === 'available') {
                     isAvailableInput.value = '1';
@@ -277,7 +300,7 @@
 
             function dayTitle(dateKey, entry, state) {
                 if (state === 'booked') {
-                    if (entry?.notes) {
+                    if (entry && entry.notes) {
                         return `Booked: ${entry.notes}`;
                     }
 
@@ -297,9 +320,11 @@
 
                 if (state === 'google-busy') {
                     const googleEvent = googleBusyDates[dateKey];
-                    return googleEvent?.summary
-                        ? `Busy (Google Calendar): ${googleEvent.summary}`
-                        : 'Busy (Google Calendar)';
+                    if (googleEvent && googleEvent.summary) {
+                        return `Busy (Google Calendar): ${googleEvent.summary}`;
+                    }
+
+                    return 'Busy (Google Calendar)';
                 }
 
                 if (state === 'available' && entry) {
@@ -363,12 +388,14 @@
                     dayNumber.textContent = day;
                     button.appendChild(dayNumber);
 
-                    if (entry?.start_time || entry?.end_time) {
+                    if (entry && (entry.start_time || entry.end_time)) {
                         const time = document.createElement('span');
                         time.className = 'av-day-time';
-                        time.textContent = entry.start_time && entry.end_time
-                            ? `${entry.start_time}–${entry.end_time}`
-                            : (entry.start_time || entry.end_time || '');
+                        if (entry.start_time && entry.end_time) {
+                            time.textContent = `${entry.start_time}–${entry.end_time}`;
+                        } else {
+                            time.textContent = entry.start_time || entry.end_time || '';
+                        }
                         button.appendChild(time);
                     } else if (state === 'pending') {
                         const pending = document.createElement('span');
@@ -380,16 +407,24 @@
                         googleLabel.className = 'av-day-google-label';
                         googleLabel.textContent = 'Google';
                         button.appendChild(googleLabel);
-                    } else if (entry?.notes && state === 'booked') {
+                    } else if (entry && entry.notes && state === 'booked') {
                         const event = document.createElement('span');
                         event.className = 'av-day-event';
-                        event.textContent = entry.notes.length > 14 ? `${entry.notes.slice(0, 14)}…` : entry.notes;
+                        if (entry.notes.length > 14) {
+                            event.textContent = `${entry.notes.slice(0, 14)}…`;
+                        } else {
+                            event.textContent = entry.notes;
+                        }
                         button.appendChild(event);
                     } else if (confirmedDates[dateKey]) {
                         const event = document.createElement('span');
                         event.className = 'av-day-event';
                         const name = confirmedDates[dateKey].event_name;
-                        event.textContent = name.length > 14 ? `${name.slice(0, 14)}…` : name;
+                        if (name.length > 14) {
+                            event.textContent = `${name.slice(0, 14)}…`;
+                        } else {
+                            event.textContent = name;
+                        }
                         button.appendChild(event);
                     }
 
@@ -412,13 +447,23 @@
 
                 modalDateLabel.textContent = formatDisplayDate(dateKey);
                 dateInput.value = dateKey;
-                startInput.value = entry?.start_time || '';
-                endInput.value = entry?.end_time || '';
-                notesInput.value = entry?.notes || '';
+                startInput.value = '';
+                endInput.value = '';
+                notesInput.value = '';
+
+                if (entry) {
+                    startInput.value = entry.start_time || '';
+                    endInput.value = entry.end_time || '';
+                    notesInput.value = entry.notes || '';
+                }
 
                 let mode = 'available';
                 if (entry && !entry.is_available) {
-                    mode = entry.notes ? 'event' : 'blocked';
+                    if (entry.notes) {
+                        mode = 'event';
+                    } else {
+                        mode = 'blocked';
+                    }
                 }
 
                 const modeInput = form.querySelector(`input[name="availability_mode"][value="${mode}"]`);
@@ -428,12 +473,14 @@
 
                 syncAvailabilityMode();
 
-                if (entry?.id && deleteForm) {
+                if (entry && entry.id && deleteForm) {
                     deleteForm.action = destroyUrlFor(entry.id);
                     deleteForm.classList.remove('d-none');
-                    deleteForm.querySelector('button[type="submit"]').textContent = entry.is_available
-                        ? 'Remove custom hours'
-                        : 'Clear and use default (available)';
+                    if (entry.is_available) {
+                        deleteForm.querySelector('button[type="submit"]').textContent = 'Remove custom hours';
+                    } else {
+                        deleteForm.querySelector('button[type="submit"]').textContent = 'Clear and use default (available)';
+                    }
                 } else if (deleteForm) {
                     deleteForm.classList.add('d-none');
                 }

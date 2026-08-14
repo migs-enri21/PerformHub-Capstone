@@ -38,7 +38,7 @@
                     <div class="col-md-6 mb-3"><label class="form-label">Event Type</label><select class="form-select" name="event_type_id" required>
                     <option value="">Select Event Type</option>
                     @foreach($eventTypes as $eventType)
-                    <option value="{{ $eventType->id }}" {{ old('event_type_id') == $eventType->id ? 'selected' : '' }}>
+                    <option value="{{ $eventType->id }}" @selected(old('event_type_id') == $eventType->id)>
                         {{ $eventType->name }}
                     </option>
                     @endforeach
@@ -52,7 +52,7 @@
                     <option value="">Select Performer Category</option>
 
                     @foreach($categories as $category)
-                    <option value="{{ $category->id }}" {{ old('preferred_category_id') == $category->id ? 'selected' : '' }}> {{ $category->name }}
+                    <option value="{{ $category->id }}" @selected(old('preferred_category_id') == $category->id)> {{ $category->name }}
                     </option>
                     @endforeach
 

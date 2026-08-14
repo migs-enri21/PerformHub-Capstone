@@ -27,11 +27,19 @@
                 <h5 class="fw-semibold mb-3">Banner Image</h5>
                 @php
                     $bannerPositionY = old('banner_position_y', $profile->banner_position_y);
+                    $bannerClass = '';
+                    $bannerStyle = '';
+
+                    if ($profile->bannerPhotoUrl()) {
+                        $bannerStyle = "background-image: url('".$profile->bannerPhotoUrl()."');";
+                    } else {
+                        $bannerClass = 'banner-reposition--empty';
+                    }
                 @endphp
                 <div
-                    class="banner-reposition rounded mb-2 {{ $profile->bannerPhotoUrl() ? '' : 'banner-reposition--empty' }}"
+                    class="banner-reposition rounded mb-2 {{ $bannerClass }}"
                     id="bannerReposition"
-                    style="{{ $profile->bannerPhotoUrl() ? "background-image: url('".$profile->bannerPhotoUrl()."');" : '' }} background-position: center {{ $bannerPositionY }}%;"
+                    style="{{ $bannerStyle }} background-position: center {{ $bannerPositionY }}%;"
                 >
                     @unless($profile->bannerPhotoUrl())
                         <span class="banner-reposition-placeholder">No banner uploaded yet</span>

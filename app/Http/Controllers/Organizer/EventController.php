@@ -18,6 +18,8 @@ class EventController extends Controller
 {
     public function index(Request $request): View
     {
+        Event::completePastEvents();
+
         $query = Event::with('photos')->where('organizer_id', Auth::id());
 
         $this->applyEventFilter($query, $request->status);
@@ -50,10 +52,16 @@ class EventController extends Controller
         $validated = $this->validatedEvent($request);
         unset($validated['cover_photo'], $validated['photos']);
 
+        $preferredCategoryId = null;
+
+        if (isset($validated['preferred_category_id'])) {
+            $preferredCategoryId = $validated['preferred_category_id'];
+        }
+
         $event = Event::create([
             ...$validated,
             'organizer_id' => Auth::id(),
-            'preferred_category_id' => $validated['preferred_category_id'] ?? null,
+            'preferred_category_id' => $preferredCategoryId,
             'status' => 'Open',
         ]);
 
@@ -92,10 +100,11 @@ class EventController extends Controller
         $validated = $this->validatedEvent($request, true);
         unset($validated['cover_photo'], $validated['photos']);
 
-        $event->update([
-            ...$validated,
-            'preferred_category_id' => $validated['preferred_category_id'] ?? null,
-        ]);
+        if (! array_key_exists('preferred_category_id', $validated)) {
+            $validated['preferred_category_id'] = null;
+        }
+
+        $event->update($validated);
 
         $this->storeUploadedPhotos($event, $request);
 
@@ -165,7 +174,7 @@ class EventController extends Controller
             'end_time' => ['required'],
             'venue' => ['required', 'string', 'max:255'],
             'budget' => ['nullable', 'numeric'],
-            'status' => $updating ? ['required', 'in:Open,Cancelled'] : ['nullable'],
+            'status' => $this->statusRules($updating),
 
         ]);
     }
@@ -208,6 +217,15 @@ class EventController extends Controller
         if (! $event->cover_photo && $firstPath) {
             $event->update(['cover_photo' => $firstPath]);
         }
+    }
+
+    private function statusRules(bool $updating): array
+    {
+        if ($updating) {
+            return ['required', 'in:Open,Cancelled'];
+        }
+
+        return ['nullable'];
     }
 
     private function syncLegacyCoverPhoto(Event $event): void
