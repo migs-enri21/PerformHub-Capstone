@@ -22,7 +22,7 @@ public function index(Request $request): View
         ->with('organizer.organizerProfile')
         ->latest();
 
-    // ← copied idea from PerformerSearchController
+    // copied idea from PerformerSearchController
     if ($request->filled('status')) {
         $query->where('status', $request->status);
     }

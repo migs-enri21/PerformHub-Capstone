@@ -46,8 +46,14 @@ class PortfolioController extends Controller
         $batchKey = Str::uuid()->toString();
 
         foreach ($request->file('files', []) as $file) {
-            $type = str_starts_with((string) $file->getMimeType(), 'video/') ? 'video' : 'photo';
-            $supabaseType = $type === 'video' ? 'portfolio_video' : 'portfolio_image';
+            if (str_starts_with((string) $file->getMimeType(), 'video/')) {
+                $type = 'video';
+                $supabaseType = 'portfolio_video';
+            } else {
+                $type = 'photo';
+                $supabaseType = 'portfolio_image';
+            }
+
             $path = $supabase->upload($file, 'performer-files', $supabaseType, Auth::id());
 
             $profile->portfolios()->create([
@@ -60,9 +66,11 @@ class PortfolioController extends Controller
             $uploaded++;
         }
 
-        $message = $uploaded === 1
-            ? 'Portfolio item uploaded.'
-            : "{$uploaded} portfolio items uploaded.";
+        if ($uploaded === 1) {
+            $message = 'Portfolio item uploaded.';
+        } else {
+            $message = "{$uploaded} portfolio items uploaded.";
+        }
 
         return redirect()
             ->route('performer.portfolio.index')
@@ -115,8 +123,14 @@ class PortfolioController extends Controller
         }
 
         foreach ($request->file('files', []) as $file) {
-            $type = str_starts_with((string) $file->getMimeType(), 'video/') ? 'video' : 'photo';
-            $supabaseType = $type === 'video' ? 'portfolio_video' : 'portfolio_image';
+            if (str_starts_with((string) $file->getMimeType(), 'video/')) {
+                $type = 'video';
+                $supabaseType = 'portfolio_video';
+            } else {
+                $type = 'photo';
+                $supabaseType = 'portfolio_image';
+            }
+
             $path = $supabase->upload($file, 'performer-files', $supabaseType, Auth::id());
 
             $profile->portfolios()->create([

@@ -42,7 +42,11 @@ class EventApplicationController extends Controller
             'status' => 'pending',
         ]);
 
-        $performerName = $user->performerProfile?->stage_name ?? $user->name;
+        if ($user->performerProfile?->stage_name) {
+            $performerName = $user->performerProfile->stage_name;
+        } else {
+            $performerName = $user->name;
+        }
 
         Notification::send(
             $event->organizer,

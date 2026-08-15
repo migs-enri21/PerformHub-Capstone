@@ -29,6 +29,7 @@ class SupabaseStorageService
             'event_banner'       => 'event-banners',
             'event_banners'      => 'event-banners',
             'contract'           => 'contracts',
+            'signed_contract'    => 'signed-contracts',
         ];
 
         $folder = $folders[$type] ?? $type;
