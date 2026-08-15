@@ -22,7 +22,13 @@
     <div class="col-md-6">
         <div class="ph-card p-4 h-100">
             <h5 class="fw-semibold mb-3">Contact Info</h5>
-            <p class="text-muted mb-1"><i class="fas fa-phone me-2"></i>{{ $profile->phone ?: 'No phone number set.' }}</p>
+            <p class="text-muted mb-1"><i class="fas fa-phone me-2"></i>
+                @if($profile->phone)
+                    {{ $profile->phone }}
+                @else
+                    No phone number set.
+                @endif
+            </p>
             <p class="mb-0">
                 <i class="fas fa-globe me-2 text-muted"></i>
                 @if($profile->website)
@@ -36,7 +42,13 @@
     <div class="col-md-6">
         <div class="ph-card p-4 h-100">
             <h5 class="fw-semibold mb-3">Location</h5>
-            <p class="text-muted mb-0">{{ $profile->fullLocation() ?: 'No location set yet.' }}</p>
+            <p class="text-muted mb-0">
+                @if($profile->fullLocation())
+                    {{ $profile->fullLocation() }}
+                @else
+                    No location set yet.
+                @endif
+            </p>
         </div>
     </div>
 </div>

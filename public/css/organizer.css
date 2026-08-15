@@ -116,7 +116,6 @@
     color: #fff;
 }
 
-/* Simple organizer dashboard layout. */
 .org-panel {
     background: #fff;
     border: 0;
@@ -180,6 +179,49 @@
 .organizer-calendar-event:hover {
     border-color: var(--ph-purple);
     color: var(--ph-text);
+}
+
+.organizer-event-form {
+    max-width: 1120px;
+}
+
+.organizer-event-form .ph-card {
+    background: #f8f6ff;
+    border: 2px solid #cfc0ff;
+    box-shadow: 0 10px 24px rgba(91, 59, 180, 0.10);
+}
+
+.organizer-event-form .form-control,
+.organizer-event-form .form-select,
+.organizer-event-form textarea {
+    border-color: #cfc0ff;
+}
+
+.organizer-event-form .form-control:focus,
+.organizer-event-form .form-select:focus,
+.organizer-event-form textarea:focus {
+    border-color: var(--ph-purple);
+    box-shadow: 0 0 0 3px var(--ph-purple-glow);
+}
+
+.organizer-category-list {
+    background: #f1edff;
+    border: 1px solid #cfc0ff;
+    border-radius: 10px;
+    padding: 0.9rem 1rem;
+}
+
+.organizer-category-list-error {
+    border-color: #dc3545;
+}
+
+.organizer-category-list .form-check {
+    margin: 0;
+}
+
+.organizer-category-list .form-check-input:checked {
+    background-color: var(--ph-purple);
+    border-color: var(--ph-purple);
 }
 
 @media (max-width: 1199px) {

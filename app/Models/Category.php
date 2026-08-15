@@ -26,4 +26,9 @@ class Category extends Model
     {
         return $this->belongsToMany(PerformerProfile::class, 'performer_profile_category');
     }
+
+    public function events(): BelongsToMany
+    {
+        return $this->belongsToMany(Event::class, 'event_category');
+    }
 }

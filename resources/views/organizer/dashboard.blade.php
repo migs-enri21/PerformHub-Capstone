@@ -37,7 +37,7 @@
                 <div class="col-md-4">
                     <a href="{{ route('organizer.bookings.index') }}" class="org-stat">
                         <i class="fas fa-check-circle"></i>
-                        <div><strong>{{ $activeBookings }}</strong><small>Confirmed Bookings</small></div>
+                        <div><strong>{{ $activeBookings }}</strong><small>Accepted Bookings</small></div>
                     </a>
                 </div>
             </div>
@@ -51,13 +51,21 @@
 
             @forelse($recommendedPerformers->take(3) as $performer)
                 <a href="{{ route('organizer.performers.show', $performer) }}" class="org-list-item">
-                    <img src="{{ $performer->profilePhotoUrl() ?? 'https://ui-avatars.com/api/?name='.urlencode($performer->stage_name).'&background=6d3df5&color=fff' }}" alt="{{ $performer->stage_name }}" class="rounded-circle" width="48" height="48">
+                    @if($performer->profilePhotoUrl())
+                        <img src="{{ $performer->profilePhotoUrl() }}" alt="{{ $performer->stage_name }}" class="rounded-circle" width="48" height="48">
+                    @else
+                        <img src="https://ui-avatars.com/api/?name={{ urlencode($performer->stage_name) }}&background=6d3df5&color=fff" alt="{{ $performer->stage_name }}" class="rounded-circle" width="48" height="48">
+                    @endif
                     <div class="flex-grow-1">
                         <strong>{{ $performer->stage_name }}</strong>
                         @if($performer->is_verified)
                             <span class="badge bg-success ms-1">Verified</span>
                         @endif
-                        <small class="text-muted d-block">{{ $performer->categoryNames() ?: 'Performer' }}</small>
+                        @if($performer->categoryNames())
+                            <small class="text-muted d-block">{{ $performer->categoryNames() }}</small>
+                        @else
+                            <small class="text-muted d-block">Performer</small>
+                        @endif
                         @if($performer->portfolios->count())
                             <small class="text-primary">{{ $performer->portfolios->count() }} portfolio {{ Str::plural('item', $performer->portfolios->count()) }}</small>
                         @endif
@@ -117,13 +125,17 @@
                 </div>
 
                 @forelse($recentNotifications as $notification)
-                    <a href="{{ $notification->link ?: route('notifications.index') }}" class="org-list-item">
-                        <i class="fas fa-bell text-primary"></i>
-                        <div>
-                            <strong>{{ $notification->title }}</strong>
-                            <small class="text-muted d-block">{{ $notification->message }}</small>
-                        </div>
-                    </a>
+                    @if($notification->link)
+                        <a href="{{ $notification->link }}" class="org-list-item">
+                    @else
+                        <a href="{{ route('notifications.index') }}" class="org-list-item">
+                    @endif
+                            <i class="fas fa-bell text-primary"></i>
+                            <div>
+                                <strong>{{ $notification->title }}</strong>
+                                <small class="text-muted d-block">{{ $notification->message }}</small>
+                            </div>
+                        </a>
                 @empty
                     <p class="text-muted small mb-0">No new notifications.</p>
                 @endforelse

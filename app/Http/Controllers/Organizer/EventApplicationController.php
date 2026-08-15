@@ -23,7 +23,12 @@ class EventApplicationController extends Controller
         $application->update(['status' => 'declined']);
 
         $performer = $application->performer;
-        $performerName = $performer->performerProfile?->stage_name ?? $performer->name;
+        $performerName = $performer->name;
+        $performerProfile = $performer->performerProfile;
+
+        if ($performerProfile && $performerProfile->stage_name) {
+            $performerName = $performerProfile->stage_name;
+        }
 
         Notification::send(
             $performer,

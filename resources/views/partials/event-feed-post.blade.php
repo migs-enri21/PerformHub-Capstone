@@ -2,11 +2,34 @@
 
 @php
     $organizer = $event->organizer;
-    $orgProfile = $organizer?->organizerProfile;
-    $orgName = $orgProfile?->organization_name ?: ($organizer?->name ?? 'Unknown Organizer');
-    $photoUrl = $orgProfile?->profilePhotoUrl()
-        ?? 'https://ui-avatars.com/api/?name='.urlencode($orgName).'&background=6346ff&color=fff&size=128';
-    $eventDate = $event->event_date ? \Illuminate\Support\Carbon::parse($event->event_date) : null;
+    $orgProfile = null;
+    $orgName = 'Unknown Organizer';
+    $photoUrl = null;
+    $eventDate = null;
+
+    if ($organizer) {
+        $orgProfile = $organizer->organizerProfile;
+    }
+
+    if ($organizer && $organizer->name) {
+        $orgName = $organizer->name;
+    }
+
+    if ($orgProfile && $orgProfile->organization_name) {
+        $orgName = $orgProfile->organization_name;
+    }
+
+    if ($orgProfile && $orgProfile->profilePhotoUrl()) {
+        $photoUrl = $orgProfile->profilePhotoUrl();
+    }
+
+    if (! $photoUrl) {
+        $photoUrl = 'https://ui-avatars.com/api/?name='.urlencode($orgName).'&background=6346ff&color=fff&size=128';
+    }
+
+    if ($event->event_date) {
+        $eventDate = \Illuminate\Support\Carbon::parse($event->event_date);
+    }
     $galleryPhotos = $event->photos;
     $photoCount = $galleryPhotos->count();
 @endphp
@@ -16,7 +39,14 @@
         <img src="{{ $photoUrl }}" alt="" class="rounded-circle event-feed-avatar flex-shrink-0" width="40" height="40">
         <div class="flex-grow-1 min-w-0">
             <p class="event-card-organizer mb-0 text-truncate">{{ $orgName }}</p>
-            <small class="text-muted">{{ $event->created_at?->diffForHumans() ?? 'Recently' }} · {{ $event->status }}</small>
+            <small class="text-muted">
+                @if($event->created_at)
+                    {{ $event->created_at->diffForHumans() }}
+                @else
+                    Recently
+                @endif
+                · {{ $event->status }}
+            </small>
         </div>
     </div>
 
@@ -34,8 +64,12 @@
             @if($event->venue)
                 <span>{{ $event->venue }}</span>
             @endif
-            @if($event->preferredCategory)
-                <span>{{ $event->preferredCategory->name }}</span>
+            @if($event->categories->isNotEmpty())
+                <span>
+                    @foreach($event->categories as $category)
+                        {{ $category->name }}@if(! $loop->last), @endif
+                    @endforeach
+                </span>
             @endif
             @if($event->budget)
                 <span>₱{{ number_format((float) $event->budget, 0) }}</span>

@@ -4,8 +4,8 @@ namespace App\Models;
 
 use App\Services\SupabaseStorageService;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use  App\Models\Category;
 
 class Event extends Model
 {
@@ -21,7 +21,6 @@ class Event extends Model
         'budget',
         'status',
         'cover_photo',
-        'preferred_category_id',
     ];
 
     public function organizer()
@@ -34,9 +33,9 @@ class Event extends Model
          return $this->belongsTo(EventType::class, 'event_type_id');
     }
 
-    public function preferredCategory()
+    public function categories(): BelongsToMany
     {
-        return $this->belongsTo(Category::class, 'preferred_category_id');
+        return $this->belongsToMany(Category::class, 'event_category');
     }
 
     public function applications()
@@ -56,6 +55,13 @@ class Event extends Model
         }
 
         return $this->photos()->exists() || $this->cover_photo !== null;
+    }
+
+    public static function completePastEvents(): int
+    {
+        return static::whereIn('status', ['Open', 'open'])
+            ->whereDate('event_date', '<', today())
+            ->update(['status' => 'Completed']);
     }
 
     public function coverPhotoUrl(): ?string

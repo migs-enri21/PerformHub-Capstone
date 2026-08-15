@@ -18,6 +18,8 @@ class EventController extends Controller
 {
     public function index(Request $request): View
     {
+        Event::completePastEvents();
+
         $query = Event::with('photos')->where('organizer_id', Auth::id());
 
         $this->applyEventFilter($query, $request->status);
@@ -48,15 +50,16 @@ class EventController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $validated = $this->validatedEvent($request);
-        unset($validated['cover_photo'], $validated['photos']);
+        $categoryIds = $validated['category_ids'];
+        unset($validated['cover_photo'], $validated['photos'], $validated['category_ids']);
 
         $event = Event::create([
             ...$validated,
             'organizer_id' => Auth::id(),
-            'preferred_category_id' => $validated['preferred_category_id'] ?? null,
             'status' => 'Open',
         ]);
 
+        $this->syncEventCategories($event, $categoryIds);
         $this->storeUploadedPhotos($event, $request);
 
         return redirect()
@@ -68,7 +71,7 @@ class EventController extends Controller
     {
         $this->authorizeEvent($event);
 
-        $event->load(['eventType', 'preferredCategory', 'photos','applications.performer.performerProfile']);
+        $event->load(['eventType', 'categories', 'photos','applications.performer.performerProfile']);
         $bookings = Booking::where('event_id', $event->id)->get()->keyBy('performer_id');
 
         return view('organizer.events.show', compact('event', 'bookings'));
@@ -78,7 +81,7 @@ class EventController extends Controller
     {
         $this->authorizeEvent($event);
 
-        $event->load('photos');
+        $event->load(['photos', 'categories']);
         $eventTypes = EventType::where('is_active', true)->orderBy('name')->get();
         $categories = Category::orderBy('name')->get();
 
@@ -90,13 +93,12 @@ class EventController extends Controller
         $this->authorizeEvent($event);
 
         $validated = $this->validatedEvent($request, true);
-        unset($validated['cover_photo'], $validated['photos']);
+        $categoryIds = $validated['category_ids'];
+        unset($validated['cover_photo'], $validated['photos'], $validated['category_ids']);
 
-        $event->update([
-            ...$validated,
-            'preferred_category_id' => $validated['preferred_category_id'] ?? null,
-        ]);
+        $event->update($validated);
 
+        $this->syncEventCategories($event, $categoryIds);
         $this->storeUploadedPhotos($event, $request);
 
         return redirect()
@@ -154,7 +156,8 @@ class EventController extends Controller
     {
         return $request->validate([
             'event_type_id' => ['required', 'exists:event_types,id'],
-            'preferred_category_id' => ['nullable', 'exists:categories,id'],
+            'category_ids' => ['required', 'array', 'min:1'],
+            'category_ids.*' => ['exists:categories,id'],
             'title' => ['required', 'string', 'max:255'],
             'cover_photo' => ['nullable', 'image', 'max:5120'],
             'photos' => ['nullable', 'array', 'max:5'],
@@ -165,7 +168,7 @@ class EventController extends Controller
             'end_time' => ['required'],
             'venue' => ['required', 'string', 'max:255'],
             'budget' => ['nullable', 'numeric'],
-            'status' => $updating ? ['required', 'in:Open,Cancelled'] : ['nullable'],
+            'status' => $this->statusRules($updating),
 
         ]);
     }
@@ -208,6 +211,20 @@ class EventController extends Controller
         if (! $event->cover_photo && $firstPath) {
             $event->update(['cover_photo' => $firstPath]);
         }
+    }
+
+    private function syncEventCategories(Event $event, array $categoryIds): void
+    {
+        $event->categories()->sync($categoryIds);
+    }
+
+    private function statusRules(bool $updating): array
+    {
+        if ($updating) {
+            return ['required', 'in:Open,Cancelled'];
+        }
+
+        return ['nullable'];
     }
 
     private function syncLegacyCoverPhoto(Event $event): void
