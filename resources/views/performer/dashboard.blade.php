@@ -47,6 +47,11 @@
     </div>
 </div>
 <div class="event-feed-section mt-4">
+    <div class="event-feed-center mb-3">
+        <h4 class="mb-1">Recommended Events</h4>
+        <p class="text-muted mb-0">Events that match your performer categories.</p>
+    </div>
+
     @if($availableEvents->isNotEmpty())
         <div class="event-feed-center">
             @foreach($availableEvents as $event)
@@ -60,7 +65,7 @@
     @else
         <div class="event-feed-center">
             <div class="event-feed-empty text-muted text-center">
-                No posts yet.
+                No open events match your performer categories yet.
             </div>
         </div>
     @endif

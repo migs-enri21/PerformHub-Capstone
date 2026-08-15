@@ -22,12 +22,13 @@ class DashboardController extends Controller
             ->count();
         $reviews = Review::where('reviewee_id', $user->id)->with('reviewer')->latest()->limit(5)->get();
 
-        $availableEvents = Event::with(['organizer.organizerProfile', 'eventType', 'preferredCategory', 'photos'])
-            ->whereRaw('LOWER(status) = ?', ['open'])
-            ->whereDate('event_date', '>=', now()->toDateString())
-            ->orderBy('event_date')
-            ->orderBy('start_time')
-            ->get();
+        $categoryIds = [];
+
+        if ($profile) {
+            $categoryIds = $profile->categories()->pluck('categories.id')->all();
+        }
+
+        $availableEvents = $this->getRecommendedEvents($categoryIds);
 
         foreach ($availableEvents as $event) {
             if ($event->cover_photo && $event->photos->isEmpty()) {
@@ -65,5 +66,18 @@ class DashboardController extends Controller
     public function clickMe(): View
     {
         return view('performer.click-me');
+    }
+
+    private function getRecommendedEvents(array $categoryIds)
+    {
+        return Event::with(['organizer.organizerProfile', 'eventType', 'categories', 'photos'])
+            ->whereIn('status', ['Open', 'open'])
+            ->whereDate('event_date', '>=', now()->toDateString())
+            ->whereHas('categories', function ($query) use ($categoryIds) {
+                $query->whereIn('categories.id', $categoryIds);
+            })
+            ->orderBy('event_date')
+            ->orderBy('start_time')
+            ->get();
     }
 }

@@ -30,6 +30,9 @@
     <h5 class="fw-semibold mb-3">Event Details</h5>
     <p><strong>Date:</strong> {{ $booking->event_date->format('F d, Y') }} @if($booking->event_time) at {{ \Carbon\Carbon::parse($booking->event_time)->format('g:i A') }}@endif</p>
     <p><strong>Venue:</strong> {{ $booking->venue ?? 'TBD' }}</p>
+    @if($booking->budget !== null)
+        <p><strong>Budget Offer:</strong> ₱{{ number_format((float) $booking->budget, 2) }}</p>
+    @endif
     <p><strong>Requirements:</strong> {{ $booking->requirements ?? 'None specified' }}</p>
     <p class="mb-0"><strong>Organizer:</strong> {{ $booking->organizer->organizerProfile?->organization_name ?? $booking->organizer->name }}</p>
 </div>

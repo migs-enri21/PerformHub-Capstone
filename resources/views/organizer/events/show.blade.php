@@ -67,10 +67,14 @@
                     <strong class="event-detail-label d-block mb-1">Event Type</strong>
                     <span class="text-muted">{{ $eventTypeName }}</span>
                 </div>
-                @if($event->preferredCategory)
+                @if($event->categories->isNotEmpty())
                     <div class="col-md-6">
-                        <strong class="event-detail-label d-block mb-1">Preferred Category</strong>
-                        <span class="text-muted">{{ $event->preferredCategory->name }}</span>
+                        <strong class="event-detail-label d-block mb-1">Required Performer Categories</strong>
+                        <span class="text-muted">
+                            @foreach($event->categories as $category)
+                                {{ $category->name }}@if(! $loop->last), @endif
+                            @endforeach
+                        </span>
                     </div>
                 @endif
                 @if($event->budget)

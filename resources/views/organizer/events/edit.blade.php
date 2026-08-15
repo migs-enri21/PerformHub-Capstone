@@ -7,6 +7,13 @@
 @endsection
 
 @section('content')
+@php
+    $selectedCategoryIds = old('category_ids');
+
+    if ($selectedCategoryIds === null) {
+        $selectedCategoryIds = $event->categories->pluck('id')->all();
+    }
+@endphp
 <div class="container">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2 class="fw-bold mb-0">Edit Event</h2>
@@ -74,16 +81,17 @@
                 </div>
 
                 <div class="col-md-6 mb-3">
-                    <label class="form-label">Preferred Performer Category</label>
-                    <select name="preferred_category_id" class="form-select @error('preferred_category_id') is-invalid @enderror">
-                        <option value="">Select Performer Category</option>
+                    <label class="form-label">Required Performer Categories</label>
+                    <div class="border rounded p-2 @error('category_ids') border-danger @enderror">
                         @foreach($categories as $category)
-                            <option value="{{ $category->id }}" @selected((string) old('preferred_category_id', $event->preferred_category_id) === (string) $category->id)>
-                                {{ $category->name }}
-                            </option>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="category_ids[]" value="{{ $category->id }}" id="category-{{ $category->id }}" @checked(in_array($category->id, $selectedCategoryIds))>
+                                <label class="form-check-label" for="category-{{ $category->id }}">{{ $category->name }}</label>
+                            </div>
                         @endforeach
-                    </select>
-                    @error('preferred_category_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
+                    <small class="text-muted">Select all performer categories needed for this event.</small>
+                    @error('category_ids')<div class="text-danger small">{{ $message }}</div>@enderror
                 </div>
             </div>
 

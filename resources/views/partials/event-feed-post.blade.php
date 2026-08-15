@@ -64,8 +64,12 @@
             @if($event->venue)
                 <span>{{ $event->venue }}</span>
             @endif
-            @if($event->preferredCategory)
-                <span>{{ $event->preferredCategory->name }}</span>
+            @if($event->categories->isNotEmpty())
+                <span>
+                    @foreach($event->categories as $category)
+                        {{ $category->name }}@if(! $loop->last), @endif
+                    @endforeach
+                </span>
             @endif
             @if($event->budget)
                 <span>₱{{ number_format((float) $event->budget, 0) }}</span>
