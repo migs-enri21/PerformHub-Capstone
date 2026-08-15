@@ -30,10 +30,10 @@
             <div class="col-lg-7">
                 <h1 class="display-3 fw-bold mb-4">Discover Talent.<br>Book the Perfect Performance.</h1>
                 <p class="lead text-white-50 mb-4">PerformHub connects talented performers with event organizers for seamless entertainment booking, auditions, and event coordination.</p>
-                <div class="d-flex flex-wrap gap-3">
+                <div class="d-flex flex-wrap gap-3 hero-cta-group">
                     @guest
-                        <a href="{{ route('register', ['role' => 'organizer']) }}" class="btn ph-btn-primary btn-lg">Find Performers</a>
-                        <a href="{{ route('register', ['role' => 'performer']) }}" class="btn ph-btn-outline btn-lg text-white">Join as Performer</a>
+                        <a href="{{ route('register', ['role' => 'organizer']) }}" class="btn ph-btn-primary btn-lg hero-cta-primary">Find Performers</a>
+                        <a href="{{ route('register', ['role' => 'performer']) }}" class="btn btn-lg hero-join-btn">Join as Performer</a>
                     @else
                         <a href="{{ auth()->user()->dashboardRoute() }}" class="btn ph-btn-primary btn-lg">Go to Dashboard</a>
                     @endguest
@@ -42,6 +42,46 @@
         </div>
     </div>
 </section>
+
+@push('styles')
+<style>
+    .hero-cta-group {
+        margin-top: 0.5rem;
+    }
+
+    .hero-cta-primary,
+    .hero-join-btn {
+        border-radius: 14px;
+        font-weight: 700;
+        padding: 1rem 1.75rem;
+        min-width: 190px;
+        transition: all 0.2s ease;
+    }
+
+    .hero-join-btn {
+        background: rgba(255, 255, 255, 0.92);
+        border: 1px solid rgba(255, 255, 255, 0.8);
+        color: #1e1b2e !important;
+        box-shadow: 0 12px 28px rgba(17, 16, 28, 0.18);
+    }
+
+    .hero-join-btn:hover,
+    .hero-join-btn:focus {
+        background: #ffffff;
+        color: #1e1b2e !important;
+        border-color: #ffffff;
+        transform: translateY(-1px);
+    }
+
+    @media (max-width: 767px) {
+        .hero-cta-primary,
+        .hero-join-btn {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+</style>
+@endpush
 
 <section id="categories" class="py-5">
     <div class="container py-4">

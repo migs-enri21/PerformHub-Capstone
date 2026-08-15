@@ -21,101 +21,21 @@
 <div class="ph-card p-4">
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h5 class="fw-semibold mb-0">Recent Bookings</h5>
-        
+        <a href="{{ route('admin.monitoring.bookings') }}" class="btn btn-sm btn-outline-primary">View All Bookings</a>
     </div>
 
-  {{-- <div id="dashboardFilters" class="mb-3" style="display:block !important;">
-        <form class="row g-2 align-items-end">
-            <div class="col-md-4">
-                <label class="form-label small text-muted">Search</label>
-                <input id="dashboardSearch" type="text" class="form-control form-control-sm" placeholder="Event, organizer, performer">
+    <div class="list-group list-group-flush">
+        @forelse($recentBookings as $b)
+            <div class="list-group-item px-0 d-flex justify-content-between align-items-center border-0 border-bottom">
+                <div>
+                    <div class="fw-semibold">{{ $b->event_name }}</div>
+                    <small class="text-muted">{{ $b->organizer?->fullName() ?? '—' }} · {{ $b->performer?->fullName() ?? '—' }}</small>
+                </div>
+                <span class="badge {{ $b->statusBadgeClass() }}">{{ $b->statusLabel() }}</span>
             </div>
-            <div class="col-md-3">
-                <label class="form-label small text-muted">Status</label>
-                <select id="dashboardStatus" class="form-select form-select-sm">
-                    <option value="">All</option>
-                    <option value="pending">Pending</option>
-                    <option value="accepted">Accepted</option>
-                    <option value="rejected">Rejected</option>
-                    <option value="completed">Completed</option>
-                </select>
-            </div>
-            <div class="col-md-3">
-                <label class="form-label small text-muted">Organizer</label>
-                <select id="dashboardOrganizer" class="form-select form-select-sm">
-                    <option value="">All Organizers</option>
-                    @foreach($organizersForFilter as $org)
-                        <option value="{{ strtolower($org->name) }}">{{ $org->name }}</option>
-                    @endforeach
-                </select>
-            </div>
-            <div class="col-md-2 text-end">
-                <button type="button" id="dashboardResetFilters" class="btn btn-outline-secondary btn-sm">Reset</button>
-            </div>
-            --}}
-        </form> 
+        @empty
+            <div class="text-muted py-3">No recent bookings yet.</div>
+        @endforelse
     </div>
-
-    <table class="table table-dark table-sm mb-0">
-        <thead><tr><th>Event</th><th>Organizer</th><th>Performer</th><th>Status</th></tr></thead>
-        <tbody>
-            @foreach($recentBookings as $b)
-                <tr>
-                    <td>{{ $b->event_name }}</td>
-                    <td>{{ $b->organizer->name }}</td>
-                    <td>{{ $b->performer->name }}</td>
-                    <td><span class="badge {{ $b->statusBadgeClass() }}">{{ $b->statusLabel() }}</span></td>
-                </tr>
-            @endforeach
-        </tbody>
-    </table>
 </div>
-@push('scripts')
-<script>
-    (function(){
-        const toggleBtn = document.getElementById('dashboardToggleFilters');
-        const resetBtn = document.getElementById('dashboardResetFilters');
-        const filters = document.getElementById('dashboardFilters');
-        const applyBtn = document.getElementById('dashboardApplyFilters');
-        const searchInput = document.getElementById('dashboardSearch');
-        const statusSelect = document.getElementById('dashboardStatus');
-        const organizerSelect = document.getElementById('dashboardOrganizer');
-        const table = document.querySelector('.ph-card table tbody');
-
-        if(toggleBtn) toggleBtn.addEventListener('click', () => {
-            filters.style.display = filters.style.display === 'none' ? 'block' : 'none';
-        });
-
-        function resetFilters(){
-            if(searchInput) searchInput.value = '';
-            if(statusSelect) statusSelect.value = '';
-            if(organizerSelect) organizerSelect.value = '';
-            filterRows();
-        }
-
-        if(resetBtn) resetBtn.addEventListener('click', resetFilters);
-        if(applyBtn) applyBtn.addEventListener('click', filterRows);
-
-        if(searchInput) searchInput.addEventListener('input', filterRows);
-        if(statusSelect) statusSelect.addEventListener('change', filterRows);
-        if(organizerSelect) organizerSelect.addEventListener('change', filterRows);
-
-        function filterRows(){
-            const q = searchInput ? searchInput.value.trim().toLowerCase() : '';
-            const status = statusSelect ? statusSelect.value.toLowerCase() : '';
-            const organizer = organizerSelect ? organizerSelect.value.toLowerCase() : '';
-
-            table.querySelectorAll('tr').forEach(tr => {
-                const cols = Array.from(tr.querySelectorAll('td')).map(td => td.textContent.trim().toLowerCase());
-                const matchesQuery = q === '' || cols.some(c => c.includes(q));
-                const matchesStatus = status === '' || cols.some(c => c.includes(status));
-                const matchesOrganizer = organizer === '' || cols.some(c => c.includes(organizer));
-                tr.style.display = (matchesQuery && matchesStatus && matchesOrganizer) ? '' : 'none';
-            });
-        }
-        // initial filter pass so table reflects any inputs on load
-        filterRows();
-    })();
-</script>
-@endpush
 @endsection

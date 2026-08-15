@@ -19,75 +19,23 @@
 <div class="ph-card p-4">
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h5 class="fw-semibold mb-0">Recent Bookings</h5>
-        
+        <a href="<?php echo e(route('admin.monitoring.bookings')); ?>" class="btn btn-sm btn-outline-primary">View All Bookings</a>
     </div>
 
-  
-        </form> 
+    <div class="list-group list-group-flush">
+        <?php $__empty_1 = true; $__currentLoopData = $recentBookings; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $b): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+            <div class="list-group-item px-0 d-flex justify-content-between align-items-center border-0 border-bottom">
+                <div>
+                    <div class="fw-semibold"><?php echo e($b->event_name); ?></div>
+                    <small class="text-muted"><?php echo e($b->organizer?->fullName() ?? '—'); ?> · <?php echo e($b->performer?->fullName() ?? '—'); ?></small>
+                </div>
+                <span class="badge <?php echo e($b->statusBadgeClass()); ?>"><?php echo e($b->statusLabel()); ?></span>
+            </div>
+        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
+            <div class="text-muted py-3">No recent bookings yet.</div>
+        <?php endif; ?>
     </div>
-
-    <table class="table table-dark table-sm mb-0">
-        <thead><tr><th>Event</th><th>Organizer</th><th>Performer</th><th>Status</th></tr></thead>
-        <tbody>
-            <?php $__currentLoopData = $recentBookings; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $b): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                <tr>
-                    <td><?php echo e($b->event_name); ?></td>
-                    <td><?php echo e($b->organizer->name); ?></td>
-                    <td><?php echo e($b->performer->name); ?></td>
-                    <td><span class="badge <?php echo e($b->statusBadgeClass()); ?>"><?php echo e($b->statusLabel()); ?></span></td>
-                </tr>
-            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-        </tbody>
-    </table>
 </div>
-<?php $__env->startPush('scripts'); ?>
-<script>
-    (function(){
-        const toggleBtn = document.getElementById('dashboardToggleFilters');
-        const resetBtn = document.getElementById('dashboardResetFilters');
-        const filters = document.getElementById('dashboardFilters');
-        const applyBtn = document.getElementById('dashboardApplyFilters');
-        const searchInput = document.getElementById('dashboardSearch');
-        const statusSelect = document.getElementById('dashboardStatus');
-        const organizerSelect = document.getElementById('dashboardOrganizer');
-        const table = document.querySelector('.ph-card table tbody');
-
-        if(toggleBtn) toggleBtn.addEventListener('click', () => {
-            filters.style.display = filters.style.display === 'none' ? 'block' : 'none';
-        });
-
-        function resetFilters(){
-            if(searchInput) searchInput.value = '';
-            if(statusSelect) statusSelect.value = '';
-            if(organizerSelect) organizerSelect.value = '';
-            filterRows();
-        }
-
-        if(resetBtn) resetBtn.addEventListener('click', resetFilters);
-        if(applyBtn) applyBtn.addEventListener('click', filterRows);
-
-        if(searchInput) searchInput.addEventListener('input', filterRows);
-        if(statusSelect) statusSelect.addEventListener('change', filterRows);
-        if(organizerSelect) organizerSelect.addEventListener('change', filterRows);
-
-        function filterRows(){
-            const q = searchInput ? searchInput.value.trim().toLowerCase() : '';
-            const status = statusSelect ? statusSelect.value.toLowerCase() : '';
-            const organizer = organizerSelect ? organizerSelect.value.toLowerCase() : '';
-
-            table.querySelectorAll('tr').forEach(tr => {
-                const cols = Array.from(tr.querySelectorAll('td')).map(td => td.textContent.trim().toLowerCase());
-                const matchesQuery = q === '' || cols.some(c => c.includes(q));
-                const matchesStatus = status === '' || cols.some(c => c.includes(status));
-                const matchesOrganizer = organizer === '' || cols.some(c => c.includes(organizer));
-                tr.style.display = (matchesQuery && matchesStatus && matchesOrganizer) ? '' : 'none';
-            });
-        }
-        // initial filter pass so table reflects any inputs on load
-        filterRows();
-    })();
-</script>
-<?php $__env->stopPush(); ?>
 <?php $__env->stopSection(); ?>
 
 <?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH D:\GitHub\PerformHub-Capstone\resources\views/admin/dashboard.blade.php ENDPATH**/ ?>

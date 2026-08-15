@@ -11,39 +11,12 @@
 
 <div class="ph-card p-4 mb-4">
     <form method="GET" action="<?php echo e(route('admin.events.index')); ?>" class="row g-3 align-items-end">
-        <div class="col-md-3">
-            <label class="form-label">Search</label>
-            <input type="text" name="search" class="form-control ph-input" placeholder="Event name, venue, requirements" value="<?php echo e(request('search')); ?>">
+        <div class="col-md-8">
+            <label class="form-label">Search User</label>
+            <input type="text" name="user_search" class="form-control ph-input" placeholder="Erico Blaza" value="<?php echo e(request('user_search')); ?>">
         </div>
-        <div class="col-md-2">
-            <label class="form-label">Status</label>
-            <select name="status" class="form-select ph-input">
-                <option value="">All</option>
-                <option value="pending" <?php if(request('status') === 'pending'): echo 'selected'; endif; ?>>Pending</option>
-                <option value="accepted" <?php if(request('status') === 'accepted'): echo 'selected'; endif; ?>>Accepted</option>
-                <option value="rejected" <?php if(request('status') === 'rejected'): echo 'selected'; endif; ?>>Rejected</option>
-                <option value="completed" <?php if(request('status') === 'completed'): echo 'selected'; endif; ?>>Completed</option>
-            </select>
-        </div>
-        <div class="col-md-3">
-            <label class="form-label">Organizer</label>
-            <select name="organizer_id" class="form-select ph-input">
-                <option value="">All Organizers</option>
-                <?php $__currentLoopData = $organizers; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $organizer): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                    <option value="<?php echo e($organizer->id); ?>" <?php if(request('organizer_id') == $organizer->id): echo 'selected'; endif; ?>><?php echo e($organizer->fullName()); ?></option>
-                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-            </select>
-        </div>
-        <div class="col-md-2">
-            <label class="form-label">From</label>
-            <input type="date" name="date_from" class="form-control ph-input" value="<?php echo e(request('date_from')); ?>">
-        </div>
-        <div class="col-md-2">
-            <label class="form-label">To</label>
-            <input type="date" name="date_to" class="form-control ph-input" value="<?php echo e(request('date_to')); ?>">
-        </div>
-        <div class="col-12 d-flex gap-2">
-            <button type="submit" class="btn ph-btn-primary">Filter</button>
+        <div class="col-md-4 d-flex gap-2">
+            <button type="submit" class="btn ph-btn-primary">Search</button>
             <a href="<?php echo e(route('admin.events.index')); ?>" class="btn btn-outline-secondary">Reset</a>
         </div>
     </form>
@@ -53,38 +26,29 @@
     <table class="table table-dark table-hover mb-0">
         <thead>
             <tr>
-                <th>Event</th>
-                <th>Organizer</th>
-                <th>Performer</th>
                 <th>Date</th>
+                <th>User</th>
+                <th>Activity</th>
+                <th>Event</th>
                 <th>Status</th>
-                <th>Created</th>
-                <th>Actions</th>
             </tr>
         </thead>
         <tbody>
             <?php $__empty_1 = true; $__currentLoopData = $events; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $event): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+                <?php
+                    $userName = $event->performer?->fullName() ?? $event->organizer?->fullName() ?? '—';
+                    $activity = $event->status === 'accepted' ? 'Booking Accepted' : ($event->status === 'rejected' ? 'Booking Rejected' : 'Booking Updated');
+                ?>
                 <tr>
-                    <td>
-                        <strong><?php echo e($event->event_name); ?></strong>
-                        <?php if($event->venue): ?><div class="small text-muted"><?php echo e($event->venue); ?></div><?php endif; ?>
-                    </td>
-                    <td><?php echo e($event->organizer?->fullName() ?? '—'); ?></td>
-                    <td><?php echo e($event->performer?->fullName() ?? '—'); ?></td>
-                    <td>
-                        <?php echo e($event->event_date->format('M d, Y')); ?>
-
-                        <?php if($event->event_time): ?><div class="small text-muted"><?php echo e(\Carbon\Carbon::parse($event->event_time)->format('g:i A')); ?></div><?php endif; ?>
-                    </td>
+                    <td><?php echo e($event->created_at->format('M d, Y')); ?></td>
+                    <td><?php echo e($userName); ?></td>
+                    <td><?php echo e($activity); ?></td>
+                    <td><?php echo e($event->event_name); ?></td>
                     <td><span class="badge <?php echo e($event->statusBadgeClass()); ?>"><?php echo e($event->statusLabel()); ?></span></td>
-                    <td><?php echo e($event->created_at->format('M d, Y h:i A')); ?></td>
-                    <td>
-                        <a href="<?php echo e(route('admin.events.show', $event)); ?>" class="btn btn-sm btn-outline-info">View</a>
-                    </td>
                 </tr>
             <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
                 <tr>
-                    <td colspan="7" class="text-center text-muted py-5">No events found.</td>
+                    <td colspan="5" class="text-center text-muted py-5">No user activity found.</td>
                 </tr>
             <?php endif; ?>
         </tbody>
