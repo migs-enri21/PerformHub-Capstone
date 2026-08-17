@@ -19,7 +19,7 @@
 
     <div class="mb-3">
         <label class="form-label text-muted small">Region</label>
-        <select name="region" class="form-select ph-input ph-location-region" {{ $required ? 'required' : '' }}>
+        <select name="region" class="form-select ph-input ph-location-region" @if($required) required @endif>
             <option value="">Select region</option>
             @foreach(PhilippineLocations::regions() as $regionName)
                 <option value="{{ $regionName }}" @selected($selectedRegion === $regionName)>{{ $regionName }}</option>
@@ -29,14 +29,14 @@
 
     <div class="mb-3">
         <label class="form-label text-muted small">City / Municipality</label>
-        <select name="city" class="form-select ph-input ph-location-city" {{ $required ? 'required' : '' }} disabled>
+        <select name="city" class="form-select ph-input ph-location-city" @if($required) required @endif disabled>
             <option value="">Select city / municipality</option>
         </select>
     </div>
 
-    <div class="{{ $required ? 'mb-0' : 'mb-3' }}">
+    <div @if($required) class="mb-0" @else class="mb-3" @endif>
         <label class="form-label text-muted small">Barangay</label>
-        <select name="barangay" class="form-select ph-input ph-location-barangay" {{ $required ? 'required' : '' }} disabled>
+        <select name="barangay" class="form-select ph-input ph-location-barangay" @if($required) required @endif disabled>
             <option value="">Select barangay</option>
         </select>
     </div>
@@ -75,7 +75,11 @@
 
             function syncCities(preserveCity = '', preserveBarangay = '') {
                 const region = regionSelect.value;
-                const cities = region && data[region] ? Object.keys(data[region]) : [];
+                let cities = [];
+
+                if (region && data[region]) {
+                    cities = Object.keys(data[region]);
+                }
                 fillSelect(citySelect, cities, 'Select city / municipality', preserveCity);
                 syncBarangays(preserveBarangay);
             }
@@ -83,9 +87,11 @@
             function syncBarangays(preserveBarangay = '') {
                 const region = regionSelect.value;
                 const city = citySelect.value;
-                const barangays = region && city && data[region] && data[region][city]
-                    ? data[region][city]
-                    : [];
+                let barangays = [];
+
+                if (region && city && data[region] && data[region][city]) {
+                    barangays = data[region][city];
+                }
                 fillSelect(barangaySelect, barangays, 'Select barangay', preserveBarangay);
             }
 

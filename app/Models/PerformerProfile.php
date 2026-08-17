@@ -122,9 +122,15 @@ class PerformerProfile extends Model
 
     public function averageRating(): float
     {
-        return (float) Review::query()
+        $average = Review::query()
             ->where('reviewee_id', $this->user_id)
-            ->avg('rating') ?? 0;
+            ->avg('rating');
+
+        if ($average === null) {
+            return 0;
+        }
+
+        return (float) $average;
     }
 
     public function socialLinks(): array
@@ -191,7 +197,11 @@ class PerformerProfile extends Model
             return $this->city.', Philippines';
         }
 
-        return $this->location ?: 'Philippines';
+        if (! $this->location) {
+            return 'Philippines';
+        }
+
+        return $this->location;
     }
 
     public function profilePhotoUrl(): ?string

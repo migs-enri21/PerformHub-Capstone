@@ -69,12 +69,20 @@ class EventController extends Controller
 
     public function show(Event $event): View
     {
+        Event::completePastEvents();
+        $event->refresh();
+
         $this->authorizeEvent($event);
 
         $event->load(['eventType', 'categories', 'photos','applications.performer.performerProfile']);
         $bookings = Booking::where('event_id', $event->id)->get()->keyBy('performer_id');
+        $canCompleteEvent = false;
 
-        return view('organizer.events.show', compact('event', 'bookings'));
+        if (strtolower($event->status) === 'open' && $event->event_date <= now()->toDateString()) {
+            $canCompleteEvent = true;
+        }
+
+        return view('organizer.events.show', compact('event', 'bookings', 'canCompleteEvent'));
     }
 
     public function edit(Event $event): View
@@ -116,6 +124,27 @@ class EventController extends Controller
         return redirect()
             ->route('organizer.events.index')
             ->with('success', 'Event deleted successfully.');
+    }
+
+    public function complete(Event $event): RedirectResponse
+    {
+        $this->authorizeEvent($event);
+
+        if (strtolower($event->status) === 'completed') {
+            return back()->with('info', 'This event is already completed.');
+        }
+
+        if (strtolower($event->status) === 'cancelled') {
+            return back()->with('warning', 'A cancelled event cannot be marked as completed.');
+        }
+
+        if ($event->event_date > now()->toDateString()) {
+            return back()->with('warning', 'You can mark the event as completed on its scheduled date or after it ends.');
+        }
+
+        $event->update(['status' => 'Completed']);
+
+        return back()->with('success', 'Event marked as completed.');
     }
 
     private function authorizeEvent(Event $event): void

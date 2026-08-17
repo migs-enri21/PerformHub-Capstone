@@ -88,7 +88,6 @@ Route::middleware(['auth', 'role:organizer'])->prefix('organizer')->name('organi
     Route::put('/profile', [OrganizerProfileController::class, 'update'])->name('profile.update');
     Route::get('/performers', [PerformerSearchController::class, 'index'])->name('performers.index');
     Route::get('/performers/{performer}', [PerformerSearchController::class, 'show'])->name('performers.show');
-    Route::get('/bookings', [OrganizerBookingController::class, 'index'])->name('bookings.index');
     Route::get('/bookings/{booking}', [OrganizerBookingController::class, 'show'])->name('bookings.show');
     Route::get('/events', [OrganizerEventController::class, 'index'])->name('events.index');
     Route::get('/events/create', [OrganizerEventController::class, 'create'])->name('events.create');
@@ -96,6 +95,7 @@ Route::middleware(['auth', 'role:organizer'])->prefix('organizer')->name('organi
     Route::get('/events/{event}', [OrganizerEventController::class, 'show'])->name('events.show');
     Route::get('/events/{event}/edit', [OrganizerEventController::class, 'edit'])->name('events.edit');
     Route::put('/events/{event}', [OrganizerEventController::class, 'update'])->name('events.update');
+    Route::patch('/events/{event}/complete', [OrganizerEventController::class, 'complete'])->name('events.complete');
     Route::delete('/events/{event}', [OrganizerEventController::class, 'destroy'])->name('events.destroy');
     Route::get('/calendar', [CalendarController::class, 'index'])->name('calendar.index');
 

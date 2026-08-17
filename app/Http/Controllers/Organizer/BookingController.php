@@ -17,16 +17,6 @@ use Illuminate\View\View;
 
 class BookingController extends Controller
 {
-    public function index(): View
-    {
-        $bookings = Booking::where('organizer_id', Auth::id())
-            ->with('performer.performerProfile')
-            ->latest()
-            ->paginate(10);
-
-        return view('organizer.bookings.index', compact('bookings'));
-    }
-
     public function create(Request $request, PerformerProfile $performer): View
     {
         $events = Event::where('organizer_id', Auth::id())->latest()->get();
