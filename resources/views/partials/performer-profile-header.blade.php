@@ -11,7 +11,6 @@
     $bannerStyle = $performer->bannerPhotoUrl()
         ? "background-image: url('".$performer->bannerPhotoUrl()."'); background-position: center ".($performer->banner_position_y ?? 50)."%;"
         : '';
-    $rating = $performer->averageRating();
     $subtitle = collect([$performer->categoryNames(), $performer->shortLocation()])->filter()->implode(' · ');
     $tags = $performer->displayTags();
 @endphp
@@ -75,13 +74,6 @@
                                 </a>
                             @endif
                         </div>
-                    @endif
-                </div>
-                <div class="d-flex flex-wrap align-items-center gap-2">
-                    @if($rating > 0)
-                        <span class="profile-rating-pill">
-                            <i class="fas fa-star me-1"></i> {{ number_format($rating, 1) }}
-                        </span>
                     @endif
                 </div>
             </div>

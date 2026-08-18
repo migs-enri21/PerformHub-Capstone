@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Models\Booking;
 use App\Models\Event;
 use App\Models\EventApplication;
-use App\Models\Review;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 
@@ -20,7 +19,6 @@ class DashboardController extends Controller
         $upcomingBookings = Booking::where('performer_id', $user->id)
             ->where('status', 'accepted')
             ->count();
-        $reviews = Review::where('reviewee_id', $user->id)->with('reviewer')->latest()->limit(5)->get();
 
         $categoryIds = [];
 
@@ -57,7 +55,6 @@ class DashboardController extends Controller
             'profile',
             'pendingBookings',
             'upcomingBookings',
-            'reviews',
             'availableEvents',
             'applicationStatuses',
             'pendingBookingUrls',

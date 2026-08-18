@@ -63,7 +63,7 @@ class PerformerProfile extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function categories(): BelongsToMany
+    public function categories(): BelongsToMany 
     {
         return $this->belongsToMany(Category::class, 'performer_profile_category');
     }
@@ -118,13 +118,6 @@ class PerformerProfile extends Model
         }
 
         return (bool) $schedule->is_available;
-    }
-
-    public function averageRating(): float
-    {
-        return (float) Review::query()
-            ->where('reviewee_id', $this->user_id)
-            ->avg('rating') ?? 0;
     }
 
     public function socialLinks(): array
