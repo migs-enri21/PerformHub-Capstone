@@ -22,6 +22,13 @@
             <p class="text-muted mb-0">{{ ucfirst($event->status) }} event</p>
         </div>
         <div class="d-flex gap-2">
+            @if($canCompleteEvent)
+                <form method="POST" action="{{ route('organizer.events.complete', $event) }}" onsubmit="return confirm('Mark this event as completed? This action means the event has finished.');">
+                    @csrf
+                    @method('PATCH')
+                    <button type="submit" class="btn btn-success btn-sm">Mark Event Completed</button>
+                </form>
+            @endif
             <a href="{{ route('organizer.events.edit', $event) }}" class="btn ph-btn-primary btn-sm">Edit</a>
             <a href="{{ route('organizer.events.index') }}" class="btn ph-btn-secondary btn-sm">Back</a>
         </div>

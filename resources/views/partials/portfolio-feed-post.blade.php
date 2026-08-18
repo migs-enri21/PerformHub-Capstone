@@ -8,9 +8,23 @@
 @php
     $first = $items->first();
     $postedAt = $first->created_at;
-    $photoUrl = $performer->profilePhotoUrl()
-        ?? 'https://ui-avatars.com/api/?name='.urlencode($performer->stage_name).'&background=6346ff&color=fff&size=128';
-    $profileUrl = $isOwn ? route('performer.profile.show') : route('talent.show', $performer);
+    $photoUrl = $performer->profilePhotoUrl();
+
+    if ($photoUrl === null) {
+        $photoUrl = 'https://ui-avatars.com/api/?name='.urlencode($performer->stage_name).'&background=6346ff&color=fff&size=128';
+    }
+
+    if ($isOwn) {
+        $profileUrl = route('performer.profile.show');
+    } else {
+        $profileUrl = route('talent.show', $performer);
+    }
+
+    $categoryNames = $performer->categoryNames();
+
+    if (! $categoryNames) {
+        $categoryNames = 'Performer';
+    }
 @endphp
 
 <article class="portfolio-feed-post">
@@ -28,7 +42,7 @@
                 @endif
             </div>
             <small class="text-muted d-block">
-                {{ $performer->categoryNames() ?: 'Performer' }}
+                {{ $categoryNames }}
             </small>
             <small class="text-muted">{{ $postedAt->diffForHumans() }}</small>
         </div>

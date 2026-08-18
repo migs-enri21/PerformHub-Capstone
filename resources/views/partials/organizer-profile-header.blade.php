@@ -4,12 +4,32 @@
 ])
 
 @php
-    $photoUrl = $organizer->profilePhotoUrl()
-        ?? 'https://ui-avatars.com/api/?name='.urlencode($organizer->organization_name).'&background=6346ff&color=fff&size=256';
-    $bannerStyle = $organizer->bannerPhotoUrl()
-        ? "background-image: url('".$organizer->bannerPhotoUrl()."'); background-position: center ".($organizer->banner_position_y ?? 50)."%;"
-        : '';
-    $subtitle = collect([$organizer->organization_type ? ucfirst($organizer->organization_type) : null, $organizer->shortLocation()])->filter()->implode(' · ');
+    $photoUrl = $organizer->profilePhotoUrl();
+
+    if ($photoUrl === null) {
+        $photoUrl = 'https://ui-avatars.com/api/?name='.urlencode($organizer->organization_name).'&background=6346ff&color=fff&size=256';
+    }
+
+    $bannerStyle = '';
+    $bannerPhotoUrl = $organizer->bannerPhotoUrl();
+
+    if ($bannerPhotoUrl) {
+        $bannerPosition = $organizer->banner_position_y;
+
+        if ($bannerPosition === null) {
+            $bannerPosition = 50;
+        }
+
+        $bannerStyle = "background-image: url('".$bannerPhotoUrl."'); background-position: center ".$bannerPosition."%;";
+    }
+
+    $organizationType = null;
+
+    if ($organizer->organization_type) {
+        $organizationType = ucfirst($organizer->organization_type);
+    }
+
+    $subtitle = collect([$organizationType, $organizer->shortLocation()])->filter()->implode(' | ');
 @endphp
 
 <div class="performer-profile-card ph-card mb-4">
@@ -40,24 +60,28 @@
             </div>
 
             <div class="flex-grow-1 min-w-0">
-            <div class="d-flex flex-column flex-lg-row align-items-lg-start justify-content-lg-between gap-3 mb-2">
-                <div>
-                    <div class="d-flex align-items-center gap-2 flex-wrap mb-1">
-                        <h2 class="fw-bold mb-0 performer-profile-name">{{ $organizer->organization_name }}</h2>
-                        @if(optional($organizer->user)->is_verified)
-                            <span class="profile-verified-pill">
-                                <i class="fas fa-circle-check me-1"></i> Verified
-                            </span>
+                <div class="d-flex flex-column flex-lg-row align-items-lg-start justify-content-lg-between gap-3 mb-2">
+                    <div>
+                        <div class="d-flex align-items-center gap-2 flex-wrap mb-1">
+                            <h2 class="fw-bold mb-0 performer-profile-name">{{ $organizer->organization_name }}</h2>
+                            @if(optional($organizer->user)->is_verified)
+                                <span class="profile-verified-pill">
+                                    <i class="fas fa-circle-check me-1"></i> Verified
+                                </span>
+                            @endif
+                        </div>
+                        @if($subtitle)
+                            <p class="text-muted mb-0 performer-profile-subtitle">{{ $subtitle }}</p>
                         @endif
                     </div>
-                    @if($subtitle)
-                        <p class="text-muted mb-0 performer-profile-subtitle">{{ $subtitle }}</p>
-                    @endif
                 </div>
-            </div>
 
                 <p class="performer-profile-bio mb-0">
-                    {{ $organizer->bio ?: 'Add a bio to tell performers about your organization.' }}
+                    @if($organizer->bio)
+                        {{ $organizer->bio }}
+                    @else
+                        Add a bio to tell performers about your organization.
+                    @endif
                 </p>
             </div>
         </div>

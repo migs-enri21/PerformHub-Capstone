@@ -120,6 +120,19 @@ class PerformerProfile extends Model
         return (bool) $schedule->is_available;
     }
 
+    public function averageRating(): float
+    {
+        $average = Review::query()
+            ->where('reviewee_id', $this->user_id)
+            ->avg('rating');
+
+        if ($average === null) {
+            return 0;
+        }
+
+        return (float) $average;
+    }
+
     public function socialLinks(): array
     {
         return array_filter([
@@ -184,7 +197,11 @@ class PerformerProfile extends Model
             return $this->city.', Philippines';
         }
 
-        return $this->location ?: 'Philippines';
+        if (! $this->location) {
+            return 'Philippines';
+        }
+
+        return $this->location;
     }
 
     public function profilePhotoUrl(): ?string

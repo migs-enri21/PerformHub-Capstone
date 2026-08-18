@@ -9,7 +9,11 @@
         $count === 4 => 'portfolio-collage--4',
         default => 'portfolio-collage--many',
     };
-    $visible = $count > 4 ? $photos->take(4) : $photos;
+    $visible = $photos;
+
+    if ($count > 4) {
+        $visible = $photos->take(4);
+    }
     $hasMore = $count > 4;
     $modalId = 'event-gallery-'.$photos->first()->id;
 @endphp

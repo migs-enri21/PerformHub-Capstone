@@ -12,8 +12,18 @@
         $count === 4 => 'portfolio-collage--4',
         default => 'portfolio-collage--many',
     };
-    $visible = $count > 4 ? $items->take(4) : $items;
+    $visible = $items;
+
+    if ($count > 4) {
+        $visible = $items->take(4);
+    }
+
     $caption = $items->first()->caption;
+    $imageCaption = $caption;
+
+    if ($imageCaption === null) {
+        $imageCaption = '';
+    }
     $hasMore = $count > 4;
     $modalId = 'portfolio-gallery-'.$items->first()->id;
     $editModalId = 'portfolio-edit-'.$items->first()->id;
@@ -33,7 +43,7 @@
         @foreach($visible as $index => $item)
             <div class="portfolio-collage-tile">
                 @if($item->type === 'photo')
-                    <img src="{{ $item->fileUrl() }}" alt="{{ $caption ?? '' }}">
+                    <img src="{{ $item->fileUrl() }}" alt="{{ $imageCaption }}">
                 @else
                     <video src="{{ $item->fileUrl() }}" @if(!$hasMore) controls @endif playsinline></video>
                     <span class="portfolio-collage-badge"><i class="fas fa-play me-1"></i>Video</span>
@@ -58,7 +68,7 @@
                             @foreach($items as $item)
                                 <div class="portfolio-gallery-item">
                                     @if($item->type === 'photo')
-                                        <img src="{{ $item->fileUrl() }}" alt="{{ $caption ?? '' }}">
+                                        <img src="{{ $item->fileUrl() }}" alt="{{ $imageCaption }}">
                                     @else
                                         <video src="{{ $item->fileUrl() }}" controls playsinline></video>
                                     @endif
@@ -77,7 +87,7 @@
                 <p class="mb-0 small">{{ $caption }}</p>
             @endif
             @if($editable)
-                <div class="{{ $caption ? 'mt-2' : '' }}">
+                <div @if($caption) class="mt-2" @endif>
                     <button type="button" class="btn btn-sm ph-btn-outline" data-bs-toggle="modal" data-bs-target="#{{ $editModalId }}">
                         <i class="fas fa-pen me-1"></i> Edit
                     </button>
