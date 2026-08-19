@@ -139,25 +139,51 @@ class GoogleCalendarService
             }
 
             $summary = Str::limit((string) ($event['summary'] ?? 'Busy'), 255, '');
+            [$startTime, $endTime] = $this->eventTimes($event);
 
             if (! isset($busyDates[$dateKey])) {
-                $busyDates[$dateKey] = $summary;
+                $busyDates[$dateKey] = [
+                    'summary' => $summary,
+                    'start_time' => $startTime,
+                    'end_time' => $endTime,
+                ];
 
                 continue;
             }
 
-            if ($busyDates[$dateKey] !== $summary && $summary !== 'Busy') {
-                $busyDates[$dateKey] = Str::limit($busyDates[$dateKey].', '.$summary, 255, '');
+            if ($busyDates[$dateKey]['summary'] !== $summary && $summary !== 'Busy') {
+                $busyDates[$dateKey]['summary'] = Str::limit(
+                    $busyDates[$dateKey]['summary'].', '.$summary,
+                    255,
+                    ''
+                );
+            }
+
+            // If several events land on one day, keep the widest timed window.
+            if ($startTime && (
+                $busyDates[$dateKey]['start_time'] === null
+                || $startTime < $busyDates[$dateKey]['start_time']
+            )) {
+                $busyDates[$dateKey]['start_time'] = $startTime;
+            }
+
+            if ($endTime && (
+                $busyDates[$dateKey]['end_time'] === null
+                || $endTime > $busyDates[$dateKey]['end_time']
+            )) {
+                $busyDates[$dateKey]['end_time'] = $endTime;
             }
         }
 
         $profile->googleCalendarBusyDates()->delete();
 
-        foreach ($busyDates as $date => $summary) {
+        foreach ($busyDates as $date => $busyDate) {
             GoogleCalendarBusyDate::create([
                 'performer_profile_id' => $profile->id,
                 'date' => $date,
-                'summary' => $summary,
+                'summary' => $busyDate['summary'],
+                'start_time' => $busyDate['start_time'],
+                'end_time' => $busyDate['end_time'],
             ]);
         }
 
@@ -220,10 +246,32 @@ class GoogleCalendarService
         }
 
         if (! empty($event['start']['dateTime'])) {
-            return Carbon::parse($event['start']['dateTime'])->toDateString();
+            return Carbon::parse($event['start']['dateTime'])
+                ->timezone(config('app.timezone'))
+                ->toDateString();
         }
 
         return null;
+    }
+
+    /**
+     * @return array{0: ?string, 1: ?string} H:i times, or nulls for all-day events
+     */
+    private function eventTimes(array $event): array
+    {
+        // All-day Google events use start.date / end.date with no clock times.
+        if (! empty($event['start']['date']) || empty($event['start']['dateTime'])) {
+            return [null, null];
+        }
+
+        $tz = config('app.timezone');
+
+        $start = Carbon::parse($event['start']['dateTime'])->timezone($tz)->format('H:i');
+        $end = ! empty($event['end']['dateTime'])
+            ? Carbon::parse($event['end']['dateTime'])->timezone($tz)->format('H:i')
+            : null;
+
+        return [$start, $end];
     }
 
     private function refreshToken(PerformerProfile $profile): ?string

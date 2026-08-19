@@ -321,7 +321,11 @@
                 if (state === 'google-busy') {
                     const googleEvent = googleBusyDates[dateKey];
                     if (googleEvent && googleEvent.summary) {
-                        return `Busy (Google Calendar): ${googleEvent.summary}`;
+                        let title = `Busy (Google Calendar): ${googleEvent.summary}`;
+                        if (googleEvent.start_time && googleEvent.end_time) {
+                            title += ` (${googleEvent.start_time}–${googleEvent.end_time})`;
+                        }
+                        return title;
                     }
 
                     return 'Busy (Google Calendar)';
@@ -397,6 +401,16 @@
                             time.textContent = entry.start_time || entry.end_time || '';
                         }
                         button.appendChild(time);
+                    } else if (state === 'google-busy' && googleBusyDates[dateKey] && (googleBusyDates[dateKey].start_time || googleBusyDates[dateKey].end_time)) {
+                        const time = document.createElement('span');
+                        time.className = 'av-day-time';
+                        const google = googleBusyDates[dateKey];
+                        if (google.start_time && google.end_time) {
+                            time.textContent = `${google.start_time}–${google.end_time}`;
+                        } else {
+                            time.textContent = google.start_time || google.end_time || '';
+                        }
+                        button.appendChild(time);
                     } else if (state === 'pending') {
                         const pending = document.createElement('span');
                         pending.className = 'av-day-pending-label';
@@ -428,7 +442,7 @@
                         button.appendChild(event);
                     }
 
-                    if (editable && cellDate >= today && state !== 'pending') {
+                    if (editable && cellDate >= today) {
                         button.addEventListener('click', () => openEditor(dateKey, entry));
                     } else if (editable && cellDate < today) {
                         button.disabled = true;
@@ -445,7 +459,6 @@
                     return;
                 }
 
-                modalDateLabel.textContent = formatDisplayDate(dateKey);
                 dateInput.value = dateKey;
                 startInput.value = '';
                 endInput.value = '';
@@ -457,8 +470,39 @@
                     notesInput.value = entry.notes || '';
                 }
 
+                // Grid state can come from bookings / Google busy, not only schedule rows.
                 let mode = 'available';
-                if (entry && !entry.is_available) {
+                let statusHint = '';
+                const confirmedBooking = confirmedDates[dateKey];
+                const pendingBooking = pendingDates[dateKey];
+                const googleBusy = googleBusyDates[dateKey];
+
+                if (confirmedBooking) {
+                    mode = 'event';
+                    statusHint = ` · Booked: ${confirmedBooking.event_name}`;
+                    if (!notesInput.value) {
+                        notesInput.value = confirmedBooking.event_name || '';
+                    }
+                } else if (pendingBooking) {
+                    mode = 'event';
+                    statusHint = ` · Pending: ${pendingBooking.event_name}`;
+                    if (!notesInput.value) {
+                        notesInput.value = pendingBooking.event_name || '';
+                    }
+                } else if (googleBusy) {
+                    mode = 'event';
+                    const summary = googleBusy.summary || 'Busy';
+                    statusHint = ` · Busy (Google Calendar): ${summary}`;
+                    if (!notesInput.value) {
+                        notesInput.value = summary;
+                    }
+                    if (googleBusy.start_time) {
+                        startInput.value = googleBusy.start_time;
+                    }
+                    if (googleBusy.end_time) {
+                        endInput.value = googleBusy.end_time;
+                    }
+                } else if (entry && !entry.is_available) {
                     if (entry.notes) {
                         mode = 'event';
                     } else {
@@ -466,12 +510,25 @@
                     }
                 }
 
+                modalDateLabel.textContent = formatDisplayDate(dateKey) + statusHint;
+
                 const modeInput = form.querySelector(`input[name="availability_mode"][value="${mode}"]`);
                 if (modeInput) {
                     modeInput.checked = true;
                 }
 
                 syncAvailabilityMode();
+
+                // Re-apply notes after syncAvailabilityMode (available mode clears notes).
+                if (mode === 'event' && !notesInput.value) {
+                    if (confirmedBooking) {
+                        notesInput.value = confirmedBooking.event_name || '';
+                    } else if (pendingBooking) {
+                        notesInput.value = pendingBooking.event_name || '';
+                    } else if (googleBusy) {
+                        notesInput.value = googleBusy.summary || 'Busy';
+                    }
+                }
 
                 if (entry && entry.id && deleteForm) {
                     deleteForm.action = destroyUrlFor(entry.id);
