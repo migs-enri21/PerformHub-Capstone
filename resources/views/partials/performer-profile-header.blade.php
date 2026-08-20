@@ -6,27 +6,13 @@
 ])
 
 @php
-    $photoUrl = $performer->profilePhotoUrl();
-
-    if ($photoUrl === null) {
-        $photoUrl = 'https://ui-avatars.com/api/?name='.urlencode($performer->stage_name).'&background=6346ff&color=fff&size=256';
-    }
-
-    $bannerStyle = '';
-    $bannerPhotoUrl = $performer->bannerPhotoUrl();
-
-    if ($bannerPhotoUrl) {
-        $bannerPosition = $performer->banner_position_y;
-
-        if ($bannerPosition === null) {
-            $bannerPosition = 50;
-        }
-
-        $bannerStyle = "background-image: url('".$bannerPhotoUrl."'); background-position: center ".$bannerPosition."%;";
-    }
-
-    $rating = $performer->averageRating();
-    $subtitle = collect([$performer->categoryNames(), $performer->shortLocation()])->filter()->implode(' | ');
+    $photoUrl = $performer->profilePhotoUrl()
+        ?? 'https://ui-avatars.com/api/?name='.urlencode($performer->stage_name).'&background=6346ff&color=fff&size=256';
+    $bannerStyle = $performer->bannerPhotoUrl()
+        ? "background-image: url('".$performer->bannerPhotoUrl()."'); background-position: center ".($performer->banner_position_y ?? 50)."%;"
+        : '';
+    $rating = 0; // reviews/ratings not implemented yet
+    $subtitle = collect([$performer->categoryNames(), $performer->shortLocation()])->filter()->implode(' · ');
     $tags = $performer->displayTags();
 @endphp
 

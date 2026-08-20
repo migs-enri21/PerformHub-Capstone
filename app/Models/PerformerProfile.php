@@ -63,7 +63,7 @@ class PerformerProfile extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function categories(): BelongsToMany
+    public function categories(): BelongsToMany 
     {
         return $this->belongsToMany(Category::class, 'performer_profile_category');
     }

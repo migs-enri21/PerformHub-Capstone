@@ -71,7 +71,6 @@
                     <div>
                         <h6 class="mb-0">{{ $p->stage_name }} @if($p->is_verified_badge)<i class="fas fa-circle-check verified-badge"></i>@endif</h6>
                         <small class="text-muted">{{ $p->categoryNames() }} · {{ $p->genre }}</small>
-                        <div class="text-warning small">@for($i=0;$i<round($p->averageRating());$i++)<i class="fas fa-star"></i>@endfor</div>
                     </div>
                 </div>
                 <p class="text-muted small">{{ Str::limit($p->bio, 80) }}</p>
