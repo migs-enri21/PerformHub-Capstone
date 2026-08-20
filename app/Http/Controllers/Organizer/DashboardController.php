@@ -20,9 +20,18 @@ class DashboardController extends Controller
 
     private function getDashboardData(PerformerRecommendationService $recommendations): array
     {
-        return array_merge($this->getOverviewData(), [
+        $overviewData = $this->getOverviewData();
+        $recommendationEvent = $overviewData['upcomingEvents']->first();
+        $recommendedPerformers = collect();
+
+        if ($recommendationEvent) {
+            $recommendedPerformers = $recommendations->forEvent($recommendationEvent);
+        }
+
+        return array_merge($overviewData, [
             'recentNotifications' => $this->getRecentNotifications(),
-            'recommendedPerformers' => $this->getRecommendedPerformers($recommendations),
+            'recommendationEvent' => $recommendationEvent,
+            'recommendedPerformers' => $recommendedPerformers,
             'feedPosts' => $this->getFeedPosts(),
         ]);
     }
@@ -52,11 +61,6 @@ class DashboardController extends Controller
     private function getRecentNotifications(): Collection
     {
         return Auth::user()->notifications()->latest()->take(3)->get();
-    }
-
-    private function getRecommendedPerformers(PerformerRecommendationService $recommendations): Collection
-    {
-        return $recommendations->forOrganizer(Auth::user(), 3);
     }
 
     private function getFeedPosts(): Collection

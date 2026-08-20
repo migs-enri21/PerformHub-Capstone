@@ -49,31 +49,35 @@
                 <a href="{{ route('organizer.performers.index') }}" class="small">Browse all</a>
             </div>
 
-            @forelse($recommendedPerformers->take(3) as $performer)
-                <a href="{{ route('organizer.performers.show', $performer) }}" class="org-list-item">
-                    @if($performer->profilePhotoUrl())
-                        <img src="{{ $performer->profilePhotoUrl() }}" alt="{{ $performer->stage_name }}" class="rounded-circle" width="48" height="48">
-                    @else
-                        <img src="https://ui-avatars.com/api/?name={{ urlencode($performer->stage_name) }}&background=6d3df5&color=fff" alt="{{ $performer->stage_name }}" class="rounded-circle" width="48" height="48">
-                    @endif
-                    <div class="flex-grow-1">
-                        <strong>{{ $performer->stage_name }}</strong>
-                        @if($performer->is_verified)
-                            <span class="badge bg-success ms-1">Verified</span>
-                        @endif
-                        @if($performer->categoryNames())
-                            <small class="text-muted d-block">{{ $performer->categoryNames() }}</small>
+            @if($recommendationEvent)
+                <p class="text-muted small mb-3">Based on your upcoming event: {{ $recommendationEvent->title }}</p>
+
+                @forelse($recommendedPerformers as $performer)
+                    <a href="{{ route('organizer.performers.show', $performer) }}" class="org-list-item">
+                        @if($performer->profilePhotoUrl())
+                            <img src="{{ $performer->profilePhotoUrl() }}" alt="{{ $performer->stage_name }}" class="rounded-circle" width="48" height="48">
                         @else
-                            <small class="text-muted d-block">Performer</small>
+                            <img src="https://ui-avatars.com/api/?name={{ urlencode($performer->stage_name) }}&background=6d3df5&color=fff" alt="{{ $performer->stage_name }}" class="rounded-circle" width="48" height="48">
                         @endif
-                        @if($performer->portfolios->count())
-                            <small class="text-primary">{{ $performer->portfolios->count() }} portfolio {{ Str::plural('item', $performer->portfolios->count()) }}</small>
-                        @endif
-                    </div>
-                </a>
-            @empty
-                <p class="text-muted mb-0">No performer recommendations yet.</p>
-            @endforelse
+                        <div class="flex-grow-1">
+                            <strong>{{ $performer->stage_name }}</strong>
+                            <span class="badge bg-success ms-1">Verified</span>
+                            @if($performer->categoryNames())
+                                <small class="text-muted d-block">{{ $performer->categoryNames() }}</small>
+                            @else
+                                <small class="text-muted d-block">Performer</small>
+                            @endif
+                            @if($performer->portfolios->count())
+                                <small class="text-primary">{{ $performer->portfolios->count() }} portfolio {{ Str::plural('item', $performer->portfolios->count()) }}</small>
+                            @endif
+                        </div>
+                    </a>
+                @empty
+                    <p class="text-muted mb-0">No verified performers match this event's categories yet.</p>
+                @endforelse
+            @else
+                <p class="text-muted mb-0">Create an upcoming event to receive performer suggestions.</p>
+            @endif
         </div>
 
         <section class="mb-4">

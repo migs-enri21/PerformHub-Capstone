@@ -2,40 +2,30 @@
 
 namespace App\Services;
 
+use App\Models\Event;
 use App\Models\PerformerProfile;
-use App\Models\User;
 use Illuminate\Database\Eloquent\Collection;
 
 class PerformerRecommendationService
 {
-    public function recommend(?int $categoryId = null, ?string $location = null, int $limit = 6): Collection
+    public function forEvent(Event $event, int $limit = 3): Collection
     {
-        $query = PerformerProfile::query()
-            ->with(['user', 'categories'])
-            ->whereHas('user', fn ($q) => $q->where('is_active', true)->where('is_verified', true));
+        $categoryIds = $event->categories()->pluck('categories.id');
 
-        if ($categoryId) {
-            $query->whereHas('categories', fn ($q) => $q->where('categories.id', $categoryId));
+        if ($categoryIds->isEmpty()) {
+            return new Collection();
         }
 
-        if ($location) {
-            $query->where('location', 'like', '%'.$location.'%');
-        }
-
-        return $query
-            ->inRandomOrder()
+        return PerformerProfile::with(['user', 'categories', 'portfolios'])
+            ->whereHas('user', function ($query) {
+                $query->where('is_active', true)
+                    ->where('is_verified', true);
+            })
+            ->whereHas('categories', function ($query) use ($categoryIds) {
+                $query->whereIn('categories.id', $categoryIds);
+            })
+            ->orderBy('stage_name')
             ->limit($limit)
             ->get();
-    }
-
-    public function forOrganizer(User $organizer, int $limit = 6): Collection
-    {
-        $profile = $organizer->organizerProfile;
-
-        return $this->recommend(
-            categoryId: null,
-            location: $profile?->location,
-            limit: $limit
-        );
     }
 }

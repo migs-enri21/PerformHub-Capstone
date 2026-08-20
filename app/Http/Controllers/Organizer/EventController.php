@@ -77,8 +77,16 @@ class EventController extends Controller
         $event->load(['eventType', 'categories', 'photos','applications.performer.performerProfile']);
         $bookings = Booking::where('event_id', $event->id)->get()->keyBy('performer_id');
         $canCompleteEvent = false;
+        $hasConfirmedBooking = false;
 
-        if (strtolower($event->status) === 'open' && $event->event_date <= now()->toDateString()) {
+        foreach ($bookings as $booking) {
+            if ($booking->status === 'completed') {
+                $hasConfirmedBooking = true;
+                break;
+            }
+        }
+
+        if (strtolower($event->status) === 'open' && $hasConfirmedBooking) {
             $canCompleteEvent = true;
         }
 
@@ -138,8 +146,12 @@ class EventController extends Controller
             return back()->with('warning', 'A cancelled event cannot be marked as completed.');
         }
 
-        if ($event->event_date > now()->toDateString()) {
-            return back()->with('warning', 'You can mark the event as completed on its scheduled date or after it ends.');
+        $hasConfirmedBooking = Booking::where('event_id', $event->id)
+            ->where('status', 'completed')
+            ->exists();
+
+        if (! $hasConfirmedBooking) {
+            return back()->with('warning', 'Confirm at least one booking before marking this event as completed.');
         }
 
         $event->update(['status' => 'Completed']);
