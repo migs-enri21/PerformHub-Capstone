@@ -204,19 +204,18 @@ class OnboardingController extends Controller
             }
         }
 
-        // Notify admins about new registration
+        // Notify admins when onboarding/verification is submitted (ready for review).
         $roleType = $user->isPerformer() ? 'Performer' : 'Organizer';
-        $adminUsers = User::where('role', 'admin')->get(); // Get all admins
-        
+        $adminUsers = User::where('role', User::ROLE_ADMIN)->get();
+
         foreach ($adminUsers as $admin) {
-            Notification::create([
-                'user_id' => $admin->id,
-                'type' => 'new_registration',
-                'title' => "New $roleType Registered",
-                'message' => "A new $roleType has registered: {$user->fullName()}",
-                'link' => route('admin.users.index'),
-                'is_read' => false,
-            ]);
+            Notification::send(
+                $admin,
+                'new_registration',
+                "New {$roleType} ready for verification",
+                "{$user->fullName()} completed sign-up and needs verification.",
+                route('admin.users.show', $user)
+            );
         }
 
         $user->update(['onboarding_step' => User::ONBOARDING_COMPLETE]);

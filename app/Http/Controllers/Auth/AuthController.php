@@ -107,20 +107,14 @@ class AuthController extends Controller
 
         Auth::login($user);
 
-        // Notify administrators about new registrations for performers or organizers.
-        // This runs even if no admin exists yet, so the notification is still stored for the first admin that is created.
         $admins = User::where('role', User::ROLE_ADMIN)->get();
         $type = 'user.registered';
         $title = $user->isOrganizer() ? 'New Organizer Registered' : 'New Performer Registered';
-        $message = sprintf('%s: %s', $title, $user->fullName());
-        $link = route('admin.users.index');
+        $message = sprintf('%s (%s) just created an account.', $user->fullName(), $user->email);
+        $link = route('admin.users.show', $user);
 
-        if ($admins->isEmpty()) {
-            Notification::send($user, $type, $title, $message, $link);
-        } else {
-            foreach ($admins as $admin) {
-                Notification::send($admin, $type, $title, $message, $link);
-            }
+        foreach ($admins as $admin) {
+            Notification::send($admin, $type, $title, $message, $link);
         }
 
         return redirect($user->dashboardRoute())
