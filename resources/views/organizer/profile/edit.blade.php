@@ -41,9 +41,9 @@
                     id="bannerReposition"
                     style="{{ $bannerStyle }} background-position: center {{ $bannerPositionY }}%;"
                 >
-                    @unless($profile->bannerPhotoUrl())
+                    @if(! $profile->bannerPhotoUrl())
                         <span class="banner-reposition-placeholder">No banner uploaded yet</span>
-                    @endunless
+                    @endif
                     <span class="banner-reposition-hint d-none"><i class="fas fa-arrows-up-down me-1"></i>Drag to reposition</span>
                 </div>
                 <input type="hidden" name="banner_position_y" id="bannerPositionYInput" value="{{ $bannerPositionY }}">

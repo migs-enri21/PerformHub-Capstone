@@ -33,12 +33,11 @@ class BookingController extends Controller
             return back()->with('error', 'A booking request has already been sent to this performer for this event.');
         }
 
-        $booking = Booking::create([
-            ...$validated,
-            'organizer_id' => Auth::id(),
-            'performer_id' => $performer->user_id,
-            'status' => 'pending',
-        ]);
+        $validated['organizer_id'] = Auth::id();
+        $validated['performer_id'] = $performer->user_id;
+        $validated['status'] = 'pending';
+
+        $booking = Booking::create($validated);
 
         $this->updateApplicationStatus($booking);
         $this->sendBookingNotification($booking, $performer);
@@ -108,7 +107,9 @@ class BookingController extends Controller
             'budget' => ['nullable', 'numeric', 'min:0'],
             'event_id' => [
                 'required',
-                Rule::exists('events', 'id')->where(fn ($query) => $query->where('organizer_id', Auth::id())),
+                Rule::exists('events', 'id')->where(function ($query) {
+                    return $query->where('organizer_id', Auth::id());
+                }),
             ],
         ]);
     }

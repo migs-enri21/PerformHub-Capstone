@@ -52,7 +52,6 @@
             </select>
         </div>
         <div class="col-md-2">@include('partials.genre-select', ['value' => request('genre'), 'placeholder' => 'All Genres'])</div>
-        <div class="col-md-2"><input type="number" name="min_rating" class="form-control ph-input" placeholder="Min Rating" min="1" max="5" value="{{ request('min_rating') }}"></div>
         <div class="col-md-2"><input type="date" name="available_date" class="form-control ph-input" value="{{ request('available_date') }}"></div>
         <div class="col-md-1"><button class="btn ph-btn-primary w-100">Filter</button></div>
     </form>

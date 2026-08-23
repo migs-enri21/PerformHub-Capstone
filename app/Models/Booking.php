@@ -62,24 +62,34 @@ class Booking extends Model
 
     public function statusLabel(): string
     {
-        return match ($this->status) {
-            'pending' => 'Pending',
-            'accepted' => 'Accepted',
-            'rejected' => 'Rejected',
-            'completed' => 'Completed',
-            default => ucfirst($this->status),
-        };
+        switch ($this->status) {
+            case 'pending':
+                return 'Pending';
+            case 'accepted':
+                return 'Accepted';
+            case 'rejected':
+                return 'Rejected';
+            case 'completed':
+                return 'Completed';
+            default:
+                return ucfirst($this->status);
+        }
     }
 
     public function statusBadgeClass(): string
     {
-        return match ($this->status) {
-            'pending' => 'bg-warning text-dark',
-            'accepted' => 'bg-success',
-            'rejected' => 'bg-danger',
-            'completed' => 'bg-secondary',
-            default => 'bg-secondary',
-        };
+        switch ($this->status) {
+            case 'pending':
+                return 'bg-warning text-dark';
+            case 'accepted':
+                return 'bg-success';
+            case 'rejected':
+                return 'bg-danger';
+            case 'completed':
+                return 'bg-secondary';
+            default:
+                return 'bg-secondary';
+        }
     }
 
     public function hasContract(): bool
