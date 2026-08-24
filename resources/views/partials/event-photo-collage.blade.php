@@ -2,13 +2,17 @@
 
 @php
     $count = $photos->count();
-    $layout = match (true) {
-        $count === 1 => 'portfolio-collage--1',
-        $count === 2 => 'portfolio-collage--2',
-        $count === 3 => 'portfolio-collage--3',
-        $count === 4 => 'portfolio-collage--4',
-        default => 'portfolio-collage--many',
-    };
+    $layout = 'portfolio-collage--many';
+
+    if ($count === 1) {
+        $layout = 'portfolio-collage--1';
+    } elseif ($count === 2) {
+        $layout = 'portfolio-collage--2';
+    } elseif ($count === 3) {
+        $layout = 'portfolio-collage--3';
+    } elseif ($count === 4) {
+        $layout = 'portfolio-collage--4';
+    }
     $visible = $photos;
 
     if ($count > 4) {

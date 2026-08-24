@@ -24,6 +24,7 @@
     }
 
     $organizationType = null;
+    $organizerUser = $organizer->user;
 
     if ($organizer->organization_type) {
         $organizationType = ucfirst($organizer->organization_type);
@@ -64,7 +65,7 @@
                     <div>
                         <div class="d-flex align-items-center gap-2 flex-wrap mb-1">
                             <h2 class="fw-bold mb-0 performer-profile-name">{{ $organizer->organization_name }}</h2>
-                            @if(optional($organizer->user)->is_verified)
+                            @if($organizerUser && $organizerUser->is_verified)
                                 <span class="profile-verified-pill">
                                     <i class="fas fa-circle-check me-1"></i> Verified
                                 </span>

@@ -53,11 +53,10 @@ class EventController extends Controller
         $categoryIds = $validated['category_ids'];
         unset($validated['cover_photo'], $validated['photos'], $validated['category_ids']);
 
-        $event = Event::create([
-            ...$validated,
-            'organizer_id' => Auth::id(),
-            'status' => 'Open',
-        ]);
+        $validated['organizer_id'] = Auth::id();
+        $validated['status'] = 'Open';
+
+        $event = Event::create($validated);
 
         $this->syncEventCategories($event, $categoryIds);
         $this->storeUploadedPhotos($event, $request);

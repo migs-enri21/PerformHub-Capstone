@@ -16,6 +16,8 @@
 
     if ($isOwn) {
         $profileUrl = route('performer.profile.show');
+    } elseif (auth()->user()->isOrganizer()) {
+        $profileUrl = route('organizer.performers.show', $performer);
     } else {
         $profileUrl = route('talent.show', $performer);
     }
