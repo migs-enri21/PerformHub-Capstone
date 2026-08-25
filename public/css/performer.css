@@ -631,20 +631,46 @@ button.av-day:not(:disabled):hover {
 }
 
 /* --- Portfolio --- */
-/* Full width of main column, edge to edge (not sidebar) */
+/* Resume-style Portfolio page: profile header on top, gallery of work samples below */
 .portfolio-page {
-    margin-left: -1.5rem;
-    margin-right: -1.5rem;
-    width: calc(100% + 3rem);
+    display: flex;
+    flex-direction: column;
 }
 
-/* Wireframe-style compose box */
-.portfolio-compose {
-    border-radius: 0;
-    border-left: none;
-    border-right: none;
+.portfolio-gallery-section {
+    margin-top: 0.5rem;
+}
+
+/* Work Samples grid gallery — each post becomes a self-contained card tile */
+.portfolio-gallery-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.25rem;
+}
+
+.portfolio-gallery-list .portfolio-feed-card {
+    border: 1px solid var(--ph-border);
+    border-radius: 12px;
+    overflow: visible;
+    background: var(--ph-bg-card);
+    display: flex;
+    flex-direction: column;
+}
+
+.portfolio-gallery-list .portfolio-feed-collage {
+    border-radius: 12px 12px 0 0;
+}
+
+.portfolio-gallery-list .portfolio-feed-footer {
+    border-top: 1px solid var(--ph-border);
+    margin-top: auto;
+}
+
+.portfolio-gallery-list .portfolio-feed-empty {
+    grid-column: 1 / -1;
     border-top: none;
-    padding: 1.25rem 1.5rem 1.5rem;
+    border: 1px dashed var(--ph-border);
+    border-radius: 12px;
 }
 
 .portfolio-sketch-field {
@@ -931,6 +957,27 @@ button.av-day:not(:disabled):hover {
     cursor: pointer;
 }
 
+.portfolio-lightbox {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.portfolio-lightbox-item {
+    border-radius: 8px;
+    overflow: hidden;
+    background: #000;
+}
+
+.portfolio-lightbox-item img,
+.portfolio-lightbox-item video {
+    display: block;
+    width: 100%;
+    max-height: 75vh;
+    object-fit: contain;
+    background: #000;
+}
+
 /* Gallery modal grid */
 .portfolio-gallery-grid {
     display: grid;
@@ -960,6 +1007,13 @@ button.av-day:not(:disabled):hover {
 .portfolio-feed-footer {
     border-top: 1px solid var(--ph-border);
     padding: 0.85rem 1rem;
+}
+
+.portfolio-feed-event-name {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--ph-text);
+    line-height: 1.3;
 }
 
 /* "+N more" overlay badge */

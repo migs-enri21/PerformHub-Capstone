@@ -45,8 +45,9 @@ return Application::configure(basePath: dirname(__DIR__))
                 return response()->json(['message' => 'Page expired. Please refresh and try again.'], 419);
             }
 
+            // 303 forces the browser to follow with GET so F5 does not replay the failed POST.
             return redirect()
-                ->route('login')
+                ->route('login', status: 303)
                 ->with('warning', 'Your session expired. Please log in again.');
         });
     })->create();
