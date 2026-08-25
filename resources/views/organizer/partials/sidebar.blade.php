@@ -21,9 +21,6 @@
     <a class="nav-link @if(request()->routeIs('organizer.bookings.*')) active @endif" href="{{ route('organizer.bookings.index') }}"><i class="fas fa-handshake me-2"></i> Bookings</a>
     <a class="nav-link @if(request()->routeIs('organizer.calendar.*')) active @endif" href="{{ route('organizer.calendar.index') }}"><i class="fas fa-calendar-alt me-2"></i> Calendar</a>
     <a class="nav-link @if(request()->routeIs('organizer.performers.*')) active @endif" href="{{ route('organizer.performers.index') }}"><i class="fas fa-search me-2"></i> Find Performers</a>
-    @if(auth()->user()->hasLimitedAccess())
-        <a class="nav-link text-warning" href="{{ auth()->user()->onboardingRoute() }}"><i class="fas fa-arrow-right me-2"></i> Complete Sign-up</a>
-    @endif
 </nav>
 
 <form action="{{ route('logout') }}" method="POST" class="mt-auto">

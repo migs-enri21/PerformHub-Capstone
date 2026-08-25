@@ -78,7 +78,10 @@ class ProfileController extends Controller
             'profile_photo' => ['nullable', 'image', 'max:5120'], // 5MB
             'banner_photo' => ['nullable', 'image', 'max:5120'],
             'banner_position_y' => ['nullable', 'integer', 'min:0', 'max:100'],
-        ], PhilippineLocations::locationFieldsRules(required: false)));
+            'latitude' => ['nullable', 'numeric', 'between:-90,90'],
+            'longitude' => ['nullable', 'numeric', 'between:-180,180'],
+            'location' => ['nullable', 'string', 'max:500'],
+        ]));
 
         $supabase = new SupabaseStorageService();
 
@@ -112,10 +115,6 @@ class ProfileController extends Controller
         $profile->update(collect($validated)->except(['first_name', 'last_name', 'region', 'city', 'barangay', 'category_ids'])->all());
 
         $profile->categories()->sync($validated['category_ids'] ?? []);
-
-        if (! empty($validated['region']) && ! empty($validated['city']) && ! empty($validated['barangay'])) {
-            $profile->update(PhilippineLocations::profileLocationAttributes($validated));
-        }
 
         return redirect()->route('performer.profile.show')->with('success', 'Profile updated successfully.');
     }

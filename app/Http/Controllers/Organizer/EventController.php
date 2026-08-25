@@ -168,6 +168,7 @@ class EventController extends Controller
             'end_time' => ['required'],
             'venue' => ['required', 'string', 'max:255'],
             'budget' => ['nullable', 'numeric'],
+            'compensation_type' => ['nullable', 'in:contest,hourly,fixed'],
             'status' => $this->statusRules($updating),
 
         ]);

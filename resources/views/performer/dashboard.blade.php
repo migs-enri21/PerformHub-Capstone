@@ -17,7 +17,7 @@
                 <span class="verified-badge"><i class="fas fa-circle-check"></i> Verified Performer</span>
             @else
                 @if(auth()->user()->hasLimitedAccess())
-                    <span class="text-warning"><i class="fas fa-lock me-1"></i> Limited access — complete sign-up to get verified.</span>
+                    <span class="text-warning"><i class="fas fa-lock me-1"></i> Limited access — pending admin verification.</span>
                 @else
                     Complete your profile to get verified.
                 @endif

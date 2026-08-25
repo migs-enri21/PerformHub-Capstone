@@ -132,12 +132,22 @@
             </div>
 
             <div class="row">
-                <div class="col-md-6 mb-3">
+                <div class="col-md-4 mb-3">
                     <label class="form-label">Budget (₱)</label>
                     <input type="number" class="form-control @error('budget') is-invalid @enderror" name="budget" value="{{ old('budget', $event->budget) }}">
                     @error('budget')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
-                <div class="col-md-6 mb-3">
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">Compensation Type</label>
+                    <select class="form-select @error('compensation_type') is-invalid @enderror" name="compensation_type">
+                        <option value="">Select Compensation Type</option>
+                        <option value="contest" @selected(old('compensation_type', $event->compensation_type) === 'contest')>Contest</option>
+                        <option value="hourly" @selected(old('compensation_type', $event->compensation_type) === 'hourly')>Hourly</option>
+                        <option value="fixed" @selected(old('compensation_type', $event->compensation_type) === 'fixed')>Fixed</option>
+                    </select>
+                    @error('compensation_type')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                </div>
+                <div class="col-md-4 mb-3">
                     <label class="form-label">Event Status</label>
                     <select name="status" class="form-select @error('status') is-invalid @enderror">
                         <option value="Open" @selected(old('status', $event->status) === 'Open')>Open</option>

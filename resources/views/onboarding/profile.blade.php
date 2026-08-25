@@ -6,28 +6,28 @@
     Set up your {{ $user->isPerformer() ? 'performer' : 'organizer' }} profile
 </p>
 
-<form method="POST" action="{{ route('onboarding.profile.store') }}">
+<form method="POST" action="{{ route('onboarding.profile.store') }}" enctype="multipart/form-data">
     @csrf
 
     <div class="row g-3 mb-3">
         <div class="col-md-6">
             <label class="form-label text-muted small">First Name</label>
-            <input type="text" name="first_name" class="form-control ph-input" value="{{ old('first_name', $user->first_name) }}" required>
+            <input type="text" class="form-control ph-input" value="{{ $user->first_name }}" readonly>
         </div>
         <div class="col-md-6">
             <label class="form-label text-muted small">Last Name</label>
-            <input type="text" name="last_name" class="form-control ph-input" value="{{ old('last_name', $user->last_name) }}" required>
+            <input type="text" class="form-control ph-input" value="{{ $user->last_name }}" readonly>
         </div>
     </div>
 
     <div class="mb-3">
         <label class="form-label text-muted small">Email Address</label>
-        <input type="email" class="form-control ph-input" value="{{ $user->email }}" disabled>
+        <input type="email" class="form-control ph-input" value="{{ $user->email }}" readonly>
     </div>
 
     <div class="mb-3">
         <label class="form-label text-muted small">Phone Number</label>
-        <input type="text" name="phone" class="form-control ph-input" value="{{ old('phone', $user->phone) }}" placeholder="+63 9XX XXX XXXX" required>
+        <input type="text" class="form-control ph-input" value="{{ $user->phone }}" readonly>
     </div>
 
     <div class="mb-4">
@@ -36,17 +36,28 @@
             $profile = $user->isPerformer() ? $user->performerProfile : $user->organizerProfile;
         @endphp
         @include('partials.location-select', [
-            'region' => $profile?->region,
-            'city' => $profile?->city,
-            'barangay' => $profile?->barangay,
+            'latitude' => $profile?->latitude,
+            'longitude' => $profile?->longitude,
+            'location' => $profile?->location,
             'required' => true,
         ])
     </div>
 
+    @include('onboarding.partials.upload-field', [
+        'name' => 'government_id',
+        'title' => 'Government-Issued ID',
+        'required' => true,
+        'multiple' => true,
+        'maxFiles' => 10,
+        'desc' => 'Upload clear ID images or a short verification video for admin review.',
+        'formats' => '.jpg .png .pdf .mp4 .mov — up to 10 files, max 25 MB each',
+        'icon' => 'fa-id-card',
+    ])
+
     <div class="d-flex gap-2">
         <a href="{{ route('onboarding.role') }}" class="btn ph-btn-outline">Back</a>
         <button type="submit" class="btn ph-btn-primary flex-grow-1">
-            Continue <i class="fas fa-arrow-right ms-2"></i>
+            Submit for Verification <i class="fas fa-arrow-right ms-2"></i>
         </button>
     </div>
 </form>

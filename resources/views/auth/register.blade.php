@@ -166,6 +166,12 @@
                     </div>
 
                     <div class="mb-3">
+                        <label class="form-label text-muted small">Phone Number</label>
+                        <input type="text" name="phone" class="form-control ph-input @error('phone') is-invalid @enderror" value="{{ old('phone') }}" placeholder="+63 9XX XXX XXXX" required autocomplete="tel">
+                        @error('phone')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+                    </div>
+
+                    <div class="mb-3">
                         <label class="form-label text-muted small">Password</label>
                         <input type="password" name="password" class="form-control ph-input @error('password') is-invalid @enderror" required autocomplete="new-password">
                         <div class="form-text text-muted">At least 8 characters.</div>
@@ -190,7 +196,7 @@
                     </div>
 
                     <button type="submit" id="registerSubmitButton" class="btn ph-btn-primary w-100 mb-3" disabled>
-                        Create Account <i class="fas fa-arrow-right ms-2"></i>
+                        Continue <i class="fas fa-arrow-right ms-2"></i>
                     </button>
 
                     <p class="text-center text-muted small mb-0">

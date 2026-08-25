@@ -206,6 +206,26 @@ unset($__errorArgs, $__bag); ?>
                     </div>
 
                     <div class="mb-3">
+                        <label class="form-label text-muted small">Phone Number</label>
+                        <input type="text" name="phone" class="form-control ph-input <?php $__errorArgs = ['phone'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> is-invalid <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>" value="<?php echo e(old('phone')); ?>" placeholder="+63 9XX XXX XXXX" required autocomplete="tel">
+                        <?php $__errorArgs = ['phone'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?><div class="invalid-feedback d-block"><?php echo e($message); ?></div><?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
+                    </div>
+
+                    <div class="mb-3">
                         <label class="form-label text-muted small">Password</label>
                         <input type="password" name="password" class="form-control ph-input <?php $__errorArgs = ['password'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
@@ -251,7 +271,7 @@ unset($__errorArgs, $__bag); ?>" required autocomplete="new-password">
                     </div>
 
                     <button type="submit" id="registerSubmitButton" class="btn ph-btn-primary w-100 mb-3" disabled>
-                        Create Account <i class="fas fa-arrow-right ms-2"></i>
+                        Continue <i class="fas fa-arrow-right ms-2"></i>
                     </button>
 
                     <p class="text-center text-muted small mb-0">

@@ -83,6 +83,12 @@
                         <span class="text-muted">PHP {{ number_format((float) $event->budget, 0) }}</span>
                     </div>
                 @endif
+                @if($event->compensation_type)
+                    <div class="col-md-6">
+                        <strong class="event-detail-label d-block mb-1">Compensation Type</strong>
+                        <span class="text-muted">{{ ucfirst($event->compensation_type) }}</span>
+                    </div>
+                @endif
             </div>
         </div>
     </div>

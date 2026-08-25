@@ -6,7 +6,6 @@ use App\Models\Concerns\HasPhilippineLocation;
 use App\Services\SupabaseStorageService;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class OrganizerProfile extends Model
 {
@@ -21,37 +20,16 @@ class OrganizerProfile extends Model
         'region',
         'city',
         'barangay',
+        'latitude',
+        'longitude',
         'profile_photo',
-        'banner_photo',
-        'banner_position_y',
         'phone',
         'website',
-        'google_calendar_connected',
-        'google_calendar_id',
-        'google_refresh_token',
-        'google_token_expires_at',
-        'google_calendar_synced_at',
     ];
-
-    protected function casts(): array
-    {
-    return [
-        'banner_position_y' => 'integer',
-        'google_calendar_connected' => 'boolean',
-        'google_token_expires_at' => 'datetime',
-        'google_refresh_token' => 'encrypted',
-        'google_calendar_synced_at' => 'datetime',
-        ];
-    }
 
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
-    }
-
-    public function googleCalendarBusyDates(): HasMany
-    {
-        return $this->hasMany(OrganizerGoogleCalendarBusyDate::class);
     }
 
     public function profilePhotoUrl(): ?string
@@ -61,15 +39,6 @@ class OrganizerProfile extends Model
         }
 
         return (new SupabaseStorageService)->url('organizer-files', $this->profile_photo);
-    }
-
-    public function bannerPhotoUrl(): ?string
-    {
-        if (! $this->banner_photo) {
-            return null;
-        }
-
-        return (new SupabaseStorageService)->url('organizer-files', $this->banner_photo);
     }
 
     public function shortLocation(): string

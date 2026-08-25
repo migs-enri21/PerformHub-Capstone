@@ -98,38 +98,39 @@ class OnboardingController extends Controller
         $user = Auth::user();
 
         $validated = $request->validate(array_merge([
-            'first_name' => ['required', 'string', 'max:100'],
-            'last_name' => ['required', 'string', 'max:100'],
-            'phone' => ['required', 'string', 'max:30'],
-        ], PhilippineLocations::locationFieldsRules()));
+            'latitude' => ['required', 'numeric', 'between:-90,90'],
+            'longitude' => ['required', 'numeric', 'between:-180,180'],
+            'location' => ['nullable', 'string', 'max:500'],
+            'government_id' => ['required', 'array', 'min:1', 'max:10'],
+            'government_id.*' => ['required', 'file', 'mimes:jpg,jpeg,png,pdf,mp4,mov', 'max:25600'],
+        ]));
 
-        $locationData = PhilippineLocations::profileLocationAttributes($validated);
-
-        $user->update([
-            'first_name' => $validated['first_name'],
-            'last_name' => $validated['last_name'],
-            'phone' => $validated['phone'],
-            'onboarding_step' => User::ONBOARDING_VERIFICATION,
-        ]);
+        $user->update(['onboarding_step' => User::ONBOARDING_VERIFICATION]);
 
         if ($user->isPerformer()) {
             $user->performerProfile()->updateOrCreate(
                 ['user_id' => $user->id],
                 array_merge([
                     'stage_name' => $user->fullName(),
-                ], $locationData)
+                ], collect($validated)->only(['latitude', 'longitude', 'location'])->all())
             );
         } else {
             $user->organizerProfile()->updateOrCreate(
                 ['user_id' => $user->id],
                 array_merge([
                     'organization_name' => $user->fullName(),
-                    'phone' => $validated['phone'],
-                ], $locationData)
+                    'phone' => $user->phone,
+                ], collect($validated)->only(['latitude', 'longitude', 'location'])->all())
             );
         }
 
-        return redirect()->route('onboarding.verification');
+        foreach ($request->file('government_id', []) as $index => $file) {
+            $this->storeDocument($user, 'government_id', $file, [], $index === 0);
+        }
+        $user->update(['onboarding_step' => User::ONBOARDING_COMPLETE]);
+
+        return redirect($user->dashboardRoute())
+            ->with('success', 'Your profile and ID were submitted for admin verification.');
     }
 
     public function showVerification(): View|RedirectResponse
@@ -242,12 +243,14 @@ class OnboardingController extends Controller
         return back();
     }
 
-    private function storeDocument(User $user, string $type, \Illuminate\Http\UploadedFile $file, array $meta = []): void
+    private function storeDocument(User $user, string $type, \Illuminate\Http\UploadedFile $file, array $meta = [], bool $replaceExisting = true): void
     {
-        $existing = $user->verificationDocuments()->where('document_type', $type)->first();
+        $existing = $replaceExisting
+            ? $user->verificationDocuments()->where('document_type', $type)->get()
+            : collect();
 
-        if ($existing) {
-            $existing->delete();
+        foreach ($existing as $document) {
+            $document->delete();
         }
 
         $supabase = new SupabaseStorageService();

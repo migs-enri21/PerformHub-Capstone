@@ -50,6 +50,16 @@
                     <input type="number" class="form-control ph-input" name="budget" value="{{ old('budget') }}" min="0" step="0.01">
                 </div>
 
+                <div class="col-md-6">
+                    <label class="form-label">Compensation Type</label>
+                    <select class="form-select ph-input" name="compensation_type">
+                        <option value="">Select Compensation Type</option>
+                        <option value="contest" @selected(old('compensation_type') === 'contest')>Contest</option>
+                        <option value="hourly" @selected(old('compensation_type') === 'hourly')>Hourly</option>
+                        <option value="fixed" @selected(old('compensation_type') === 'fixed')>Fixed</option>
+                    </select>
+                </div>
+
                 <div class="col-12">
                     <label class="form-label">Required Performer Categories</label>
                     <div class="organizer-category-list @error('category_ids') organizer-category-list-error @enderror">

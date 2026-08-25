@@ -69,14 +69,13 @@ class AuthController extends Controller
             'last_name' => ['required', 'string', 'max:100'],
             'username' => ['required', 'string', 'max:50', 'alpha_dash', 'unique:users,username'],
             'email' => ['required', 'email', 'max:255', 'unique:users,email'],
+            'phone' => ['required', 'string', 'max:30'],
             'password' => ['required', 'confirmed', Password::min(8)],
             'role' => ['required', 'in:performer,organizer'],
-            'terms_accepted' => ['accepted'],
         ], [
             'username.alpha_dash' => 'Username can only use letters, numbers, dashes, and underscores (spaces are converted automatically).',
             'username.unique' => 'That username is already taken. Try another one.',
             'email.unique' => 'An account with this email already exists.',
-            'terms_accepted.accepted' => 'You must agree to the Terms & Agreement before continuing.',
             'password.confirmed' => 'Password and confirm password do not match.',
             'password.min' => 'Password must be at least 8 characters.',
         ]);
@@ -86,11 +85,12 @@ class AuthController extends Controller
             'last_name' => $validated['last_name'],
             'username' => $validated['username'],
             'email' => $validated['email'],
+            'phone' => $validated['phone'],
             'password' => $validated['password'],
             'role' => $validated['role'],
             'is_verified' => false,
             'is_active' => true,
-            'onboarding_step' => User::ONBOARDING_REGISTERED,
+            'onboarding_step' => User::ONBOARDING_PROFILE,
         ]);
 
         if ($user->isPerformer()) {
@@ -102,6 +102,7 @@ class AuthController extends Controller
             OrganizerProfile::create([
                 'user_id' => $user->id,
                 'organization_name' => $user->fullName(),
+                'phone' => $user->phone,
             ]);
         }
 
@@ -123,8 +124,7 @@ class AuthController extends Controller
             }
         }
 
-        return redirect($user->dashboardRoute())
-            ->with('success', 'Welcome to PerformHub! Your account is ready — complete sign-up anytime to unlock all features.');
+        return redirect()->route('onboarding.profile');
     }
 
     public function logout(Request $request): RedirectResponse
