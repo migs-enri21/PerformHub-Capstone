@@ -6,109 +6,179 @@
 ])
 
 @php
-    use App\Support\PhilippineLocations;
     $selectedRegion = old('region', $region);
     $selectedCity = old('city', $city);
     $selectedBarangay = old('barangay', $barangay);
+    $initialAddress = old('location_search', implode(', ', array_filter([$selectedBarangay, $selectedCity, $selectedRegion])));
+    $mapsKey = config('services.google_maps.key');
 @endphp
 
-<div class="ph-location-cascade"
-    data-region="{{ $selectedRegion }}"
-    data-city="{{ $selectedCity }}"
-    data-barangay="{{ $selectedBarangay }}">
+@if($mapsKey)
+    <div class="ph-location-cascade" data-required="{{ $required ? '1' : '0' }}">
+        <input type="hidden" name="region" class="ph-location-region-input" value="{{ $selectedRegion }}">
+        <input type="hidden" name="city" class="ph-location-city-input" value="{{ $selectedCity }}">
+        <input type="hidden" name="barangay" class="ph-location-barangay-input" value="{{ $selectedBarangay }}">
 
-    <div class="mb-3">
-        <label class="form-label text-muted small">Region</label>
-        <select name="region" class="form-select ph-input ph-location-region" @if($required) required @endif>
-            <option value="">Select region</option>
-            @foreach(PhilippineLocations::regions() as $regionName)
-                <option value="{{ $regionName }}" @selected($selectedRegion === $regionName)>{{ $regionName }}</option>
-            @endforeach
-        </select>
+        <div class="mb-2">
+            <input
+                type="text"
+                name="location_search"
+                class="form-control ph-input ph-location-search"
+                placeholder="Search your address in the Philippines"
+                value="{{ $initialAddress }}"
+                autocomplete="off"
+                @if($required) required @endif
+            >
+        </div>
+        <button type="button" class="btn btn-sm ph-btn-outline ph-location-geolocate">
+            <i class="fas fa-location-crosshairs me-1"></i> Use my exact location
+        </button>
+        <div class="ph-location-status small text-muted mt-2"></div>
     </div>
 
-    <div class="mb-3">
-        <label class="form-label text-muted small">City / Municipality</label>
-        <select name="city" class="form-select ph-input ph-location-city" @if($required) required @endif disabled>
-            <option value="">Select city / municipality</option>
-        </select>
-    </div>
+    @once
+        @push('scripts')
+            <script>
+            (function () {
+                window.__phLocationPending = window.__phLocationPending || [];
 
-    <div @if($required) class="mb-0" @else class="mb-3" @endif>
-        <label class="form-label text-muted small">Barangay</label>
-        <select name="barangay" class="form-select ph-input ph-location-barangay" @if($required) required @endif disabled>
-            <option value="">Select barangay</option>
-        </select>
-    </div>
-</div>
+                function parseAddressComponents(components) {
+                    const find = (type) => {
+                        const match = components.find((component) => component.types.includes(type));
+                        return match ? match.long_name : '';
+                    };
 
-@once
-    @push('scripts')
-        <script>
-        window.phLocations = @json(\App\Support\PhilippineLocations::places());
+                    return {
+                        region: find('administrative_area_level_1'),
+                        city: find('locality') || find('administrative_area_level_2') || find('administrative_area_level_3'),
+                        barangay: find('sublocality_level_1') || find('sublocality') || find('neighborhood'),
+                    };
+                }
 
-        function initLocationCascade(root) {
-            const regionSelect = root.querySelector('.ph-location-region');
-            const citySelect = root.querySelector('.ph-location-city');
-            const barangaySelect = root.querySelector('.ph-location-barangay');
-            const data = window.phLocations || {};
+                function initCascade(root) {
+                    const searchInput = root.querySelector('.ph-location-search');
+                    const regionInput = root.querySelector('.ph-location-region-input');
+                    const cityInput = root.querySelector('.ph-location-city-input');
+                    const barangayInput = root.querySelector('.ph-location-barangay-input');
+                    const geoButton = root.querySelector('.ph-location-geolocate');
+                    const statusEl = root.querySelector('.ph-location-status');
+                    const isRequired = root.dataset.required === '1';
 
-            function fillSelect(select, items, placeholder, selected) {
-                select.innerHTML = '';
-                const placeholderOption = document.createElement('option');
-                placeholderOption.value = '';
-                placeholderOption.textContent = placeholder;
-                select.appendChild(placeholderOption);
-
-                items.forEach(item => {
-                    const option = document.createElement('option');
-                    option.value = item;
-                    option.textContent = item;
-                    if (item === selected) {
-                        option.selected = true;
+                    function applyResult(components, formattedAddress) {
+                        const parsed = parseAddressComponents(components);
+                        regionInput.value = parsed.region;
+                        cityInput.value = parsed.city;
+                        barangayInput.value = parsed.barangay;
+                        if (formattedAddress) {
+                            searchInput.value = formattedAddress;
+                        }
                     }
-                    select.appendChild(option);
+
+                    const autocomplete = new google.maps.places.Autocomplete(searchInput, {
+                        componentRestrictions: { country: 'ph' },
+                        fields: ['address_components', 'formatted_address'],
+                    });
+
+                    autocomplete.addListener('place_changed', () => {
+                        const place = autocomplete.getPlace();
+
+                        if (!place || !place.address_components) {
+                            statusEl.textContent = 'Please choose an address from the suggestions.';
+                            return;
+                        }
+
+                        applyResult(place.address_components, place.formatted_address);
+                        statusEl.textContent = '';
+                    });
+
+                    // Manual edits invalidate the previously resolved address.
+                    searchInput.addEventListener('input', () => {
+                        regionInput.value = '';
+                        cityInput.value = '';
+                        barangayInput.value = '';
+                    });
+
+                    geoButton.addEventListener('click', () => {
+                        if (!navigator.geolocation) {
+                            statusEl.textContent = 'Geolocation is not supported by your browser.';
+                            return;
+                        }
+
+                        statusEl.textContent = 'Locating you…';
+                        geoButton.disabled = true;
+
+                        navigator.geolocation.getCurrentPosition(
+                            (position) => {
+                                const geocoder = new google.maps.Geocoder();
+                                const latLng = {
+                                    lat: position.coords.latitude,
+                                    lng: position.coords.longitude,
+                                };
+
+                                geocoder.geocode({ location: latLng }, (results, status) => {
+                                    geoButton.disabled = false;
+
+                                    if (status === 'OK' && results[0]) {
+                                        applyResult(results[0].address_components, results[0].formatted_address);
+                                        statusEl.textContent = 'Location detected ✓';
+                                    } else {
+                                        statusEl.textContent = 'Could not resolve an address for your location.';
+                                    }
+                                });
+                            },
+                            () => {
+                                geoButton.disabled = false;
+                                statusEl.textContent = 'Unable to get your location. Please allow location access and try again.';
+                            },
+                            { enableHighAccuracy: true, timeout: 10000 }
+                        );
+                    });
+
+                    const form = root.closest('form');
+
+                    if (form && isRequired) {
+                        form.addEventListener('submit', (event) => {
+                            if (!regionInput.value || !cityInput.value) {
+                                event.preventDefault();
+                                statusEl.textContent = 'Please choose an address from the suggestions, or tap "Use my exact location".';
+                                searchInput.focus();
+                            }
+                        });
+                    }
+                }
+
+                window.__initPhLocationCascade = initCascade;
+
+                document.querySelectorAll('.ph-location-cascade').forEach((root) => {
+                    if (window.google && window.google.maps && window.google.maps.places) {
+                        initCascade(root);
+                    } else {
+                        window.__phLocationPending.push(root);
+                    }
                 });
+            })();
 
-                select.disabled = items.length === 0;
+            function __onGoogleMapsLoaded() {
+                (window.__phLocationPending || []).forEach((root) => window.__initPhLocationCascade(root));
+                window.__phLocationPending = [];
             }
-
-            function syncCities(preserveCity = '', preserveBarangay = '') {
-                const region = regionSelect.value;
-                let cities = [];
-
-                if (region && data[region]) {
-                    cities = Object.keys(data[region]);
-                }
-                fillSelect(citySelect, cities, 'Select city / municipality', preserveCity);
-                syncBarangays(preserveBarangay);
-            }
-
-            function syncBarangays(preserveBarangay = '') {
-                const region = regionSelect.value;
-                const city = citySelect.value;
-                let barangays = [];
-
-                if (region && city && data[region] && data[region][city]) {
-                    barangays = data[region][city];
-                }
-                fillSelect(barangaySelect, barangays, 'Select barangay', preserveBarangay);
-            }
-
-            regionSelect.addEventListener('change', () => {
-                syncCities();
-            });
-
-            citySelect.addEventListener('change', () => {
-                syncBarangays();
-            });
-
-            if (regionSelect.value) {
-                syncCities(root.dataset.city || '', root.dataset.barangay || '');
-            }
-        }
-
-        document.querySelectorAll('.ph-location-cascade').forEach(initLocationCascade);
-        </script>
-    @endpush
-@endonce
+            </script>
+            <script src="https://maps.googleapis.com/maps/api/js?key={{ $mapsKey }}&libraries=places&callback=__onGoogleMapsLoaded" async defer></script>
+        @endpush
+    @endonce
+@else
+    <div class="ph-location-cascade">
+        <div class="alert alert-warning small py-2 mb-2">
+            Google Maps location search isn't configured yet — enter your address manually below.
+        </div>
+        <div class="mb-2">
+            <input type="text" name="region" class="form-control ph-input" placeholder="Region / Province" value="{{ $selectedRegion }}" @if($required) required @endif>
+        </div>
+        <div class="mb-2">
+            <input type="text" name="city" class="form-control ph-input" placeholder="City / Municipality" value="{{ $selectedCity }}" @if($required) required @endif>
+        </div>
+        <div class="mb-0">
+            <input type="text" name="barangay" class="form-control ph-input" placeholder="Barangay (optional)" value="{{ $selectedBarangay }}">
+        </div>
+    </div>
+@endif

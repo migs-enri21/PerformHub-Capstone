@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Auth;
 
+use App\Http\Controllers\Concerns\HandlesVerificationDocuments;
 use App\Http\Controllers\Controller;
 use App\Models\OrganizerProfile;
 use App\Models\PerformerProfile;
@@ -16,6 +17,8 @@ use Illuminate\View\View;
 
 class AuthController extends Controller
 {
+    use HandlesVerificationDocuments;
+
     public function showLogin(Request $request): View
     {
         return view('auth.login');
@@ -72,6 +75,9 @@ class AuthController extends Controller
             'password' => ['required', 'confirmed', Password::min(8)],
             'role' => ['required', 'in:performer,organizer'],
             'terms_accepted' => ['accepted'],
+            'government_id_type' => ['required', 'string', 'max:100'],
+            'government_id_other' => ['nullable', 'required_if:government_id_type,Other Government-Issued ID', 'string', 'max:100'],
+            'government_id' => ['required', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'],
         ], [
             'username.alpha_dash' => 'Username can only use letters, numbers, dashes, and underscores (spaces are converted automatically).',
             'username.unique' => 'That username is already taken. Try another one.',
@@ -79,6 +85,7 @@ class AuthController extends Controller
             'terms_accepted.accepted' => 'You must agree to the Terms & Agreement before continuing.',
             'password.confirmed' => 'Password and confirm password do not match.',
             'password.min' => 'Password must be at least 8 characters.',
+            'government_id.required' => 'Please upload a valid government ID.',
         ]);
 
         $user = User::create([
@@ -90,7 +97,9 @@ class AuthController extends Controller
             'role' => $validated['role'],
             'is_verified' => false,
             'is_active' => true,
-            'onboarding_step' => User::ONBOARDING_REGISTERED,
+            // Role is chosen here at registration, so onboarding starts at the
+            // profile step — there's no separate role-selection step anymore.
+            'onboarding_step' => User::ONBOARDING_PROFILE,
         ]);
 
         if ($user->isPerformer()) {
@@ -104,6 +113,11 @@ class AuthController extends Controller
                 'organization_name' => $user->fullName(),
             ]);
         }
+
+        $this->storeVerificationDocument($user, 'government_id', $request->file('government_id'), [
+            'government_id_type' => $validated['government_id_type'],
+            'government_id_other' => $validated['government_id_other'] ?? null,
+        ]);
 
         Auth::login($user);
 

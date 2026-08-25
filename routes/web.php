@@ -41,8 +41,6 @@ Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth')->n
 
 Route::middleware('auth')->group(function () {
     Route::get('/onboarding', [OnboardingController::class, 'index'])->name('onboarding.index');
-    Route::get('/onboarding/role', [OnboardingController::class, 'showRole'])->name('onboarding.role');
-    Route::post('/onboarding/role', [OnboardingController::class, 'storeRole'])->name('onboarding.role.store');
     Route::get('/onboarding/profile', [OnboardingController::class, 'showProfile'])->name('onboarding.profile');
     Route::post('/onboarding/profile', [OnboardingController::class, 'storeProfile'])->name('onboarding.profile.store');
     Route::get('/onboarding/verification', [OnboardingController::class, 'showVerification'])->name('onboarding.verification');
@@ -60,11 +58,11 @@ Route::middleware(['auth', 'role:performer'])->prefix('performer')->name('perfor
     Route::get('/profile', [PerformerProfileController::class, 'show'])->name('profile.show');
     Route::get('/profile/edit', [PerformerProfileController::class, 'edit'])->name('profile.edit');
     Route::put('/profile', [PerformerProfileController::class, 'update'])->name('profile.update');
+    Route::get('/portfolio', [PortfolioController::class, 'index'])->name('portfolio.index');
+    Route::post('/portfolio', [PortfolioController::class, 'store'])->name('portfolio.store');
+    Route::post('/portfolio/update', [PortfolioController::class, 'update'])->name('portfolio.update');
+    Route::delete('/portfolio/{portfolio}', [PortfolioController::class, 'destroy'])->name('portfolio.destroy');
     Route::middleware('full.access')->group(function () {
-        Route::get('/portfolio', [PortfolioController::class, 'index'])->name('portfolio.index');
-        Route::post('/portfolio', [PortfolioController::class, 'store'])->name('portfolio.store');
-        Route::post('/portfolio/update', [PortfolioController::class, 'update'])->name('portfolio.update');
-        Route::delete('/portfolio/{portfolio}', [PortfolioController::class, 'destroy'])->name('portfolio.destroy');
         Route::get('/availability', [AvailabilityController::class, 'index'])->name('availability.index');
         Route::post('/availability', [AvailabilityController::class, 'store'])->name('availability.store');
         Route::delete('/availability/{schedule}', [AvailabilityController::class, 'destroy'])->name('availability.destroy');

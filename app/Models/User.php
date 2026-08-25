@@ -145,8 +145,7 @@ class User extends Authenticatable
     public function onboardingStepLabel(): string
     {
         return match ($this->onboarding_step) {
-            self::ONBOARDING_REGISTERED => 'role',
-            self::ONBOARDING_PROFILE => 'profile',
+            self::ONBOARDING_REGISTERED, self::ONBOARDING_PROFILE => 'profile',
             self::ONBOARDING_VERIFICATION => 'verification',
             default => 'complete',
         };
@@ -159,8 +158,7 @@ class User extends Authenticatable
         }
 
         return match ($this->onboarding_step) {
-            self::ONBOARDING_REGISTERED => route('onboarding.role'),
-            self::ONBOARDING_PROFILE => route('onboarding.profile'),
+            self::ONBOARDING_REGISTERED, self::ONBOARDING_PROFILE => route('onboarding.profile'),
             self::ONBOARDING_VERIFICATION => route('onboarding.verification'),
             default => route('onboarding.complete'),
         };

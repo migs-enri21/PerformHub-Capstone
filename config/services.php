@@ -45,6 +45,10 @@ return [
         'redirect_uri' => env('GOOGLE_REDIRECT_URI'),
     ],
 
+    'google_maps' => [
+        'key' => env('GOOGLE_MAPS_API_KEY'),
+    ],
+
     'supabase' => [
     'url' => env('SUPABASE_URL'),
     'service_key' => env('SUPABASE_SERVICE_ROLE_KEY'),

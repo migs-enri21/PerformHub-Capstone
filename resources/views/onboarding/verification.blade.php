@@ -1,4 +1,4 @@
-@extends('onboarding.layout', ['title' => 'Verification', 'current' => 3])
+@extends('onboarding.layout', ['title' => 'Verification', 'current' => 2])
 
 @section('onboarding-content')
 <div class="d-flex align-items-center justify-content-center gap-2 mb-1">
@@ -47,52 +47,59 @@
             $businessPermitRequired = old('organization_type', $user->organizerProfile?->organization_type) !== 'individual';
         @endphp
 
-        @php
-            $governmentIdType = old('government_id_type', '');
-        @endphp
+        @if($hasGovernmentId)
+            <div class="mb-3 p-3 rounded" style="background-color: rgba(34,197,94,.1); border: 1px solid rgba(34,197,94,.3);">
+                <i class="fas fa-check-circle text-success me-2"></i>
+                <span class="small">Government ID already submitted during registration.</span>
+            </div>
+        @else
+            @php
+                $governmentIdType = old('government_id_type', '');
+            @endphp
 
-        <div class="mb-3">
-            <label class="form-label text-muted small mb-2" for="government_id_type">Government ID Type <span class="text-danger">*</span></label>
-            <select name="government_id_type" id="government_id_type" class="form-select ph-input @error('government_id_type') is-invalid @enderror" required>
-                <option value="" disabled {{ $governmentIdType === '' ? 'selected' : '' }}>Select Government ID Type</option>
-                @foreach([
-                    'PhilSys National ID' => 'PhilSys National ID',
-                    'Passport' => 'Passport',
-                    'Driver\'s License' => 'Driver\'s License',
-                    'UMID' => 'UMID',
-                    'PhilHealth ID' => 'PhilHealth ID',
-                    'Postal ID' => 'Postal ID',
-                    'PRC ID' => 'PRC ID',
-                    'SSS ID' => 'SSS ID',
-                    'GSIS eCard' => 'GSIS eCard',
-                    'OWWA ID' => 'OWWA ID',
-                    'NBI Clearance' => 'NBI Clearance',
-                    'Police Clearance' => 'Police Clearance',
-                    'PWD ID' => 'PWD ID',
-                    'Senior Citizen ID' => 'Senior Citizen ID',
-                    'Solo Parent ID' => 'Solo Parent ID',
-                    'Other Government-Issued ID' => 'Other Government-Issued ID',
-                ] as $value => $label)
-                    <option value="{{ $value }}" {{ $governmentIdType === $value ? 'selected' : '' }}>{{ $label }}</option>
-                @endforeach
-            </select>
-            @error('government_id_type')<div class="invalid-feedback">{{ $message }}</div>@enderror
-        </div>
+            <div class="mb-3">
+                <label class="form-label text-muted small mb-2" for="government_id_type">Government ID Type <span class="text-danger">*</span></label>
+                <select name="government_id_type" id="government_id_type" class="form-select ph-input @error('government_id_type') is-invalid @enderror" required>
+                    <option value="" disabled {{ $governmentIdType === '' ? 'selected' : '' }}>Select Government ID Type</option>
+                    @foreach([
+                        'PhilSys National ID' => 'PhilSys National ID',
+                        'Passport' => 'Passport',
+                        'Driver\'s License' => 'Driver\'s License',
+                        'UMID' => 'UMID',
+                        'PhilHealth ID' => 'PhilHealth ID',
+                        'Postal ID' => 'Postal ID',
+                        'PRC ID' => 'PRC ID',
+                        'SSS ID' => 'SSS ID',
+                        'GSIS eCard' => 'GSIS eCard',
+                        'OWWA ID' => 'OWWA ID',
+                        'NBI Clearance' => 'NBI Clearance',
+                        'Police Clearance' => 'Police Clearance',
+                        'PWD ID' => 'PWD ID',
+                        'Senior Citizen ID' => 'Senior Citizen ID',
+                        'Solo Parent ID' => 'Solo Parent ID',
+                        'Other Government-Issued ID' => 'Other Government-Issued ID',
+                    ] as $value => $label)
+                        <option value="{{ $value }}" {{ $governmentIdType === $value ? 'selected' : '' }}>{{ $label }}</option>
+                    @endforeach
+                </select>
+                @error('government_id_type')<div class="invalid-feedback">{{ $message }}</div>@enderror
+            </div>
 
-        <div class="mb-3" id="government_id_other_group" style="display: {{ $governmentIdType === 'Other Government-Issued ID' ? 'block' : 'none' }};">
-            <label class="form-label text-muted small mb-2" for="government_id_other">Specify Other Government ID</label>
-            <input type="text" name="government_id_other" id="government_id_other" class="form-control ph-input @error('government_id_other') is-invalid @enderror" value="{{ old('government_id_other') }}" placeholder="Enter government ID type">
-            @error('government_id_other')<div class="invalid-feedback">{{ $message }}</div>@enderror
-        </div>
+            <div class="mb-3" id="government_id_other_group" style="display: {{ $governmentIdType === 'Other Government-Issued ID' ? 'block' : 'none' }};">
+                <label class="form-label text-muted small mb-2" for="government_id_other">Specify Other Government ID</label>
+                <input type="text" name="government_id_other" id="government_id_other" class="form-control ph-input @error('government_id_other') is-invalid @enderror" value="{{ old('government_id_other') }}" placeholder="Enter government ID type">
+                @error('government_id_other')<div class="invalid-feedback">{{ $message }}</div>@enderror
+            </div>
 
-        @include('onboarding.partials.upload-field', [
-            'name' => 'government_id',
-            'title' => 'Government-Issued ID',
-            'required' => true,
-            'desc' => 'Valid Philippine ID of the authorized representative.',
-            'formats' => '.jpg .png .pdf — max 5 MB',
-            'icon' => 'fa-id-card',
-        ])
+            @include('onboarding.partials.upload-field', [
+                'name' => 'government_id',
+                'title' => 'Government-Issued ID',
+                'required' => true,
+                'desc' => 'Valid Philippine ID of the authorized representative.',
+                'formats' => '.jpg .png .pdf — max 5 MB',
+                'icon' => 'fa-id-card',
+            ])
+        @endif
         @include('onboarding.partials.upload-field', [
             'name' => 'business_permit',
             'title' => 'Business / Organization Permit',
@@ -118,60 +125,60 @@
             'icon' => 'fa-certificate',
         ])
     @else
-        @php
-            $governmentIdType = old('government_id_type', '');
-        @endphp
+        @if($hasGovernmentId)
+            <div class="mb-3 p-3 rounded" style="background-color: rgba(34,197,94,.1); border: 1px solid rgba(34,197,94,.3);">
+                <i class="fas fa-check-circle text-success me-2"></i>
+                <span class="small">Government ID already submitted during registration.</span>
+            </div>
+            <p class="text-muted small mb-0">You're all set — continue below to finish sign-up. You can upload photos and videos to your Portfolio anytime from your dashboard.</p>
+        @else
+            @php
+                $governmentIdType = old('government_id_type', '');
+            @endphp
 
-        <div class="mb-3">
-            <label class="form-label text-muted small mb-2" for="government_id_type">Government ID Type <span class="text-danger">*</span></label>
-            <select name="government_id_type" id="government_id_type" class="form-select ph-input @error('government_id_type') is-invalid @enderror" required>
-                <option value="" disabled {{ $governmentIdType === '' ? 'selected' : '' }}>Select Government ID Type</option>
-                @foreach([
-                    'PhilSys National ID' => 'PhilSys National ID',
-                    'Passport' => 'Passport',
-                    'Driver\'s License' => 'Driver\'s License',
-                    'UMID' => 'UMID',
-                    'PhilHealth ID' => 'PhilHealth ID',
-                    'Postal ID' => 'Postal ID',
-                    'PRC ID' => 'PRC ID',
-                    'SSS ID' => 'SSS ID',
-                    'GSIS eCard' => 'GSIS eCard',
-                    'OWWA ID' => 'OWWA ID',
-                    'NBI Clearance' => 'NBI Clearance',
-                    'Police Clearance' => 'Police Clearance',
-                    'PWD ID' => 'PWD ID',
-                    'Senior Citizen ID' => 'Senior Citizen ID',
-                    'Solo Parent ID' => 'Solo Parent ID',
-                    'Other Government-Issued ID' => 'Other Government-Issued ID',
-                ] as $value => $label)
-                    <option value="{{ $value }}" {{ $governmentIdType === $value ? 'selected' : '' }}>{{ $label }}</option>
-                @endforeach
-            </select>
-            @error('government_id_type')<div class="invalid-feedback">{{ $message }}</div>@enderror
-        </div>
+            <div class="mb-3">
+                <label class="form-label text-muted small mb-2" for="government_id_type">Government ID Type <span class="text-danger">*</span></label>
+                <select name="government_id_type" id="government_id_type" class="form-select ph-input @error('government_id_type') is-invalid @enderror" required>
+                    <option value="" disabled {{ $governmentIdType === '' ? 'selected' : '' }}>Select Government ID Type</option>
+                    @foreach([
+                        'PhilSys National ID' => 'PhilSys National ID',
+                        'Passport' => 'Passport',
+                        'Driver\'s License' => 'Driver\'s License',
+                        'UMID' => 'UMID',
+                        'PhilHealth ID' => 'PhilHealth ID',
+                        'Postal ID' => 'Postal ID',
+                        'PRC ID' => 'PRC ID',
+                        'SSS ID' => 'SSS ID',
+                        'GSIS eCard' => 'GSIS eCard',
+                        'OWWA ID' => 'OWWA ID',
+                        'NBI Clearance' => 'NBI Clearance',
+                        'Police Clearance' => 'Police Clearance',
+                        'PWD ID' => 'PWD ID',
+                        'Senior Citizen ID' => 'Senior Citizen ID',
+                        'Solo Parent ID' => 'Solo Parent ID',
+                        'Other Government-Issued ID' => 'Other Government-Issued ID',
+                    ] as $value => $label)
+                        <option value="{{ $value }}" {{ $governmentIdType === $value ? 'selected' : '' }}>{{ $label }}</option>
+                    @endforeach
+                </select>
+                @error('government_id_type')<div class="invalid-feedback">{{ $message }}</div>@enderror
+            </div>
 
-        <div class="mb-3" id="government_id_other_group" style="display: {{ $governmentIdType === 'Other Government-Issued ID' ? 'block' : 'none' }};">
-            <label class="form-label text-muted small mb-2" for="government_id_other">Specify Other Government ID</label>
-            <input type="text" name="government_id_other" id="government_id_other" class="form-control ph-input @error('government_id_other') is-invalid @enderror" value="{{ old('government_id_other') }}" placeholder="Enter government ID type">
-            @error('government_id_other')<div class="invalid-feedback">{{ $message }}</div>@enderror
-        </div>
+            <div class="mb-3" id="government_id_other_group" style="display: {{ $governmentIdType === 'Other Government-Issued ID' ? 'block' : 'none' }};">
+                <label class="form-label text-muted small mb-2" for="government_id_other">Specify Other Government ID</label>
+                <input type="text" name="government_id_other" id="government_id_other" class="form-control ph-input @error('government_id_other') is-invalid @enderror" value="{{ old('government_id_other') }}" placeholder="Enter government ID type">
+                @error('government_id_other')<div class="invalid-feedback">{{ $message }}</div>@enderror
+            </div>
 
-        @include('onboarding.partials.upload-field', [
-            'name' => 'government_id',
-            'title' => 'Government-Issued ID',
-            'required' => true,
-            'desc' => 'Valid Philippine ID for identity verification.',
-            'formats' => '.jpg .png .pdf — max 5 MB',
-            'icon' => 'fa-id-card',
-        ])
-        @include('onboarding.partials.upload-field', [
-            'name' => 'performance_sample',
-            'title' => 'Performance Sample',
-            'required' => false,
-            'desc' => 'Photo, video, or portfolio sample showcasing your talent.',
-            'formats' => '.jpg .png .pdf .mp4 — max 500 MB',
-            'icon' => 'fa-video',
-        ])
+            @include('onboarding.partials.upload-field', [
+                'name' => 'government_id',
+                'title' => 'Government-Issued ID',
+                'required' => true,
+                'desc' => 'Valid Philippine ID for identity verification.',
+                'formats' => '.jpg .png .pdf — max 5 MB',
+                'icon' => 'fa-id-card',
+            ])
+        @endif
     @endif
 
     <div class="d-flex gap-2">

@@ -1,4 +1,4 @@
-@extends('onboarding.layout', ['title' => 'Your Information', 'current' => 2])
+@extends('onboarding.layout', ['title' => 'Your Information', 'current' => 1])
 
 @section('onboarding-content')
 <h2 class="fw-bold text-center mb-1">Your information</h2>
@@ -43,11 +43,8 @@
         ])
     </div>
 
-    <div class="d-flex gap-2">
-        <a href="{{ route('onboarding.role') }}" class="btn ph-btn-outline">Back</a>
-        <button type="submit" class="btn ph-btn-primary flex-grow-1">
-            Continue <i class="fas fa-arrow-right ms-2"></i>
-        </button>
-    </div>
+    <button type="submit" class="btn ph-btn-primary w-100">
+        Continue <i class="fas fa-arrow-right ms-2"></i>
+    </button>
 </form>
 @endsection

@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Event;
 use App\Models\PerformerProfile;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Collection;
 
 class PerformerRecommendationService
@@ -19,7 +20,8 @@ class PerformerRecommendationService
         return PerformerProfile::with(['user', 'categories', 'portfolios'])
             ->whereHas('user', function ($query) {
                 $query->where('is_active', true)
-                    ->where('is_verified', true);
+                    ->where('is_verified', true)
+                    ->where('onboarding_step', '>=', User::ONBOARDING_COMPLETE);
             })
             ->whereHas('categories', function ($query) use ($categoryIds) {
                 $query->whereIn('categories.id', $categoryIds);

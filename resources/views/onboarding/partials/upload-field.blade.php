@@ -15,7 +15,7 @@
                 </div>
                 <p class="text-muted small mb-1">{{ $desc }}</p>
                 <span class="text-muted" style="font-size:0.75rem;">{{ $formats }}</span>
-                <div class="upload-filename small text-success mt-2 d-none d-flex align-items-center gap-2">
+                <div class="upload-filename small text-success mt-2 d-none">
                     <span class="upload-filename-text"></span>
                     <button type="button" class="btn btn-sm btn-outline-danger delete-file" title="Delete file">
                         <i class="fas fa-trash-alt"></i>

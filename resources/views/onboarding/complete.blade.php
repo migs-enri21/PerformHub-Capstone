@@ -1,4 +1,4 @@
-@extends('onboarding.layout', ['title' => 'All Set', 'current' => 4])
+@extends('onboarding.layout', ['title' => 'All Set', 'current' => 3])
 
 @section('onboarding-content')
 <div class="text-center mb-4">

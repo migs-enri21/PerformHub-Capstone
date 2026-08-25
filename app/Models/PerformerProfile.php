@@ -120,6 +120,15 @@ class PerformerProfile extends Model
         return (bool) $schedule->is_available;
     }
 
+    public function portfolioVisibleTo(?User $viewer): bool
+    {
+        if ($viewer && $viewer->id === $this->user_id) {
+            return true;
+        }
+
+        return $this->user->hasCompletedOnboarding();
+    }
+
     public function averageRating(): float
     {
         $average = Review::query()

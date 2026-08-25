@@ -103,7 +103,7 @@ class ProfileController extends Controller
             'barangay',
         ])->all());
 
-        if (! empty($data['region']) && ! empty($data['city']) && ! empty($data['barangay'])) {
+        if (! empty($data['region']) && ! empty($data['city'])) {
             $profile->update(PhilippineLocations::profileLocationAttributes($data));
         }
     }

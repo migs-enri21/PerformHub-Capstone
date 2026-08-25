@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Booking;
 use App\Models\Event;
 use App\Models\Portfolio;
+use App\Models\User;
 use App\Services\PerformerRecommendationService;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
@@ -79,6 +80,9 @@ class DashboardController extends Controller
             });
 
         $portfolioPosts = Portfolio::with(['performerProfile.user', 'performerProfile.categories'])
+            ->whereHas('performerProfile.user', function ($query) {
+                $query->where('onboarding_step', '>=', User::ONBOARDING_COMPLETE);
+            })
             ->latest()
             ->take(10)
             ->get()

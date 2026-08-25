@@ -113,7 +113,7 @@ class ProfileController extends Controller
 
         $profile->categories()->sync($validated['category_ids'] ?? []);
 
-        if (! empty($validated['region']) && ! empty($validated['city']) && ! empty($validated['barangay'])) {
+        if (! empty($validated['region']) && ! empty($validated['city'])) {
             $profile->update(PhilippineLocations::profileLocationAttributes($validated));
         }
 

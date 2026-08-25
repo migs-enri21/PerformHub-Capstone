@@ -27,6 +27,11 @@ class PerformerSearchController extends Controller
         $performer = AvailabilityCalendar::loadCalendarRelations(
             $performer->load(['user', 'categories', 'portfolios'])
         );
+
+        if (! $performer->portfolioVisibleTo(Auth::user())) {
+            $performer->setRelation('portfolios', collect());
+        }
+
         $calendar = AvailabilityCalendar::calendarData($performer);
 
         return view('organizer.performers.show', compact('performer', 'calendar'));
