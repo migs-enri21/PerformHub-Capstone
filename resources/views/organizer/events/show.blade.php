@@ -22,6 +22,13 @@
             <p class="text-muted mb-0">{{ ucfirst($event->status) }} event</p>
         </div>
         <div class="d-flex gap-2">
+            @if($canCompleteEvent)
+                <form method="POST" action="{{ route('organizer.events.complete', $event) }}" onsubmit="return confirm('Mark this event as completed? This action means the event has finished.');">
+                    @csrf
+                    @method('PATCH')
+                    <button type="submit" class="btn btn-success btn-sm">Mark Event Completed</button>
+                </form>
+            @endif
             <a href="{{ route('organizer.events.edit', $event) }}" class="btn ph-btn-primary btn-sm">Edit</a>
             <a href="{{ route('organizer.events.index') }}" class="btn ph-btn-secondary btn-sm">Back</a>
         </div>
@@ -106,6 +113,31 @@
             if ($applicantProfile && $applicantProfile->stage_name) {
                 $applicantName = $applicantProfile->stage_name;
             }
+
+            $bookingMessage = null;
+            $bookingMessageClass = 'text-muted';
+
+            if ($application->status === 'invited') {
+                $bookingMessage = 'Booking request sent - waiting for performer';
+            }
+
+            if ($application->status === 'accepted' && isset($bookings[$application->performer_id])) {
+                $booking = $bookings[$application->performer_id];
+
+                if ($booking->status === 'completed') {
+                    $bookingMessage = 'Booking confirmed';
+                    $bookingMessageClass = 'text-success';
+                } elseif ($booking->hasSignedContract()) {
+                    $bookingMessage = 'Signed contract received';
+                    $bookingMessageClass = 'text-primary';
+                } elseif ($booking->hasContract()) {
+                    $bookingMessage = 'Performer accepted - waiting for signed contract';
+                    $bookingMessageClass = 'text-primary';
+                } else {
+                    $bookingMessage = 'Performer accepted - upload contract';
+                    $bookingMessageClass = 'text-primary';
+                }
+            }
         @endphp
         <div class="ph-card p-3 mb-3">
             <div class="d-flex justify-content-between align-items-center">
@@ -126,9 +158,13 @@
                         @endif">
                         {{ ucfirst($application->status) }}
                     </span>
+
+                    @if($bookingMessage)
+                        <small class="{{ $bookingMessageClass }} d-block mt-2">{{ $bookingMessage }}</small>
+                    @endif
                 </div>
 
-                <div class="d-flex flex-wrap gap-2">
+                <div class="d-flex justify-content-end flex-wrap gap-2">
                     @if($application->status === 'pending')
                         <a href="{{ route('organizer.bookings.create', ['performer' => $application->performer->performerProfile, 'event' => $event->id]) }}" class="btn ph-btn-primary btn-sm">
                             Accept & Send Booking
@@ -137,24 +173,9 @@
                             @csrf
                             <button type="submit" class="btn btn-outline-danger btn-sm">Decline</button>
                         </form>
-                    @elseif($application->status === 'invited')
-                        <span class="text-muted small">Booking request sent - waiting for performer</span>
                     @elseif($application->status === 'accepted' && isset($bookings[$application->performer_id]))
                         @php($booking = $bookings[$application->performer_id])
-
-                        @if($booking->status === 'completed')
-                            <span class="text-success">Booking confirmed</span>
-                        @elseif($booking->hasSignedContract())
-                            <span class="text-primary">Signed contract received</span>
-                        @elseif($booking->hasContract())
-                            <span class="text-primary">Performer accepted - waiting for signed contract</span>
-                        @else
-                            <span class="text-primary">Performer accepted - upload contract</span>
-                        @endif
-
                         <a href="{{ route('organizer.bookings.show', $booking) }}" class="btn ph-btn-primary btn-sm">View Booking</a>
-                    @elseif($application->status === 'declined')
-                        <span class="text-muted small">Declined</span>
                     @endif
                 </div>
             </div>

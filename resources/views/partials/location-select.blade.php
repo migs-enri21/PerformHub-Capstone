@@ -154,4 +154,3 @@
         document.querySelectorAll('.ph-location-picker').forEach(initLocationPicker);
         </script>
     @endpush
-@endonce

@@ -1,9 +1,8 @@
 @php
     $steps = [
-        1 => 'Role',
-        2 => 'Profile',
-        3 => 'Verification',
-        4 => 'Done',
+        1 => 'Profile',
+        2 => 'Verification',
+        3 => 'Done',
     ];
 @endphp
 <div class="onboarding-stepper mb-4">

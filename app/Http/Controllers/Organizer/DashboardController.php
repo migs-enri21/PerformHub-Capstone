@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Booking;
 use App\Models\Event;
 use App\Models\Portfolio;
+use App\Models\User;
 use App\Services\PerformerRecommendationService;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
@@ -20,9 +21,18 @@ class DashboardController extends Controller
 
     private function getDashboardData(PerformerRecommendationService $recommendations): array
     {
-        return array_merge($this->getOverviewData(), [
+        $overviewData = $this->getOverviewData();
+        $recommendationEvent = $overviewData['upcomingEvents']->first();
+        $recommendedPerformers = collect();
+
+        if ($recommendationEvent) {
+            $recommendedPerformers = $recommendations->forEvent($recommendationEvent);
+        }
+
+        return array_merge($overviewData, [
             'recentNotifications' => $this->getRecentNotifications(),
-            'recommendedPerformers' => $this->getRecommendedPerformers($recommendations),
+            'recommendationEvent' => $recommendationEvent,
+            'recommendedPerformers' => $recommendedPerformers,
             'feedPosts' => $this->getFeedPosts(),
         ]);
     }
@@ -54,11 +64,6 @@ class DashboardController extends Controller
         return Auth::user()->notifications()->latest()->take(3)->get();
     }
 
-    private function getRecommendedPerformers(PerformerRecommendationService $recommendations): Collection
-    {
-        return $recommendations->forOrganizer(Auth::user(), 3);
-    }
-
     private function getFeedPosts(): Collection
     {
         $eventPosts = Event::with(['organizer.organizerProfile', 'photos'])
@@ -75,6 +80,9 @@ class DashboardController extends Controller
             });
 
         $portfolioPosts = Portfolio::with(['performerProfile.user', 'performerProfile.categories'])
+            ->whereHas('performerProfile.user', function ($query) {
+                $query->where('onboarding_step', '>=', User::ONBOARDING_COMPLETE);
+            })
             ->latest()
             ->take(10)
             ->get()

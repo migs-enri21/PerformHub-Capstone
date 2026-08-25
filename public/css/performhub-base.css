@@ -628,6 +628,27 @@ input[type="file"].ph-input::file-selector-button:hover {
     color: var(--ph-purple);
 }
 
+.upload-field-inner .flex-grow-1 {
+    min-width: 0;
+}
+
+.upload-filename {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.upload-filename-text {
+    min-width: 0;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+
+.upload-filename .delete-file {
+    flex-shrink: 0;
+}
+
 .onboarding-success-icon {
     width: 72px;
     height: 72px;

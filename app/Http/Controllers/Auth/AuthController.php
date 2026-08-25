@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Auth;
 
+use App\Http\Controllers\Concerns\HandlesVerificationDocuments;
 use App\Http\Controllers\Controller;
 use App\Models\OrganizerProfile;
 use App\Models\PerformerProfile;
@@ -16,6 +17,8 @@ use Illuminate\View\View;
 
 class AuthController extends Controller
 {
+    use HandlesVerificationDocuments;
+
     public function showLogin(Request $request): View
     {
         return view('auth.login');
@@ -72,12 +75,14 @@ class AuthController extends Controller
             'phone' => ['required', 'string', 'max:30'],
             'password' => ['required', 'confirmed', Password::min(8)],
             'role' => ['required', 'in:performer,organizer'],
+            'terms_accepted' => ['accepted'],
         ], [
             'username.alpha_dash' => 'Username can only use letters, numbers, dashes, and underscores (spaces are converted automatically).',
             'username.unique' => 'That username is already taken. Try another one.',
             'email.unique' => 'An account with this email already exists.',
             'password.confirmed' => 'Password and confirm password do not match.',
             'password.min' => 'Password must be at least 8 characters.',
+            'government_id.required' => 'Please upload a valid government ID.',
         ]);
 
         $user = User::create([
@@ -90,7 +95,7 @@ class AuthController extends Controller
             'role' => $validated['role'],
             'is_verified' => false,
             'is_active' => true,
-            'onboarding_step' => User::ONBOARDING_PROFILE,
+            'onboarding_step' => User::ONBOARDING_REGISTERED,
         ]);
 
         if ($user->isPerformer()) {
@@ -106,22 +111,21 @@ class AuthController extends Controller
             ]);
         }
 
+        $this->storeVerificationDocument($user, 'government_id', $request->file('government_id'), [
+            'government_id_type' => $validated['government_id_type'],
+            'government_id_other' => $validated['government_id_other'] ?? null,
+        ]);
+
         Auth::login($user);
 
-        // Notify administrators about new registrations for performers or organizers.
-        // This runs even if no admin exists yet, so the notification is still stored for the first admin that is created.
         $admins = User::where('role', User::ROLE_ADMIN)->get();
         $type = 'user.registered';
         $title = $user->isOrganizer() ? 'New Organizer Registered' : 'New Performer Registered';
-        $message = sprintf('%s: %s', $title, $user->fullName());
-        $link = route('admin.users.index');
+        $message = sprintf('%s (%s) just created an account.', $user->fullName(), $user->email);
+        $link = route('admin.users.show', $user);
 
-        if ($admins->isEmpty()) {
-            Notification::send($user, $type, $title, $message, $link);
-        } else {
-            foreach ($admins as $admin) {
-                Notification::send($admin, $type, $title, $message, $link);
-            }
+        foreach ($admins as $admin) {
+            Notification::send($admin, $type, $title, $message, $link);
         }
 
         return redirect()->route('onboarding.profile');

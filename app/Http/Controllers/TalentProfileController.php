@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\PerformerProfile;
 use App\Models\Review;
 use App\Support\PortfolioFeed;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 
 class TalentProfileController extends Controller
@@ -13,6 +14,10 @@ class TalentProfileController extends Controller
     {
         $performer->load(['user', 'categories', 'portfolios', 'availabilitySchedules', 'bookings']);
         $reviews = Review::where('reviewee_id', $performer->user_id)->with('reviewer')->latest()->get();
+
+        if (! $performer->portfolioVisibleTo(Auth::user())) {
+            $performer->setRelation('portfolios', collect());
+        }
 
         $portfolioGroups = PortfolioFeed::groupItems($performer->portfolios);
 

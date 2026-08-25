@@ -7,7 +7,7 @@ use Illuminate\Support\Collection;
 
 class AvailabilityCalendar
 {
-    /** @return array<string, array{summary: ?string}> */
+    /** @return array<string, array{summary: ?string, start_time: ?string, end_time: ?string}> */
     public static function googleBusyMap(PerformerProfile $profile): array
     {
         if (! $profile->google_calendar_connected) {
@@ -15,11 +15,22 @@ class AvailabilityCalendar
         }
 
         return $profile->googleCalendarBusyDates
-            ->mapWithKeys(fn ($busyDate) => [
-                $busyDate->date->format('Y-m-d') => [
-                    'summary' => $busyDate->summary,
-                ],
-            ])
+            ->mapWithKeys(function ($busyDate) {
+                $start = $busyDate->start_time
+                    ? \Illuminate\Support\Str::substr((string) $busyDate->start_time, 0, 5)
+                    : null;
+                $end = $busyDate->end_time
+                    ? \Illuminate\Support\Str::substr((string) $busyDate->end_time, 0, 5)
+                    : null;
+
+                return [
+                    $busyDate->date->format('Y-m-d') => [
+                        'summary' => $busyDate->summary,
+                        'start_time' => $start,
+                        'end_time' => $end,
+                    ],
+                ];
+            })
             ->all();
     }
 

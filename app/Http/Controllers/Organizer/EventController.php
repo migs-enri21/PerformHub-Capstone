@@ -53,11 +53,10 @@ class EventController extends Controller
         $categoryIds = $validated['category_ids'];
         unset($validated['cover_photo'], $validated['photos'], $validated['category_ids']);
 
-        $event = Event::create([
-            ...$validated,
-            'organizer_id' => Auth::id(),
-            'status' => 'Open',
-        ]);
+        $validated['organizer_id'] = Auth::id();
+        $validated['status'] = 'Open';
+
+        $event = Event::create($validated);
 
         $this->syncEventCategories($event, $categoryIds);
         $this->storeUploadedPhotos($event, $request);
@@ -69,12 +68,28 @@ class EventController extends Controller
 
     public function show(Event $event): View
     {
+        Event::completePastEvents();
+        $event->refresh();
+
         $this->authorizeEvent($event);
 
         $event->load(['eventType', 'categories', 'photos','applications.performer.performerProfile']);
         $bookings = Booking::where('event_id', $event->id)->get()->keyBy('performer_id');
+        $canCompleteEvent = false;
+        $hasConfirmedBooking = false;
 
-        return view('organizer.events.show', compact('event', 'bookings'));
+        foreach ($bookings as $booking) {
+            if ($booking->status === 'completed') {
+                $hasConfirmedBooking = true;
+                break;
+            }
+        }
+
+        if (strtolower($event->status) === 'open' && $hasConfirmedBooking) {
+            $canCompleteEvent = true;
+        }
+
+        return view('organizer.events.show', compact('event', 'bookings', 'canCompleteEvent'));
     }
 
     public function edit(Event $event): View
@@ -116,6 +131,31 @@ class EventController extends Controller
         return redirect()
             ->route('organizer.events.index')
             ->with('success', 'Event deleted successfully.');
+    }
+
+    public function complete(Event $event): RedirectResponse
+    {
+        $this->authorizeEvent($event);
+
+        if (strtolower($event->status) === 'completed') {
+            return back()->with('info', 'This event is already completed.');
+        }
+
+        if (strtolower($event->status) === 'cancelled') {
+            return back()->with('warning', 'A cancelled event cannot be marked as completed.');
+        }
+
+        $hasConfirmedBooking = Booking::where('event_id', $event->id)
+            ->where('status', 'completed')
+            ->exists();
+
+        if (! $hasConfirmedBooking) {
+            return back()->with('warning', 'Confirm at least one booking before marking this event as completed.');
+        }
+
+        $event->update(['status' => 'Completed']);
+
+        return back()->with('success', 'Event marked as completed.');
     }
 
     private function authorizeEvent(Event $event): void

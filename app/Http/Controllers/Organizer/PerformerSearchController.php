@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Models\Event;
 use App\Models\PerformerProfile;
-use App\Models\Review;
 use App\Support\AvailabilityCalendar;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -28,13 +27,14 @@ class PerformerSearchController extends Controller
         $performer = AvailabilityCalendar::loadCalendarRelations(
             $performer->load(['user', 'categories', 'portfolios'])
         );
-        $calendar = AvailabilityCalendar::calendarData($performer);
-        $reviews = Review::where('reviewee_id', $performer->user_id)
-            ->with('reviewer')
-            ->latest()
-            ->get();
 
-        return view('organizer.performers.show', compact('performer', 'reviews', 'calendar'));
+        if (! $performer->portfolioVisibleTo(Auth::user())) {
+            $performer->setRelation('portfolios', collect());
+        }
+
+        $calendar = AvailabilityCalendar::calendarData($performer);
+
+        return view('organizer.performers.show', compact('performer', 'calendar'));
     }
 
     private function getSelectedEvent(Request $request): ?Event
@@ -50,12 +50,13 @@ class PerformerSearchController extends Controller
     {
         $query = PerformerProfile::query()
             ->with(['user', 'categories'])
-            ->whereHas('user', fn ($user) => $user->where('is_active', true));
+            ->whereHas('user', function ($user) {
+                return $user->where('is_active', true);
+            });
 
         $this->applySearchFilter($query, $request->search);
         $this->applyCategoryFilter($query, $request->category_id);
         $this->applyGenreFilter($query, $request->genre);
-        $this->applyRatingFilter($query, $request->min_rating);
 
         $date = $request->available_date;
 
@@ -86,7 +87,9 @@ class PerformerSearchController extends Controller
             return;
         }
 
-        $query->whereHas('categories', fn ($category) => $category->where('categories.id', $categoryId));
+        $query->whereHas('categories', function ($category) use ($categoryId) {
+            return $category->where('categories.id', $categoryId);
+        });
     }
 
     private function applyGenreFilter($query, ?string $genre): void
@@ -96,20 +99,6 @@ class PerformerSearchController extends Controller
         }
     }
 
-    private function applyRatingFilter($query, $rating): void
-    {
-        if (! $rating) {
-            return;
-        }
-
-        $query->whereIn('user_id', function ($reviews) use ($rating) {
-            $reviews->select('reviewee_id')
-                ->from('reviews')
-                ->groupBy('reviewee_id')
-                ->havingRaw('AVG(rating) >= ?', [$rating]);
-        });
-    }
-
     private function applyAvailabilityFilter($query, ?string $date): void
     {
         if (! $date) {
@@ -117,16 +106,21 @@ class PerformerSearchController extends Controller
         }
 
         $query->where(function ($performer) use ($date) {
-            $performer->whereDoesntHave('bookings', fn ($booking) => $booking
-                ->whereDate('event_date', $date)
-                ->whereIn('status', ['pending', 'accepted', 'completed']))
+            $performer->whereDoesntHave('bookings', function ($booking) use ($date) {
+                return $booking->whereDate('event_date', $date)
+                    ->whereIn('status', ['pending', 'accepted', 'completed']);
+            })
                 ->where(function ($schedule) use ($date) {
-                    $schedule->whereDoesntHave('availabilitySchedules', fn ($item) => $item->whereDate('date', $date))
-                        ->orWhereHas('availabilitySchedules', fn ($item) => $item
-                            ->whereDate('date', $date)
-                            ->where('is_available', true));
+                    $schedule->whereDoesntHave('availabilitySchedules', function ($item) use ($date) {
+                        return $item->whereDate('date', $date);
+                    })->orWhereHas('availabilitySchedules', function ($item) use ($date) {
+                        return $item->whereDate('date', $date)
+                            ->where('is_available', true);
+                    });
                 })
-                ->whereDoesntHave('googleCalendarBusyDates', fn ($busyDate) => $busyDate->whereDate('date', $date));
+                ->whereDoesntHave('googleCalendarBusyDates', function ($busyDate) use ($date) {
+                    return $busyDate->whereDate('date', $date);
+                });
         });
     }
 }

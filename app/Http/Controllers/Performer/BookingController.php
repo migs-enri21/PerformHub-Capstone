@@ -91,7 +91,7 @@ public function index(Request $request): View
     public function uploadSignedContract(Request $request, Booking $booking): RedirectResponse
     {
         abort_unless($booking->performer_id === Auth::id(), 403);
-        abort_unless($booking->status === 'accepted' && $booking->hasContract(), 400);
+        abort_unless($booking->status === 'accepted' && $booking->hasContract(), 400); // bad request
 
         $file = $request->validate([
             'signed_contract' => ['required', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:10240'],

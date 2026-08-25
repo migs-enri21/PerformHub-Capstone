@@ -41,8 +41,6 @@ Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth')->n
 
 Route::middleware('auth')->group(function () {
     Route::get('/onboarding', [OnboardingController::class, 'index'])->name('onboarding.index');
-    Route::get('/onboarding/role', [OnboardingController::class, 'showRole'])->name('onboarding.role');
-    Route::post('/onboarding/role', [OnboardingController::class, 'storeRole'])->name('onboarding.role.store');
     Route::get('/onboarding/profile', [OnboardingController::class, 'showProfile'])->name('onboarding.profile');
     Route::post('/onboarding/profile', [OnboardingController::class, 'storeProfile'])->name('onboarding.profile.store');
     Route::get('/onboarding/verification', [OnboardingController::class, 'showVerification'])->name('onboarding.verification');
@@ -60,11 +58,11 @@ Route::middleware(['auth', 'role:performer'])->prefix('performer')->name('perfor
     Route::get('/profile', [PerformerProfileController::class, 'show'])->name('profile.show');
     Route::get('/profile/edit', [PerformerProfileController::class, 'edit'])->name('profile.edit');
     Route::put('/profile', [PerformerProfileController::class, 'update'])->name('profile.update');
+    Route::get('/portfolio', [PortfolioController::class, 'index'])->name('portfolio.index');
+    Route::post('/portfolio', [PortfolioController::class, 'store'])->name('portfolio.store');
+    Route::post('/portfolio/update', [PortfolioController::class, 'update'])->name('portfolio.update');
+    Route::delete('/portfolio/{portfolio}', [PortfolioController::class, 'destroy'])->name('portfolio.destroy');
     Route::middleware('full.access')->group(function () {
-        Route::get('/portfolio', [PortfolioController::class, 'index'])->name('portfolio.index');
-        Route::post('/portfolio', [PortfolioController::class, 'store'])->name('portfolio.store');
-        Route::post('/portfolio/update', [PortfolioController::class, 'update'])->name('portfolio.update');
-        Route::delete('/portfolio/{portfolio}', [PortfolioController::class, 'destroy'])->name('portfolio.destroy');
         Route::get('/availability', [AvailabilityController::class, 'index'])->name('availability.index');
         Route::post('/availability', [AvailabilityController::class, 'store'])->name('availability.store');
         Route::delete('/availability/{schedule}', [AvailabilityController::class, 'destroy'])->name('availability.destroy');
@@ -88,7 +86,6 @@ Route::middleware(['auth', 'role:organizer'])->prefix('organizer')->name('organi
     Route::put('/profile', [OrganizerProfileController::class, 'update'])->name('profile.update');
     Route::get('/performers', [PerformerSearchController::class, 'index'])->name('performers.index');
     Route::get('/performers/{performer}', [PerformerSearchController::class, 'show'])->name('performers.show');
-    Route::get('/bookings', [OrganizerBookingController::class, 'index'])->name('bookings.index');
     Route::get('/bookings/{booking}', [OrganizerBookingController::class, 'show'])->name('bookings.show');
     Route::get('/events', [OrganizerEventController::class, 'index'])->name('events.index');
     Route::get('/events/create', [OrganizerEventController::class, 'create'])->name('events.create');
@@ -96,6 +93,7 @@ Route::middleware(['auth', 'role:organizer'])->prefix('organizer')->name('organi
     Route::get('/events/{event}', [OrganizerEventController::class, 'show'])->name('events.show');
     Route::get('/events/{event}/edit', [OrganizerEventController::class, 'edit'])->name('events.edit');
     Route::put('/events/{event}', [OrganizerEventController::class, 'update'])->name('events.update');
+    Route::patch('/events/{event}/complete', [OrganizerEventController::class, 'complete'])->name('events.complete');
     Route::delete('/events/{event}', [OrganizerEventController::class, 'destroy'])->name('events.destroy');
     Route::get('/calendar', [CalendarController::class, 'index'])->name('calendar.index');
 
@@ -112,6 +110,7 @@ Route::middleware(['auth', 'role:organizer'])->prefix('organizer')->name('organi
     Route::post('/sync', [OrganizerGoogleCalendarController::class, 'sync'])->name('sync');
     Route::delete('/disconnect', [OrganizerGoogleCalendarController::class, 'disconnect'])->name('disconnect');
     });
+    Route::get('/google-calendar/callback', [OrganizerGoogleCalendarController::class, 'callback'])->name('google-calendar.callback');
 });
 
 Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
@@ -147,5 +146,4 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
 Route::middleware(['auth', 'role:performer'])->prefix('performer')->name('performer.')->group(function () {
     Route::get('/click-me', [PerformerDashboardController::class, 'clickMe'])->name('click-me');
 });
-
 Route::get('click-me', [PerformerDashboardController::class, 'clickMe'])->name('click-me');

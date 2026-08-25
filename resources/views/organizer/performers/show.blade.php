@@ -44,8 +44,12 @@
 @php
     $portfolioGroups = $performer->portfolios
         ->sortByDesc('created_at')
-        ->groupBy(fn ($item) => \App\Support\PortfolioFeed::groupKey($item))
-        ->map(fn ($group) => $group->values());
+        ->groupBy(function ($item) {
+            return \App\Support\PortfolioFeed::groupKey($item);
+        })
+        ->map(function ($group) {
+            return $group->values();
+        });
 @endphp
 @if($portfolioGroups->isNotEmpty())
     <div class="ph-card p-4 mb-4">
@@ -54,19 +58,4 @@
     </div>
 @endif
 
-<div class="ph-card p-4">
-    <h5 class="fw-semibold mb-3">Reviews</h5>
-    @forelse($reviews as $r)
-        <div class="mb-3 pb-3 border-bottom border-secondary-subtle">
-            <div class="text-warning small mb-1">
-                @for($i = 0; $i < $r->rating; $i++)
-                    <i class="fas fa-star"></i>
-                @endfor
-            </div>
-            <p class="small text-muted mb-0">{{ $r->comment }}</p>
-        </div>
-    @empty
-        <p class="text-muted mb-0">No reviews yet.</p>
-    @endforelse
-</div>
 @endsection

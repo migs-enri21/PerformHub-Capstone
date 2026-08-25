@@ -11,6 +11,8 @@ class GoogleCalendarBusyDate extends Model
         'performer_profile_id',
         'date',
         'summary',
+        'start_time',
+        'end_time',
     ];
 
     protected function casts(): array

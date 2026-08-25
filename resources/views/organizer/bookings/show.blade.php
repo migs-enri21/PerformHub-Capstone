@@ -25,6 +25,7 @@
     if ($booking->requirements) {
         $requirements = $booking->requirements;
     }
+
 @endphp
 
 <div class="d-flex justify-content-between align-items-start mb-4">
@@ -32,7 +33,7 @@
         <h2 class="fw-bold mb-1">{{ $booking->event_name }}</h2>
         <span class="badge {{ $booking->statusBadgeClass() }}">{{ $booking->statusLabel() }}</span>
     </div>
-    <a href="{{ route('organizer.bookings.index') }}" class="btn ph-btn-outline btn-sm">Back</a>
+    <a href="{{ route('organizer.events.index') }}" class="btn ph-btn-outline btn-sm">Back to Events</a>
 </div>
 
 <div class="row g-4">

@@ -27,22 +27,16 @@
 </div>
 
 <div class="row g-4 mb-4">
-    <div class="col-md-4">
+    <div class="col-md-6">
         <div class="ph-card p-4 stat-card">
             <h3 class="fw-bold mb-0">{{ $pendingBookings }}</h3>
             <p class="text-muted mb-0 small">Pending Requests</p>
         </div>
     </div>
-    <div class="col-md-4">
+    <div class="col-md-6">
         <div class="ph-card p-4 stat-card">
             <h3 class="fw-bold mb-0">{{ $upcomingBookings }}</h3>
             <p class="text-muted mb-0 small">Upcoming Bookings</p>
-        </div>
-    </div>
-    <div class="col-md-4">
-        <div class="ph-card p-4 stat-card">
-            <h3 class="fw-bold mb-0">{{ $reviews->count() }}</h3>
-            <p class="text-muted mb-0 small">Recent Reviews</p>
         </div>
     </div>
 </div>

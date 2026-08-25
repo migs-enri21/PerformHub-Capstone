@@ -67,7 +67,7 @@ class PerformerProfile extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function categories(): BelongsToMany
+    public function categories(): BelongsToMany 
     {
         return $this->belongsToMany(Category::class, 'performer_profile_category');
     }
@@ -124,11 +124,26 @@ class PerformerProfile extends Model
         return (bool) $schedule->is_available;
     }
 
+    public function portfolioVisibleTo(?User $viewer): bool
+    {
+        if ($viewer && $viewer->id === $this->user_id) {
+            return true;
+        }
+
+        return $this->user->hasCompletedOnboarding();
+    }
+
     public function averageRating(): float
     {
-        return (float) Review::query()
+        $average = Review::query()
             ->where('reviewee_id', $this->user_id)
-            ->avg('rating') ?? 0;
+            ->avg('rating');
+
+        if ($average === null) {
+            return 0;
+        }
+
+        return (float) $average;
     }
 
     public function socialLinks(): array
@@ -195,7 +210,11 @@ class PerformerProfile extends Model
             return $this->city.', Philippines';
         }
 
-        return $this->location ?: 'Philippines';
+        if (! $this->location) {
+            return 'Philippines';
+        }
+
+        return $this->location;
     }
 
     public function profilePhotoUrl(): ?string

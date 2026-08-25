@@ -2,43 +2,11 @@
 
 namespace App\Support;
 
-use Illuminate\Validation\Rule;
-
 class PhilippineLocations
 {
-    public static function places(): array
+    public static function formatLocation(?string $barangay, string $city, string $region): string
     {
-        return config('locations.places', []);
-    }
-
-    public static function regions(): array
-    {
-        return array_keys(self::places());
-    }
-
-    public static function cities(string $region): array
-    {
-        return array_keys(self::places()[$region] ?? []);
-    }
-
-    public static function barangays(string $region, string $city): array
-    {
-        return self::places()[$region][$city] ?? [];
-    }
-
-    public static function hasCity(string $region, string $city): bool
-    {
-        return in_array($city, self::cities($region), true);
-    }
-
-    public static function hasBarangay(string $region, string $city, string $barangay): bool
-    {
-        return in_array($barangay, self::barangays($region, $city), true);
-    }
-
-    public static function formatLocation(string $barangay, string $city, string $region): string
-    {
-        return "{$barangay}, {$city}, {$region}";
+        return implode(', ', array_filter([$barangay, $city, $region]));
     }
 
     public static function locationFieldsRules(bool $required = true): array
@@ -46,36 +14,13 @@ class PhilippineLocations
         $presence = $required ? 'required' : 'nullable';
 
         return [
-            'region' => [$presence, 'string', 'max:100', Rule::in(self::regions())],
-            'city' => [
-                $presence,
-                'string',
-                'max:100',
-                function (string $attribute, mixed $value, \Closure $fail): void {
-                    $region = request()->input('region');
-
-                    if (! $value || ! $region || self::hasCity($region, (string) $value)) {
-                        return;
-                    }
-
-                    $fail('Please select a valid city for the chosen region.');
-                },
-            ],
-            'barangay' => [
-                $presence,
-                'string',
-                'max:100',
-                function (string $attribute, mixed $value, \Closure $fail): void {
-                    $region = request()->input('region');
-                    $city = request()->input('city');
-
-                    if (! $value || ! $region || ! $city || self::hasBarangay($region, (string) $city, (string) $value)) {
-                        return;
-                    }
-
-                    $fail('Please select a valid barangay for the chosen city.');
-                },
-            ],
+            // Region/city now come from Google's address lookup rather than a
+            // fixed local list, so they're just validated as plain strings.
+            'region' => [$presence, 'string', 'max:150'],
+            'city' => [$presence, 'string', 'max:150'],
+            // Not every address Google resolves includes a barangay-level
+            // component, so it stays optional regardless of $required.
+            'barangay' => ['nullable', 'string', 'max:150'],
         ];
     }
 
@@ -84,8 +29,8 @@ class PhilippineLocations
         return [
             'region' => $validated['region'],
             'city' => $validated['city'],
-            'barangay' => $validated['barangay'],
-            'location' => self::formatLocation($validated['barangay'], $validated['city'], $validated['region']),
+            'barangay' => $validated['barangay'] ?? null,
+            'location' => self::formatLocation($validated['barangay'] ?? null, $validated['city'], $validated['region']),
         ];
     }
 }
