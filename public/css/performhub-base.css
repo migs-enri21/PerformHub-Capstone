@@ -147,6 +147,19 @@ a:hover { color: var(--ph-purple-hover); }
 .modal-header,
 .modal-footer {
     border-color: var(--ph-border);
+    flex-shrink: 0;
+}
+
+/* Keep header/body/footer as flex children even when the form is the modal content */
+.modal-dialog-scrollable .modal-content.portfolio-edit-form {
+    display: flex;
+    flex-direction: column;
+    max-height: calc(100vh - 3.5rem);
+    overflow: hidden;
+}
+
+.modal-dialog-scrollable .modal-content.portfolio-edit-form .modal-body {
+    overflow-y: auto;
 }
 
 .modal-title {

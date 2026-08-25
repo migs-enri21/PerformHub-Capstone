@@ -16,11 +16,13 @@ class PortfolioController extends Controller
 {
     public function index(): View
     {
-        $portfolios = Auth::user()->performerProfile->portfolios()->latest()->get();
+        $profile = Auth::user()->performerProfile()->with('categories')->firstOrFail();
+
+        $portfolios = $profile->portfolios()->latest()->get();
 
         $portfolioGroups = PortfolioFeed::groupItems($portfolios);
 
-        return view('performer.portfolio.index', compact('portfolioGroups'));
+        return view('performer.portfolio.index', compact('portfolioGroups', 'profile'));
     }
 
     public function store(Request $request): RedirectResponse
@@ -34,12 +36,14 @@ class PortfolioController extends Controller
                 'max:512000', // 500 MB per file (kilobytes) — Supabase project's storage size ceiling
                 'mimetypes:image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm,video/quicktime,video/x-msvideo',
             ],
+            'event_name' => ['nullable', 'string', 'max:150'],
             'caption' => ['nullable', 'string', 'max:2000'],
         ], [
             'files.*.max' => 'Each photo or video must be 500 MB or smaller.',
             'files.*.mimetypes' => 'One of your files is not a supported photo or video format.',
         ]);
 
+        $eventName = $validated['event_name'] ?? null;
         $caption = $validated['caption'] ?? null;
         $uploaded = 0;
         $supabase = new SupabaseStorageService();
@@ -60,6 +64,7 @@ class PortfolioController extends Controller
                 'batch_key' => $batchKey,
                 'type' => $type,
                 'file_path' => $path,
+                'event_name' => $eventName,
                 'caption' => $caption,
             ]);
 
@@ -86,6 +91,7 @@ class PortfolioController extends Controller
             'item_ids.*' => ['integer'],
             'remove_ids' => ['nullable', 'array'],
             'remove_ids.*' => ['integer'],
+            'event_name' => ['nullable', 'string', 'max:150'],
             'caption' => ['nullable', 'string', 'max:2000'],
             'files' => ['nullable', 'array'],
             'files.*' => [
@@ -103,6 +109,7 @@ class PortfolioController extends Controller
         abort_if($items->isEmpty(), 404);
 
         $removeIds = collect($validated['remove_ids'] ?? []);
+        $eventName = $validated['event_name'] ?? null;
         $caption = $validated['caption'] ?? null;
         $supabase = new SupabaseStorageService();
 
@@ -118,7 +125,7 @@ class PortfolioController extends Controller
                 continue;
             }
 
-            $item->update(['caption' => $caption, 'batch_key' => $batchKey]);
+            $item->update(['event_name' => $eventName, 'caption' => $caption, 'batch_key' => $batchKey]);
             $remaining++;
         }
 
@@ -137,6 +144,7 @@ class PortfolioController extends Controller
                 'batch_key' => $batchKey,
                 'type' => $type,
                 'file_path' => $path,
+                'event_name' => $eventName,
                 'caption' => $caption,
             ]);
 

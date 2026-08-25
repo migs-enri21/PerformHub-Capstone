@@ -13,6 +13,7 @@ class Portfolio extends Model
         'batch_key',
         'type',
         'file_path',
+        'event_name',
         'caption',
     ];
 

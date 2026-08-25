@@ -18,12 +18,9 @@
         $visible = $items->take(4);
     }
 
+    $eventName = $items->first()->event_name;
     $caption = $items->first()->caption;
-    $imageCaption = $caption;
-
-    if ($imageCaption === null) {
-        $imageCaption = '';
-    }
+    $imageCaption = $eventName ?: ($caption ?? '');
     $hasMore = $count > 4;
     $modalId = 'portfolio-gallery-'.$items->first()->id;
     $editModalId = 'portfolio-edit-'.$items->first()->id;
@@ -32,20 +29,18 @@
 <article class="portfolio-feed-card">
     <div
         class="portfolio-preview-collage portfolio-feed-collage {{ $layout }}"
-        @if($hasMore)
-            role="button"
-            tabindex="0"
-            data-bs-toggle="modal"
-            data-bs-target="#{{ $modalId }}"
-            aria-label="View all {{ $count }} items"
-        @endif
+        role="button"
+        tabindex="0"
+        data-bs-toggle="modal"
+        data-bs-target="#{{ $modalId }}"
+        aria-label="View {{ $eventName ?: 'work sample' }}"
     >
         @foreach($visible as $index => $item)
             <div class="portfolio-collage-tile">
                 @if($item->type === 'photo')
                     <img src="{{ $item->fileUrl() }}" alt="{{ $imageCaption }}">
                 @else
-                    <video src="{{ $item->fileUrl() }}" @if(!$hasMore) controls @endif playsinline></video>
+                    <video src="{{ $item->fileUrl() }}" muted playsinline preload="metadata"></video>
                     <span class="portfolio-collage-badge"><i class="fas fa-play me-1"></i>Video</span>
                 @endif
                 @if($hasMore && $index === 3)
@@ -55,39 +50,43 @@
         @endforeach
     </div>
 
-    @if($hasMore)
-        <div class="modal fade" id="{{ $modalId }}" tabindex="-1" aria-hidden="true">
-            <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title">All {{ $count }} items</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+    <div class="modal fade" id="{{ $modalId }}" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">{{ $eventName ?: 'Work sample' }}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="portfolio-lightbox">
+                        @foreach($items as $item)
+                            <div class="portfolio-lightbox-item">
+                                @if($item->type === 'photo')
+                                    <img src="{{ $item->fileUrl() }}" alt="{{ $imageCaption }}">
+                                @else
+                                    <video src="{{ $item->fileUrl() }}" controls playsinline></video>
+                                @endif
+                            </div>
+                        @endforeach
                     </div>
-                    <div class="modal-body">
-                        <div class="portfolio-gallery-grid">
-                            @foreach($items as $item)
-                                <div class="portfolio-gallery-item">
-                                    @if($item->type === 'photo')
-                                        <img src="{{ $item->fileUrl() }}" alt="{{ $imageCaption }}">
-                                    @else
-                                        <video src="{{ $item->fileUrl() }}" controls playsinline></video>
-                                    @endif
-                                </div>
-                            @endforeach
-                        </div>
-                    </div>
+                    @if($caption)
+                        <p class="mt-3 mb-0">{{ $caption }}</p>
+                    @endif
                 </div>
             </div>
         </div>
-    @endif
+    </div>
 
-    @if($caption || $editable)
+    @if($eventName || $caption || $editable)
         <div class="portfolio-feed-footer px-3 py-3">
+            @if($eventName)
+                <h6 class="portfolio-feed-event-name mb-1">{{ $eventName }}</h6>
+            @endif
             @if($caption)
                 <p class="mb-0 small">{{ $caption }}</p>
             @endif
             @if($editable)
-                <div @if($caption) class="mt-2" @endif>
+                <div @if($eventName || $caption) class="mt-2" @endif>
                     <button type="button" class="btn btn-sm ph-btn-outline" data-bs-toggle="modal" data-bs-target="#{{ $editModalId }}">
                         <i class="fas fa-pen me-1"></i> Edit
                     </button>
@@ -99,17 +98,27 @@
     @if($editable)
         <div class="modal fade" id="{{ $editModalId }}" tabindex="-1" aria-hidden="true">
             <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
-                <div class="modal-content">
-                    <form action="{{ route('performer.portfolio.update') }}" method="POST" enctype="multipart/form-data" class="portfolio-edit-form">
-                        @csrf
-                        @foreach($items as $item)
-                            <input type="hidden" name="item_ids[]" value="{{ $item->id }}">
-                        @endforeach
-                        <div class="modal-header">
-                            <h5 class="modal-title">Edit post</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <div class="modal-body">
+                <form action="{{ route('performer.portfolio.update') }}" method="POST" enctype="multipart/form-data" class="modal-content portfolio-edit-form">
+                    @csrf
+                    @foreach($items as $item)
+                        <input type="hidden" name="item_ids[]" value="{{ $item->id }}">
+                    @endforeach
+                    <div class="modal-header">
+                        <h5 class="modal-title">Edit post</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                            <label class="form-label text-muted small" for="portfolioEditEventName-{{ $items->first()->id }}">Event Name <span class="text-muted">(optional)</span></label>
+                            <input
+                                type="text"
+                                name="event_name"
+                                id="portfolioEditEventName-{{ $items->first()->id }}"
+                                class="form-control ph-input mb-3"
+                                maxlength="150"
+                                placeholder="e.g. Wedding Reception, Corporate Gala…"
+                                value="{{ $eventName }}"
+                            >
+
                             <label class="form-label text-muted small" for="portfolioEditCaption-{{ $items->first()->id }}">Caption</label>
                             <textarea name="caption" id="portfolioEditCaption-{{ $items->first()->id }}" class="form-control ph-input mb-3" rows="3" maxlength="2000">{{ $caption }}</textarea>
 
@@ -144,8 +153,7 @@
                             <button type="button" class="btn ph-btn-outline" data-bs-dismiss="modal">Cancel</button>
                             <button type="submit" class="btn ph-btn-primary">Save changes</button>
                         </div>
-                    </form>
-                </div>
+                </form>
             </div>
         </div>
     @endif
