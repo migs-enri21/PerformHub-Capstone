@@ -40,7 +40,6 @@
             <form method="POST" action="{{ route('admin.categories.store') }}" class="row g-3">
                 @csrf
                 <div class="col-12"><input type="text" name="name" class="form-control ph-input" placeholder="Category name" required></div>
-                <div class="col-12"><input type="text" name="icon" class="form-control ph-input" placeholder="fa-music"></div>
                 <div class="col-12"><input type="text" name="description" class="form-control ph-input" placeholder="Description"></div>
                 <div class="col-12"><button class="btn ph-btn-primary w-100">Add Category</button></div>
             </form>

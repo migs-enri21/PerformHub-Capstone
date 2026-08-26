@@ -111,11 +111,6 @@ class AuthController extends Controller
             ]);
         }
 
-        $this->storeVerificationDocument($user, 'government_id', $request->file('government_id'), [
-            'government_id_type' => $validated['government_id_type'],
-            'government_id_other' => $validated['government_id_other'] ?? null,
-        ]);
-
         Auth::login($user);
 
         $admins = User::where('role', User::ROLE_ADMIN)->get();

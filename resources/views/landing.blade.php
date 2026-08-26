@@ -3,6 +3,15 @@
 @section('title', 'PerformHub - Connect Performers & Event Organizers')
 
 @section('content')
+@php
+    $authenticatedUser = auth()->user();
+    $authenticatedDestination = $authenticatedUser?->hasCompletedOnboarding()
+        ? $authenticatedUser->dashboardRoute()
+        : $authenticatedUser?->onboardingRoute();
+    $authenticatedActionLabel = $authenticatedUser?->hasCompletedOnboarding()
+        ? 'Dashboard'
+        : 'Continue Sign Up';
+@endphp
 <nav class="navbar navbar-expand-lg navbar-dark navbar-ph fixed-top" style="z-index: 1030;">
     <div class="container">
         <a class="navbar-brand fw-bold d-flex align-items-center" href="{{ route('home') }}"><img src="{{ asset('images/logo.png') }}" alt="PerformHub" height="32" width="32" class="me-2 rounded-circle" style="object-fit: cover;">PerformHub</a>
@@ -17,7 +26,7 @@
                     <li class="nav-item"><a class="btn ph-btn-outline btn-sm" href="{{ route('login') }}">Sign In</a></li>
                     <li class="nav-item"><a class="btn ph-btn-primary btn-sm" href="{{ route('register') }}">Get Started</a></li>
                 @else
-                    <li class="nav-item"><a class="btn ph-btn-primary btn-sm" href="{{ auth()->user()->dashboardRoute() }}">Dashboard</a></li>
+                    <li class="nav-item"><a class="btn ph-btn-primary btn-sm" href="{{ $authenticatedDestination }}">{{ $authenticatedActionLabel }}</a></li>
                 @endguest
             </ul>
         </div>
@@ -35,7 +44,7 @@
                         <a href="{{ route('register', ['role' => 'organizer']) }}" class="btn ph-btn-primary btn-lg">Find Performers</a>
                         <a href="{{ route('register', ['role' => 'performer']) }}" class="btn ph-btn-outline btn-lg text-white">Join as Performer</a>
                     @else
-                        <a href="{{ auth()->user()->dashboardRoute() }}" class="btn ph-btn-primary btn-lg">Go to Dashboard</a>
+                        <a href="{{ $authenticatedDestination }}" class="btn ph-btn-primary btn-lg">{{ $authenticatedActionLabel }}</a>
                     @endguest
                 </div>
             </div>
@@ -144,7 +153,7 @@
             @guest
                 <a href="{{ route('register') }}" class="btn btn-light btn-lg fw-semibold px-5">Get Started Free</a>
             @else
-                <a href="{{ auth()->user()->dashboardRoute() }}" class="btn btn-light btn-lg fw-semibold px-5">Go to Dashboard</a>
+                <a href="{{ $authenticatedDestination }}" class="btn btn-light btn-lg fw-semibold px-5">{{ $authenticatedActionLabel }}</a>
             @endguest
         </div>
     </div>

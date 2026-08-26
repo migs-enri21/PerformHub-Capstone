@@ -12,15 +12,10 @@
 </div>
 
 <div class="ph-card p-4 mb-4">
-    <form method="GET" action="{{ route('admin.events.index') }}" class="row g-3 align-items-end">
-        <div class="col-md-8">
-            <label class="form-label">Search User</label>
-            <input type="text" name="user_search" class="form-control ph-input" placeholder="Erico Blaza" value="{{ request('user_search') }}">
-        </div>
-        <div class="col-md-4 d-flex gap-2">
-            <button type="submit" class="btn ph-btn-primary">Search</button>
-            <a href="{{ route('admin.events.index') }}" class="btn btn-outline-secondary">Reset</a>
-        </div>
+    <form method="GET" action="{{ route('admin.events.index') }}" class="d-flex gap-2">
+        <input type="text" name="user_search" class="form-control ph-input flex-grow-1" placeholder="Search user..." value="{{ request('user_search') }}">
+        <button type="submit" class="btn ph-btn-primary">Search</button>
+        <a href="{{ route('admin.events.index') }}" class="btn btn-outline-secondary">Reset</a>
     </form>
 </div>
 

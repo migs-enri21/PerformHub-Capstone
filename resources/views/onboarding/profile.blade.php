@@ -43,17 +43,6 @@
         ])
     </div>
 
-    @include('onboarding.partials.upload-field', [
-        'name' => 'government_id',
-        'title' => 'Government-Issued ID',
-        'required' => true,
-        'multiple' => true,
-        'maxFiles' => 10,
-        'desc' => 'Upload clear ID images or a short verification video for admin review.',
-        'formats' => '.jpg .png .pdf .mp4 .mov — up to 10 files, max 25 MB each',
-        'icon' => 'fa-id-card',
-    ])
-
     <div class="d-flex gap-2">
         <button type="submit" class="btn ph-btn-primary flex-grow-1">
             Submit for Verification <i class="fas fa-arrow-right ms-2"></i>

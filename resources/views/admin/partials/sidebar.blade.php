@@ -12,3 +12,10 @@
     <a class="nav-link {{ request()->routeIs('admin.events.*') ? 'active' : '' }}" href="{{ route('admin.events.index') }}"><i class="fas fa-calendar-alt me-2"></i> User History</a>
     <a class="nav-link {{ request()->routeIs('admin.monitoring.bookings') ? 'active' : '' }}" href="{{ route('admin.monitoring.bookings') }}"><i class="fas fa-ticket me-2"></i> Bookings</a>
 </nav>
+
+<form action="{{ route('logout') }}" method="POST" class="mt-auto">
+    @csrf
+    <button type="submit" class="nav-link sidebar-logout-btn w-100 text-start border-0 bg-transparent">
+        <i class="fas fa-sign-out-alt me-2"></i> Logout
+    </button>
+</form>
