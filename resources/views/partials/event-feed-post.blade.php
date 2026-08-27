@@ -81,7 +81,13 @@
         @include('partials.event-photo-collage', ['photos' => $galleryPhotos, 'title' => $event->title])
     @elseif($photoCount === 1)
         <div class="event-feed-cover">
-            <img src="{{ $galleryPhotos->first()->fileUrl() }}" alt="{{ $event->title }}" loading="lazy">
+            @if($galleryPhotos->first()->isVideo())
+                <video controls preload="metadata">
+                    <source src="{{ $galleryPhotos->first()->fileUrl() }}">
+                </video>
+            @else
+                <img src="{{ $galleryPhotos->first()->fileUrl() }}" alt="{{ $event->title }}" loading="lazy">
+            @endif
         </div>
     @elseif($event->coverPhotoUrl())
         <div class="event-feed-cover">

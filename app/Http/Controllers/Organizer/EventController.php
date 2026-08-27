@@ -50,8 +50,15 @@ class EventController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $validated = $this->validatedEvent($request);
+
+        if ($this->mediaCount($request) > 3) {
+            return back()->withInput()->withErrors([
+                'photos' => 'You can upload up to 3 photos or videos for one event.',
+            ]);
+        }
+
         $categoryIds = $validated['category_ids'];
-        unset($validated['cover_photo'], $validated['photos'], $validated['category_ids']);
+        unset($validated['cover_photo'], $validated['photos'], $validated['videos'], $validated['category_ids']);
 
         $validated['organizer_id'] = Auth::id();
         $validated['status'] = 'Open';
@@ -59,7 +66,7 @@ class EventController extends Controller
         $event = Event::create($validated);
 
         $this->syncEventCategories($event, $categoryIds);
-        $this->storeUploadedPhotos($event, $request);
+        $this->storeUploadedMedia($event, $request);
 
         return redirect()
             ->route('organizer.events.index')
@@ -108,13 +115,22 @@ class EventController extends Controller
         $this->authorizeEvent($event);
 
         $validated = $this->validatedEvent($request, true);
+
+        $newMediaCount = $this->mediaCount($request);
+
+        if ($newMediaCount > 0 && $event->photos()->count() + $newMediaCount > 3) {
+            return back()->withInput()->withErrors([
+                'photos' => 'An event can have up to 3 photos or videos only.',
+            ]);
+        }
+
         $categoryIds = $validated['category_ids'];
-        unset($validated['cover_photo'], $validated['photos'], $validated['category_ids']);
+        unset($validated['cover_photo'], $validated['photos'], $validated['videos'], $validated['category_ids']);
 
         $event->update($validated);
 
         $this->syncEventCategories($event, $categoryIds);
-        $this->storeUploadedPhotos($event, $request);
+        $this->storeUploadedMedia($event, $request);
 
         return redirect()
             ->route('organizer.events.index')
@@ -200,8 +216,10 @@ class EventController extends Controller
             'category_ids.*' => ['exists:categories,id'],
             'title' => ['required', 'string', 'max:255'],
             'cover_photo' => ['nullable', 'image', 'max:5120'],
-            'photos' => ['nullable', 'array', 'max:5'],
+            'photos' => ['nullable', 'array', 'max:3'],
             'photos.*' => ['image', 'max:5120'],
+            'videos' => ['nullable', 'array', 'max:3'],
+            'videos.*' => ['file', 'mimes:mp4,webm', 'max:25600'],
             'description' => ['nullable', 'string'],
             'event_date' => ['required', 'date'],
             'start_time' => ['required'],
@@ -213,15 +231,19 @@ class EventController extends Controller
         ]);
     }
 
-    private function storeUploadedPhotos(Event $event, Request $request): void
+    private function storeUploadedMedia(Event $event, Request $request): void
     {
-        $photos = $request->file('photos', []);
+        $media = $request->file('photos', []);
 
-        if ($photos === [] && $request->hasFile('cover_photo')) {
-            $photos = [$request->file('cover_photo')];
+        foreach ($request->file('videos', []) as $video) {
+            $media[] = $video;
         }
 
-        if ($photos === []) {
+        if ($media === [] && $request->hasFile('cover_photo')) {
+            $media = [$request->file('cover_photo')];
+        }
+
+        if ($media === []) {
             $this->syncLegacyCoverPhoto($event);
 
             return;
@@ -231,12 +253,18 @@ class EventController extends Controller
         $sortOrder = ((int) $event->photos()->max('sort_order')) + 1;
         $firstPath = null;
 
-        foreach ($photos as $photo) {
-            if (! $photo->isValid()) {
+        foreach ($media as $file) {
+            if (! $file->isValid()) {
                 continue;
             }
 
-            $path = $supabase->upload($photo, 'organizer-files', 'event_banner', Auth::id());
+            $folder = 'event_banner';
+
+            if (str_starts_with($file->getMimeType(), 'video/')) {
+                $folder = 'event_video';
+            }
+
+            $path = $supabase->upload($file, 'organizer-files', $folder, Auth::id());
 
             $event->photos()->create([
                 'file_path' => $path,
@@ -251,6 +279,14 @@ class EventController extends Controller
         if (! $event->cover_photo && $firstPath) {
             $event->update(['cover_photo' => $firstPath]);
         }
+    }
+
+    private function mediaCount(Request $request): int
+    {
+        $count = count($request->file('photos', []));
+        $count += count($request->file('videos', []));
+
+        return $count;
     }
 
     private function syncEventCategories(Event $event, array $categoryIds): void

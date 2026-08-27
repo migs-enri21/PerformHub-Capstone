@@ -1220,7 +1220,8 @@ button.av-day:not(:disabled):hover {
     line-height: 0;
 }
 
-.event-feed-cover img {
+.event-feed-cover img,
+.event-feed-cover video {
     display: block;
     width: 100%;
     height: auto;
@@ -1230,7 +1231,8 @@ button.av-day:not(:disabled):hover {
     background: #000;
 }
 
-.event-feed-collage .portfolio-collage-tile img {
+.event-feed-collage .portfolio-collage-tile img,
+.event-feed-collage .portfolio-collage-tile video {
     object-fit: contain;
     object-position: center;
     background: #000;
@@ -1242,7 +1244,8 @@ button.av-day:not(:disabled):hover {
     min-height: 220px;
 }
 
-.event-feed-collage.portfolio-collage--1 .portfolio-collage-tile img {
+.event-feed-collage.portfolio-collage--1 .portfolio-collage-tile img,
+.event-feed-collage.portfolio-collage--1 .portfolio-collage-tile video {
     object-fit: contain;
     max-height: 520px;
 }

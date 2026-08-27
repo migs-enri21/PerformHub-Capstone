@@ -36,7 +36,13 @@
                     <div class="row g-2 mb-3">
                         @foreach($event->photos as $photo)
                             <div class="col-4 col-md-3">
-                                <img src="{{ $photo->fileUrl() }}" alt="" class="rounded w-100 organizer-event-thumb">
+                                @if($photo->isVideo())
+                                    <video class="rounded w-100 organizer-event-thumb" controls>
+                                        <source src="{{ $photo->fileUrl() }}">
+                                    </video>
+                                @else
+                                    <img src="{{ $photo->fileUrl() }}" alt="" class="rounded w-100 organizer-event-thumb">
+                                @endif
                             </div>
                         @endforeach
                     </div>
@@ -55,9 +61,21 @@
                     accept="image/*"
                     multiple
                 >
-                <small class="text-muted">Add up to 5 photos at once, 5 MB each. Multiple photos show as a collage for performers.</small>
+                <small class="text-muted d-block mb-2">Photos can be JPG, PNG, or WEBP, up to 5 MB each.</small>
+
+                <label class="form-label fw-semibold mt-2">Event Videos</label>
+                <input
+                    type="file"
+                    name="videos[]"
+                    class="form-control @error('videos') is-invalid @enderror @error('videos.*') is-invalid @enderror"
+                    accept="video/mp4,video/webm"
+                    multiple
+                >
+                <small class="text-muted">Videos can be MP4 or WEBM, up to 25 MB each. An event can have up to 3 photos and videos combined.</small>
                 @error('photos')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
                 @error('photos.*')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+                @error('videos')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+                @error('videos.*')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
             </div>
 
             <div class="mb-3">
