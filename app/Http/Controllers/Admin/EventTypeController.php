@@ -38,6 +38,7 @@ class EventTypeController extends Controller
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:100', 'unique:event_types,name'],
             'description' => ['nullable', 'string', 'max:500'],
+            'compensation_type' => ['required', 'in:contest,hourly,fixed'],
         ]);
 
         $slug = Str::slug($validated['name']);
@@ -50,7 +51,9 @@ class EventTypeController extends Controller
         }
 
         EventType::create([
-            ...$validated,
+            'name' => $validated['name'],
+            'description' => $validated['description'],
+            'compensation_type' => $validated['compensation_type'],
             'slug' => $slug,
             'is_active' => true,
         ]);
@@ -78,6 +81,7 @@ class EventTypeController extends Controller
                 Rule::unique('event_types', 'name')->ignore($eventType->id),
             ],
             'description' => ['nullable', 'string', 'max:500'],
+            'compensation_type' => ['required', 'in:contest,hourly,fixed'],
             'is_active' => ['boolean'],
         ]);
 
@@ -93,7 +97,9 @@ class EventTypeController extends Controller
         }
 
         $eventType->update([
-            ...$validated,
+            'name' => $validated['name'],
+            'description' => $validated['description'],
+            'compensation_type' => $validated['compensation_type'],
             'slug' => $slug,
             'is_active' => $request->boolean('is_active'),
         ]);

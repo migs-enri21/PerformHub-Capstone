@@ -49,6 +49,12 @@
             @if($event->budget)
                 <span>₱{{ number_format((float) $event->budget, 0) }}</span>
             @endif
+            @if($event->compensation_type === 'hourly' && $event->rate_per_hour)
+                <span>Rate per hour: PHP {{ number_format((float) $event->rate_per_hour, 0) }}</span>
+            @endif
+            @if($event->compensation_type === 'contest')
+                <span>Contest prizes available</span>
+            @endif
         </p>
     </div>
 

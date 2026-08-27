@@ -210,7 +210,7 @@ class EventController extends Controller
 
     private function validatedEvent(Request $request, bool $updating = false): array
     {
-        return $request->validate([
+        $rules = [
             'event_type_id' => ['required', 'exists:event_types,id'],
             'category_ids' => ['required', 'array', 'min:1'],
             'category_ids.*' => ['exists:categories,id'],
@@ -226,10 +226,59 @@ class EventController extends Controller
             'end_time' => ['required'],
             'venue' => ['required', 'string', 'max:255'],
             'budget' => ['nullable', 'numeric'],
-            'compensation_type' => ['nullable', 'in:contest,hourly,fixed'],
+            'first_prize' => ['nullable', 'numeric', 'min:0'],
+            'second_prize' => ['nullable', 'numeric', 'min:0'],
+            'third_prize' => ['nullable', 'numeric', 'min:0'],
+            'rate_per_hour' => ['nullable', 'numeric', 'min:0'],
             'status' => $this->statusRules($updating),
+        ];
 
-        ]);
+        $eventType = EventType::find($request->input('event_type_id'));
+
+        if ($eventType && $eventType->compensation_type === 'contest') {
+            $rules['first_prize'] = ['required', 'numeric', 'min:0'];
+            $rules['second_prize'] = ['required', 'numeric', 'min:0'];
+            $rules['third_prize'] = ['required', 'numeric', 'min:0'];
+        }
+
+        if ($eventType && $eventType->compensation_type === 'hourly') {
+            $rules['rate_per_hour'] = ['required', 'numeric', 'min:0'];
+        }
+
+        if ($eventType && $eventType->compensation_type === 'fixed') {
+            $rules['budget'] = ['required', 'numeric', 'min:0'];
+        }
+
+        $validated = $request->validate($rules);
+
+        if ($eventType) {
+            $validated['compensation_type'] = $eventType->compensation_type;
+            $this->clearUnusedCompensationFields($validated, $eventType->compensation_type);
+        }
+
+        return $validated;
+    }
+
+    private function clearUnusedCompensationFields(array &$eventDetails, string $compensationType): void
+    {
+        if ($compensationType === 'contest') {
+            $eventDetails['budget'] = null;
+            $eventDetails['rate_per_hour'] = null;
+        }
+
+        if ($compensationType === 'hourly') {
+            $eventDetails['budget'] = null;
+            $eventDetails['first_prize'] = null;
+            $eventDetails['second_prize'] = null;
+            $eventDetails['third_prize'] = null;
+        }
+
+        if ($compensationType === 'fixed') {
+            $eventDetails['first_prize'] = null;
+            $eventDetails['second_prize'] = null;
+            $eventDetails['third_prize'] = null;
+            $eventDetails['rate_per_hour'] = null;
+        }
     }
 
     private function storeUploadedMedia(Event $event, Request $request): void

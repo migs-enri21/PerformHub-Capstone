@@ -14,6 +14,7 @@
         $selectedCategoryIds = $event->categories->pluck('id')->all();
     }
 @endphp
+
 <div class="container">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2 class="fw-bold mb-0">Edit Event</h2>
@@ -30,7 +31,7 @@
             @method('PUT')
 
             <div class="mb-4">
-                <label class="form-label fw-semibold">Event Photos</label>
+                <label class="form-label fw-semibold">Event Media</label>
 
                 @if($event->photos->isNotEmpty())
                     <div class="row g-2 mb-3">
@@ -51,26 +52,15 @@
                         <img src="{{ $event->coverPhotoUrl() }}" alt="{{ $event->title }}" class="rounded organizer-event-preview">
                     </div>
                 @else
-                    <div class="mb-3 text-muted small">No photos uploaded yet.</div>
+                    <div class="mb-3 text-muted small">No media uploaded yet.</div>
                 @endif
 
-                <input
-                    type="file"
-                    name="photos[]"
-                    class="form-control @error('photos') is-invalid @enderror @error('photos.*') is-invalid @enderror"
-                    accept="image/*"
-                    multiple
-                >
+                <label class="form-label">Add Photos</label>
+                <input type="file" name="photos[]" class="form-control @error('photos') is-invalid @enderror @error('photos.*') is-invalid @enderror" accept="image/*" multiple>
                 <small class="text-muted d-block mb-2">Photos can be JPG, PNG, or WEBP, up to 5 MB each.</small>
 
-                <label class="form-label fw-semibold mt-2">Event Videos</label>
-                <input
-                    type="file"
-                    name="videos[]"
-                    class="form-control @error('videos') is-invalid @enderror @error('videos.*') is-invalid @enderror"
-                    accept="video/mp4,video/webm"
-                    multiple
-                >
+                <label class="form-label mt-2">Add Videos</label>
+                <input type="file" name="videos[]" class="form-control @error('videos') is-invalid @enderror @error('videos.*') is-invalid @enderror" accept="video/mp4,video/webm" multiple>
                 <small class="text-muted">Videos can be MP4 or WEBM, up to 25 MB each. An event can have up to 3 photos and videos combined.</small>
                 @error('photos')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
                 @error('photos.*')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
@@ -87,10 +77,10 @@
             <div class="row">
                 <div class="col-md-6 mb-3">
                     <label class="form-label">Event Type</label>
-                    <select class="form-select @error('event_type_id') is-invalid @enderror" name="event_type_id" required>
+                    <select class="form-select @error('event_type_id') is-invalid @enderror" name="event_type_id" id="event_type_id" required>
                         <option value="">Select Event Type</option>
                         @foreach($eventTypes as $eventType)
-                            <option value="{{ $eventType->id }}" @selected((string) old('event_type_id', $event->event_type_id) === (string) $eventType->id)>
+                            <option value="{{ $eventType->id }}" data-compensation-type="{{ $eventType->compensation_type }}" @selected((string) old('event_type_id', $event->event_type_id) === (string) $eventType->id)>
                                 {{ $eventType->name }}
                             </option>
                         @endforeach
@@ -149,21 +139,35 @@
                 @error('venue')<div class="invalid-feedback">{{ $message }}</div>@enderror
             </div>
 
-            <div class="row">
-                <div class="col-md-4 mb-3">
-                    <label class="form-label">Budget (₱)</label>
-                    <input type="number" class="form-control @error('budget') is-invalid @enderror" name="budget" value="{{ old('budget', $event->budget) }}">
+            <div class="row" id="compensationFields">
+                <div class="col-md-6 mb-3 compensation-field d-none" data-compensation-type="fixed">
+                    <label class="form-label">Fixed Budget (&#8369;)</label>
+                    <input type="number" class="form-control @error('budget') is-invalid @enderror" name="budget" value="{{ old('budget', $event->budget) }}" min="0" step="0.01">
                     @error('budget')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
-                <div class="col-md-4 mb-3">
-                    <label class="form-label">Compensation Type</label>
-                    <select class="form-select @error('compensation_type') is-invalid @enderror" name="compensation_type">
-                        <option value="">Select Compensation Type</option>
-                        <option value="contest" @selected(old('compensation_type', $event->compensation_type) === 'contest')>Contest</option>
-                        <option value="hourly" @selected(old('compensation_type', $event->compensation_type) === 'hourly')>Hourly</option>
-                        <option value="fixed" @selected(old('compensation_type', $event->compensation_type) === 'fixed')>Fixed</option>
-                    </select>
-                    @error('compensation_type')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                <div class="col-md-6 mb-3 compensation-field d-none" data-compensation-type="hourly">
+                    <label class="form-label">Rate per Hour (&#8369;)</label>
+                    <input type="number" class="form-control @error('rate_per_hour') is-invalid @enderror" name="rate_per_hour" value="{{ old('rate_per_hour', $event->rate_per_hour) }}" min="0" step="0.01">
+                    @error('rate_per_hour')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                </div>
+                <div class="col-12 mb-3 compensation-field d-none" data-compensation-type="contest">
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">First Prize (&#8369;)</label>
+                            <input type="number" class="form-control @error('first_prize') is-invalid @enderror" name="first_prize" value="{{ old('first_prize', $event->first_prize) }}" min="0" step="0.01">
+                            @error('first_prize')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Second Prize (&#8369;)</label>
+                            <input type="number" class="form-control @error('second_prize') is-invalid @enderror" name="second_prize" value="{{ old('second_prize', $event->second_prize) }}" min="0" step="0.01">
+                            @error('second_prize')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Third Prize (&#8369;)</label>
+                            <input type="number" class="form-control @error('third_prize') is-invalid @enderror" name="third_prize" value="{{ old('third_prize', $event->third_prize) }}" min="0" step="0.01">
+                            @error('third_prize')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        </div>
+                    </div>
                 </div>
                 <div class="col-md-4 mb-3">
                     <label class="form-label">Event Status</label>
@@ -188,4 +192,28 @@
         </form>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const eventType = document.getElementById('event_type_id');
+    const compensationFields = document.querySelectorAll('.compensation-field');
+
+    function showCompensationFields() {
+        const selectedOption = eventType.options[eventType.selectedIndex];
+        const compensationType = selectedOption.dataset.compensationType;
+
+        compensationFields.forEach(function (field) {
+            const isSelectedType = field.dataset.compensationType === compensationType;
+            field.classList.toggle('d-none', !isSelectedType);
+
+            field.querySelectorAll('input').forEach(function (input) {
+                input.disabled = !isSelectedType;
+            });
+        });
+    }
+
+    eventType.addEventListener('change', showCompensationFields);
+    showCompensationFields();
+});
+</script>
 @endsection
