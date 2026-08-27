@@ -62,6 +62,15 @@ class UserController extends Controller
         return back()->with('success', 'Account status updated.');
     }
 
+    public function destroy(User $user): RedirectResponse
+    {
+        abort_unless($user->role !== 'admin', 400);
+
+        $user->delete();
+
+        return redirect()->route('admin.users.index')->with('success', 'User deleted successfully.');
+    }
+
     /**
      * Display a simple list of all users with their role (name + role only).
      */

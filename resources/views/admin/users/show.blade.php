@@ -120,5 +120,10 @@
         @csrf
         <button class="btn btn-outline-warning">{{ $user->is_active ? 'Suspend' : 'Activate' }}</button>
     </form>
+    <form method="POST" action="{{ route('admin.users.destroy', $user) }}" onsubmit="return confirm('Delete this user? They will be removed from the active user list.');">
+        @csrf
+        @method('DELETE')
+        <button class="btn btn-outline-danger">Delete User</button>
+    </form>
 </div>
 @endsection

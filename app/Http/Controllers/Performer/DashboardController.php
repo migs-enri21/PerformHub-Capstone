@@ -6,14 +6,20 @@ use App\Http\Controllers\Controller;
 use App\Models\Booking;
 use App\Models\Event;
 use App\Models\EventApplication;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 
 class DashboardController extends Controller
 {
-    public function index(): View
+    public function index(): View|RedirectResponse
     {
         $user = Auth::user();
+
+        if (! $user->hasCompletedOnboarding()) {
+            return redirect($user->onboardingRoute());
+        }
+
         $profile = $user->performerProfile;
         $pendingBookings = Booking::where('performer_id', $user->id)->where('status', 'pending')->count();
         $upcomingBookings = Booking::where('performer_id', $user->id)

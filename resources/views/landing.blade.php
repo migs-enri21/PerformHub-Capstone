@@ -3,6 +3,15 @@
 @section('title', 'PerformHub - Connect Performers & Event Organizers')
 
 @section('content')
+@php
+    $authenticatedUser = auth()->user();
+    $authenticatedDestination = $authenticatedUser?->hasCompletedOnboarding()
+        ? $authenticatedUser->dashboardRoute()
+        : $authenticatedUser?->onboardingRoute();
+    $authenticatedActionLabel = $authenticatedUser?->hasCompletedOnboarding()
+        ? 'Dashboard'
+        : 'Continue Sign Up';
+@endphp
 <nav class="navbar navbar-expand-lg navbar-dark navbar-ph fixed-top" style="z-index: 1030;">
     <div class="container">
         <a class="navbar-brand fw-bold d-flex align-items-center" href="{{ route('home') }}"><img src="{{ asset('images/logo.png') }}" alt="PerformHub" height="32" width="32" class="me-2 rounded-circle" style="object-fit: cover;">PerformHub</a>
@@ -17,7 +26,7 @@
                     <li class="nav-item"><a class="btn ph-btn-outline btn-sm" href="{{ route('login') }}">Sign In</a></li>
                     <li class="nav-item"><a class="btn ph-btn-primary btn-sm" href="{{ route('register') }}">Get Started</a></li>
                 @else
-                    <li class="nav-item"><a class="btn ph-btn-primary btn-sm" href="{{ auth()->user()->dashboardRoute() }}">Dashboard</a></li>
+                    <li class="nav-item"><a class="btn ph-btn-primary btn-sm" href="{{ $authenticatedDestination }}">{{ $authenticatedActionLabel }}</a></li>
                 @endguest
             </ul>
         </div>
@@ -30,58 +39,18 @@
             <div class="col-lg-7">
                 <h1 class="display-3 fw-bold mb-4">Discover Talent.<br>Book the Perfect Performance.</h1>
                 <p class="lead text-white-50 mb-4">PerformHub connects talented performers with event organizers for seamless entertainment booking, auditions, and event coordination.</p>
-                <div class="d-flex flex-wrap gap-3 hero-cta-group">
+                <div class="d-flex flex-wrap gap-3">
                     @guest
-                        <a href="{{ route('register', ['role' => 'organizer']) }}" class="btn ph-btn-primary btn-lg hero-cta-primary">Find Performers</a>
-                        <a href="{{ route('register', ['role' => 'performer']) }}" class="btn btn-lg hero-join-btn">Join as Performer</a>
+                        <a href="{{ route('register', ['role' => 'organizer']) }}" class="btn ph-btn-primary btn-lg">Find Performers</a>
+                        <a href="{{ route('register', ['role' => 'performer']) }}" class="btn ph-btn-outline btn-lg text-white">Join as Performer</a>
                     @else
-                        <a href="{{ auth()->user()->dashboardRoute() }}" class="btn ph-btn-primary btn-lg">Go to Dashboard</a>
+                        <a href="{{ $authenticatedDestination }}" class="btn ph-btn-primary btn-lg">{{ $authenticatedActionLabel }}</a>
                     @endguest
                 </div>
             </div>
         </div>
     </div>
 </section>
-
-@push('styles')
-<style>
-    .hero-cta-group {
-        margin-top: 0.5rem;
-    }
-
-    .hero-cta-primary,
-    .hero-join-btn {
-        border-radius: 14px;
-        font-weight: 700;
-        padding: 1rem 1.75rem;
-        min-width: 190px;
-        transition: all 0.2s ease;
-    }
-
-    .hero-join-btn {
-        background: rgba(255, 255, 255, 0.92);
-        border: 1px solid rgba(255, 255, 255, 0.8);
-        color: #1e1b2e !important;
-        box-shadow: 0 12px 28px rgba(17, 16, 28, 0.18);
-    }
-
-    .hero-join-btn:hover,
-    .hero-join-btn:focus {
-        background: #ffffff;
-        color: #1e1b2e !important;
-        border-color: #ffffff;
-        transform: translateY(-1px);
-    }
-
-    @media (max-width: 767px) {
-        .hero-cta-primary,
-        .hero-join-btn {
-            width: 100%;
-            justify-content: center;
-        }
-    }
-</style>
-@endpush
 
 <section id="categories" class="py-5">
     <div class="container py-4">
@@ -184,11 +153,15 @@
             @guest
                 <a href="{{ route('register') }}" class="btn btn-light btn-lg fw-semibold px-5">Get Started Free</a>
             @else
-                <a href="{{ auth()->user()->dashboardRoute() }}" class="btn btn-light btn-lg fw-semibold px-5">Go to Dashboard</a>
+                <a href="{{ $authenticatedDestination }}" class="btn btn-light btn-lg fw-semibold px-5">{{ $authenticatedActionLabel }}</a>
             @endguest
         </div>
     </div>
 </section>
 
- 
+<footer class="py-4 border-top" style="border-color: var(--ph-border) !important;">
+    <div class="container text-center text-muted small">
+        <p class="mb-0">&copy; {{ date('Y') }} PerformHub. All rights reserved.</p>
+    </div>
+</footer>
 @endsection

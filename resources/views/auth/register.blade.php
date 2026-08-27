@@ -166,6 +166,12 @@
                     </div>
 
                     <div class="mb-3">
+                        <label class="form-label text-muted small">Phone Number</label>
+                        <input type="text" name="phone" class="form-control ph-input @error('phone') is-invalid @enderror" value="{{ old('phone') }}" placeholder="+63 9XX XXX XXXX" required autocomplete="tel">
+                        @error('phone')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+                    </div>
+
+                    <div class="mb-3">
                         <label class="form-label text-muted small">Password</label>
                         <input type="password" name="password" class="form-control ph-input @error('password') is-invalid @enderror" required autocomplete="new-password">
                         <div class="form-text text-muted">At least 8 characters.</div>
@@ -189,56 +195,8 @@
                         @endforeach
                     </div>
 
-                    <p class="text-muted small mb-2">Identity Verification</p>
-                    @php
-                        $governmentIdType = old('government_id_type', '');
-                    @endphp
-                    <div class="mb-3">
-                        <label class="form-label text-muted small mb-2" for="government_id_type">Government ID Type <span class="text-danger">*</span></label>
-                        <select name="government_id_type" id="government_id_type" class="form-select ph-input @error('government_id_type') is-invalid @enderror" required>
-                            <option value="" disabled {{ $governmentIdType === '' ? 'selected' : '' }}>Select Government ID Type</option>
-                            @foreach([
-                                'PhilSys National ID' => 'PhilSys National ID',
-                                'Passport' => 'Passport',
-                                'Driver\'s License' => 'Driver\'s License',
-                                'UMID' => 'UMID',
-                                'PhilHealth ID' => 'PhilHealth ID',
-                                'Postal ID' => 'Postal ID',
-                                'PRC ID' => 'PRC ID',
-                                'SSS ID' => 'SSS ID',
-                                'GSIS eCard' => 'GSIS eCard',
-                                'OWWA ID' => 'OWWA ID',
-                                'NBI Clearance' => 'NBI Clearance',
-                                'Police Clearance' => 'Police Clearance',
-                                'PWD ID' => 'PWD ID',
-                                'Senior Citizen ID' => 'Senior Citizen ID',
-                                'Solo Parent ID' => 'Solo Parent ID',
-                                'Other Government-Issued ID' => 'Other Government-Issued ID',
-                            ] as $value => $label)
-                                <option value="{{ $value }}" {{ $governmentIdType === $value ? 'selected' : '' }}>{{ $label }}</option>
-                            @endforeach
-                        </select>
-                        @error('government_id_type')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                    </div>
-
-                    <div class="mb-3" id="government_id_other_group" style="display: {{ $governmentIdType === 'Other Government-Issued ID' ? 'block' : 'none' }};">
-                        <label class="form-label text-muted small mb-2" for="government_id_other">Specify Other Government ID</label>
-                        <input type="text" name="government_id_other" id="government_id_other" class="form-control ph-input @error('government_id_other') is-invalid @enderror" value="{{ old('government_id_other') }}" placeholder="Enter government ID type">
-                        @error('government_id_other')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                    </div>
-
-                    @include('onboarding.partials.upload-field', [
-                        'name' => 'government_id',
-                        'title' => 'Government-Issued ID',
-                        'required' => true,
-                        'desc' => 'Valid Philippine ID for identity verification.',
-                        'formats' => '.jpg .png .pdf — max 5 MB',
-                        'icon' => 'fa-id-card',
-                    ])
-                    @error('government_id')<div class="text-danger small mb-3">{{ $message }}</div>@enderror
-
                     <button type="submit" id="registerSubmitButton" class="btn ph-btn-primary w-100 mb-3" disabled>
-                        Create Account <i class="fas fa-arrow-right ms-2"></i>
+                        Continue <i class="fas fa-arrow-right ms-2"></i>
                     </button>
 
                     <p class="text-center text-muted small mb-0">
@@ -290,21 +248,6 @@ if (continueButton) {
 
 if (registrationFields && registrationFields.style.display !== 'none' && termsCheckbox && termsCheckbox.checked) {
     submitButton.disabled = false;
-}
-
-const governmentIdTypeSelect = document.getElementById('government_id_type');
-const governmentIdOtherGroup = document.getElementById('government_id_other_group');
-
-if (governmentIdTypeSelect) {
-    governmentIdTypeSelect.addEventListener('change', () => {
-        if (governmentIdTypeSelect.value === 'Other Government-Issued ID') {
-            governmentIdOtherGroup.style.display = 'block';
-            document.getElementById('government_id_other').required = true;
-        } else {
-            governmentIdOtherGroup.style.display = 'none';
-            document.getElementById('government_id_other').required = false;
-        }
-    });
 }
 </script>
 @endpush

@@ -72,17 +72,14 @@ class AuthController extends Controller
             'last_name' => ['required', 'string', 'max:100'],
             'username' => ['required', 'string', 'max:50', 'alpha_dash', 'unique:users,username'],
             'email' => ['required', 'email', 'max:255', 'unique:users,email'],
+            'phone' => ['required', 'string', 'max:30'],
             'password' => ['required', 'confirmed', Password::min(8)],
             'role' => ['required', 'in:performer,organizer'],
             'terms_accepted' => ['accepted'],
-            'government_id_type' => ['required', 'string', 'max:100'],
-            'government_id_other' => ['nullable', 'required_if:government_id_type,Other Government-Issued ID', 'string', 'max:100'],
-            'government_id' => ['required', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'],
         ], [
             'username.alpha_dash' => 'Username can only use letters, numbers, dashes, and underscores (spaces are converted automatically).',
             'username.unique' => 'That username is already taken. Try another one.',
             'email.unique' => 'An account with this email already exists.',
-            'terms_accepted.accepted' => 'You must agree to the Terms & Agreement before continuing.',
             'password.confirmed' => 'Password and confirm password do not match.',
             'password.min' => 'Password must be at least 8 characters.',
             'government_id.required' => 'Please upload a valid government ID.',
@@ -93,13 +90,12 @@ class AuthController extends Controller
             'last_name' => $validated['last_name'],
             'username' => $validated['username'],
             'email' => $validated['email'],
+            'phone' => $validated['phone'],
             'password' => $validated['password'],
             'role' => $validated['role'],
             'is_verified' => false,
             'is_active' => true,
-            // Role is chosen here at registration, so onboarding starts at the
-            // profile step — there's no separate role-selection step anymore.
-            'onboarding_step' => User::ONBOARDING_PROFILE,
+            'onboarding_step' => User::ONBOARDING_REGISTERED,
         ]);
 
         if ($user->isPerformer()) {
@@ -111,13 +107,9 @@ class AuthController extends Controller
             OrganizerProfile::create([
                 'user_id' => $user->id,
                 'organization_name' => $user->fullName(),
+                'phone' => $user->phone,
             ]);
         }
-
-        $this->storeVerificationDocument($user, 'government_id', $request->file('government_id'), [
-            'government_id_type' => $validated['government_id_type'],
-            'government_id_other' => $validated['government_id_other'] ?? null,
-        ]);
 
         Auth::login($user);
 
@@ -131,8 +123,7 @@ class AuthController extends Controller
             Notification::send($admin, $type, $title, $message, $link);
         }
 
-        return redirect($user->dashboardRoute())
-            ->with('success', 'Welcome to PerformHub! Your account is ready — complete sign-up anytime to unlock all features.');
+        return redirect()->route('onboarding.profile');
     }
 
     public function logout(Request $request): RedirectResponse

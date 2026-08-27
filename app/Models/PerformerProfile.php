@@ -24,6 +24,8 @@ class PerformerProfile extends Model
         'region',
         'city',
         'barangay',
+        'latitude',
+        'longitude',
         'profile_photo',
         'banner_photo',
         'banner_position_y',
@@ -49,6 +51,8 @@ class PerformerProfile extends Model
     {
         return [
             'rate' => 'decimal:2',
+            'latitude' => 'float',
+            'longitude' => 'float',
             'banner_position_y' => 'integer',
             'is_verified_badge' => 'boolean',
             'google_calendar_connected' => 'boolean',

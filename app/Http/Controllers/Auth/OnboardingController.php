@@ -6,7 +6,8 @@ use App\Http\Controllers\Concerns\HandlesVerificationDocuments;
 use App\Http\Controllers\Controller;
 use App\Models\Notification;
 use App\Models\User;
-use App\Support\PhilippineLocations;
+use App\Models\VerificationDocument;
+use App\Services\SupabaseStorageService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -50,34 +51,27 @@ class OnboardingController extends Controller
         $user = Auth::user();
 
         $validated = $request->validate(array_merge([
-            'first_name' => ['required', 'string', 'max:100'],
-            'last_name' => ['required', 'string', 'max:100'],
-            'phone' => ['required', 'string', 'max:30'],
-        ], PhilippineLocations::locationFieldsRules()));
+            'latitude' => ['required', 'numeric', 'between:-90,90'],
+            'longitude' => ['required', 'numeric', 'between:-180,180'],
+            'location' => ['nullable', 'string', 'max:500'],
+        ]));
 
-        $locationData = PhilippineLocations::profileLocationAttributes($validated);
-
-        $user->update([
-            'first_name' => $validated['first_name'],
-            'last_name' => $validated['last_name'],
-            'phone' => $validated['phone'],
-            'onboarding_step' => User::ONBOARDING_VERIFICATION,
-        ]);
+        $user->update(['onboarding_step' => User::ONBOARDING_VERIFICATION]);
 
         if ($user->isPerformer()) {
             $user->performerProfile()->updateOrCreate(
                 ['user_id' => $user->id],
                 array_merge([
                     'stage_name' => $user->fullName(),
-                ], $locationData)
+                ], collect($validated)->only(['latitude', 'longitude', 'location'])->all())
             );
         } else {
             $user->organizerProfile()->updateOrCreate(
                 ['user_id' => $user->id],
                 array_merge([
                     'organization_name' => $user->fullName(),
-                    'phone' => $validated['phone'],
-                ], $locationData)
+                    'phone' => $user->phone,
+                ], collect($validated)->only(['latitude', 'longitude', 'location'])->all())
             );
         }
 
@@ -110,15 +104,14 @@ class OnboardingController extends Controller
         $user = Auth::user();
 
         $hasGovernmentId = $user->verificationDocuments()->where('document_type', 'government_id')->exists();
-        $governmentIdRule = $hasGovernmentId ? ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'] : ['required', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'];
-        $governmentIdTypeRule = $hasGovernmentId ? ['nullable', 'string', 'max:100'] : ['required', 'string', 'max:100'];
+        $governmentIdRule = $hasGovernmentId ? ['nullable', 'array'] : ['required', 'array', 'min:1'];
+        $governmentIdFileRule = ['file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'];
 
         if ($user->isOrganizer()) {
             $validated = $request->validate([
                 'organization_type' => ['required', 'in:company,individual,nonprofit'],
-                'government_id_type' => $governmentIdTypeRule,
-                'government_id_other' => ['nullable', 'required_if:government_id_type,Other Government-Issued ID', 'string', 'max:100'],
-                'government_id' => $governmentIdRule,
+                'government_id' => array_merge($governmentIdRule, ['max:5']),
+                'government_id.*' => $governmentIdFileRule,
                 'business_permit' => ['required_unless:organization_type,individual', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:10240'],
                 'proof_of_events' => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf,zip', 'max:51200'],
                 'bir_certificate' => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'],
@@ -130,12 +123,13 @@ class OnboardingController extends Controller
             );
 
             if ($request->hasFile('government_id')) {
-                $this->storeVerificationDocument($user, 'government_id', $request->file('government_id'), [
-                    'government_id_type' => $validated['government_id_type'] ?? null,
-                    'government_id_other' => $validated['government_id_other'] ?? null,
-                ]);
+                foreach ($request->file('government_id', []) as $file) {
+                    $this->storeVerificationDocument($user, 'government_id', $file);
+                }
             }
-            $this->storeVerificationDocument($user, 'business_permit', $request->file('business_permit'));
+            if ($request->hasFile('business_permit')) {
+                $this->storeVerificationDocument($user, 'business_permit', $request->file('business_permit'));
+            }
 
             if ($request->hasFile('proof_of_events')) {
                 $this->storeVerificationDocument($user, 'proof_of_events', $request->file('proof_of_events'));
@@ -146,31 +140,15 @@ class OnboardingController extends Controller
             }
         } else {
             $validated = $request->validate([
-                'government_id_type' => $governmentIdTypeRule,
-                'government_id_other' => ['nullable', 'required_if:government_id_type,Other Government-Issued ID', 'string', 'max:100'],
-                'government_id' => $governmentIdRule,
+                'government_id' => array_merge($governmentIdRule, ['max:5']),
+                'government_id.*' => $governmentIdFileRule,
             ]);
 
             if ($request->hasFile('government_id')) {
-                $this->storeVerificationDocument($user, 'government_id', $request->file('government_id'), [
-                    'government_id_type' => $validated['government_id_type'] ?? null,
-                    'government_id_other' => $validated['government_id_other'] ?? null,
-                ]);
+                foreach ($request->file('government_id', []) as $file) {
+                    $this->storeVerificationDocument($user, 'government_id', $file);
+                }
             }
-        }
-
-        // Notify admins when onboarding/verification is submitted (ready for review).
-        $roleType = $user->isPerformer() ? 'Performer' : 'Organizer';
-        $adminUsers = User::where('role', User::ROLE_ADMIN)->get();
-
-        foreach ($adminUsers as $admin) {
-            Notification::send(
-                $admin,
-                'new_registration',
-                "New {$roleType} ready for verification",
-                "{$user->fullName()} completed sign-up and needs verification.",
-                route('admin.users.show', $user)
-            );
         }
 
         $user->update(['onboarding_step' => User::ONBOARDING_COMPLETE]);
@@ -194,5 +172,31 @@ class OnboardingController extends Controller
         $request->session()->put('onboarding_banner_dismissed', true);
 
         return back();
+    }
+
+    private function storeDocument(User $user, string $type, \Illuminate\Http\UploadedFile $file, array $meta = [], bool $replaceExisting = true): void
+    {
+        $existing = $replaceExisting
+            ? $user->verificationDocuments()->where('document_type', $type)->get()
+            : collect();
+
+        foreach ($existing as $document) {
+            $document->delete();
+        }
+
+        $supabase = new SupabaseStorageService();
+
+        $bucket = $user->isPerformer() ? 'performer-files' : 'organizer-files';
+
+        $path = $supabase->upload($file, $bucket, $type, $user->id);
+
+        VerificationDocument::create([
+            'user_id' => $user->id,
+            'document_type' => $type,
+            'file_path' => $path,
+            'original_name' => $file->getClientOriginalName(),
+            'government_id_type' => $meta['government_id_type'] ?? null,
+            'government_id_other' => $meta['government_id_other'] ?? null,
+        ]);
     }
 }
