@@ -56,9 +56,6 @@
             @elseif($user->isOrganizer() && $user->organizerProfile)
                 <dl class="row">
                     <dt class="col-sm-4 text-muted">Organization</dt>
-                    <dd class="col-sm-8">{{ $user->organizerProfile->organization_name }}</dd>
-
-                    <dt class="col-sm-4 text-muted">Type</dt>
                     <dd class="col-sm-8">{{ ucfirst($user->organizerProfile->organization_type ?? 'N/A') }}</dd>
 
                     <dt class="col-sm-4 text-muted">Location</dt>

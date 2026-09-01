@@ -30,6 +30,17 @@
         <input type="text" class="form-control ph-input" value="{{ $user->phone }}" readonly>
     </div>
 
+    @if($user->isOrganizer())
+        <div class="mb-3">
+            <label for="organization_name" class="form-label text-muted small">Organization Name</label>
+            <input type="text" id="organization_name" name="organization_name" class="form-control ph-input"
+                value="{{ old('organization_name', $user->organizerProfile?->organization_name) }}" maxlength="255" required>
+            @error('organization_name')
+                <div class="text-danger small mt-1">{{ $message }}</div>
+            @enderror
+        </div>
+    @endif
+
     <div class="mb-4">
         <label class="form-label text-muted small mb-2">Location</label>
         @php

@@ -35,10 +35,6 @@ class OnboardingController extends Controller
         if ($user->hasCompletedOnboarding()) {
             return redirect($user->dashboardRoute());
         }
-
-        // Role is chosen at registration now; legacy accounts still sitting at the
-        // old "registered" step are bumped straight to profile instead of being
-        // shown a role-selection screen.
         if ($user->onboarding_step < User::ONBOARDING_PROFILE) {
             $user->update(['onboarding_step' => User::ONBOARDING_PROFILE]);
         }
@@ -54,6 +50,9 @@ class OnboardingController extends Controller
             'latitude' => ['required', 'numeric', 'between:-90,90'],
             'longitude' => ['required', 'numeric', 'between:-180,180'],
             'location' => ['nullable', 'string', 'max:500'],
+            'organization_name' => $user->isOrganizer()
+                ? ['required', 'string', 'max:255']
+                : ['nullable', 'string', 'max:255'],
         ]));
 
         $user->update(['onboarding_step' => User::ONBOARDING_VERIFICATION]);
@@ -69,7 +68,7 @@ class OnboardingController extends Controller
             $user->organizerProfile()->updateOrCreate(
                 ['user_id' => $user->id],
                 array_merge([
-                    'organization_name' => $user->fullName(),
+                    'organization_name' => $validated['organization_name'],
                     'phone' => $user->phone,
                 ], collect($validated)->only(['latitude', 'longitude', 'location'])->all())
             );

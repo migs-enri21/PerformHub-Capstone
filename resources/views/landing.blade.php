@@ -42,7 +42,7 @@
                 <div class="d-flex flex-wrap gap-3">
                     @guest
                         <a href="{{ route('register', ['role' => 'organizer']) }}" class="btn ph-btn-primary btn-lg">Find Performers</a>
-                        <a href="{{ route('register', ['role' => 'performer']) }}" class="btn ph-btn-outline btn-lg text-white">Join as Performer</a>
+                        <a href="{{ route('register', ['role' => 'performer']) }}" class="btn ph-btn-outline btn-lg text-white fw-semibold">Join as Performer</a>
                     @else
                         <a href="{{ $authenticatedDestination }}" class="btn ph-btn-primary btn-lg">{{ $authenticatedActionLabel }}</a>
                     @endguest

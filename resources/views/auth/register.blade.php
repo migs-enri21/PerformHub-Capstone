@@ -10,9 +10,9 @@
                 <img src="{{ asset('images/logo.png') }}" alt="PerformHub" height="32" width="32" class="me-2 rounded-circle" style="object-fit: cover;">PerformHub
             </a>
         </div>
-        <div class="auth-hero-content">
-            <h1 class="display-5 fw-bold">Join the stage! </h1>
-            <p class="text-white-50 fs-5">Create your account and start connecting today.</p>
+        <div class="auth-hero-content auth-hero-intro">
+            <h1 class="display-5 fw-bold">Join the stage!</h1>
+            <p>Create your account and start connecting today.</p>
         </div>
     </div>
 
