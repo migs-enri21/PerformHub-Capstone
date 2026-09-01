@@ -83,7 +83,11 @@ class DashboardController extends Controller
         $portfolioPosts = PortfolioFeed::groupItems(
             Portfolio::with(['performerProfile.user', 'performerProfile.categories'])
                 ->whereHas('performerProfile.user', function ($query) {
-                    $query->where('onboarding_step', '>=', User::ONBOARDING_COMPLETE);
+                    $query->where('onboarding_step', '>=', User::ONBOARDING_COMPLETE)
+                        ->where('is_verified', true);
+                })
+                ->whereHas('performerProfile', function ($query) {
+                    $query->where('is_verified_badge', true);
                 })
                 ->latest()
                 ->take(50)

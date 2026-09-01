@@ -18,6 +18,12 @@ class EnsureFullAccess
                 ->with('warning', 'Complete your sign-up to unlock this feature. You can continue anytime from your dashboard.');
         }
 
+        if ($user && $user->isAwaitingVerification()) {
+            return redirect()
+                ->route('performer.dashboard')
+                ->with('warning', 'Your account is under review. You can edit your portfolio while you wait for admin verification.');
+        }
+
         return $next($request);
     }
 }

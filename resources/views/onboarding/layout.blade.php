@@ -5,23 +5,26 @@
 @section('content')
 <div class="onboarding-page py-4 py-lg-5">
     <div class="container" style="max-width: 640px;">
-        <a href="{{ route('home') }}" class="text-muted small mb-4 d-inline-block">
-            <i class="fas fa-chevron-left me-1"></i> Back to Home
-        </a>
+        @if(($current ?? 1) > 1)
+            <a href="{{ route('onboarding.profile') }}" class="text-muted small mb-4 d-inline-block">
+                <i class="fas fa-chevron-left me-1"></i> Back to Profile
+            </a>
+        @endif
 
         <div class="text-center mb-4">
-            <a href="{{ route('home') }}" class="text-dark text-decoration-none fw-bold fs-5 d-inline-flex align-items-center">
+            <span class="text-dark fw-bold fs-5 d-inline-flex align-items-center">
                 <img src="{{ asset('images/logo.png') }}" alt="PerformHub" height="36" width="36" class="me-2 rounded-circle" style="object-fit: cover;">PerformHub
-            </a>
+            </span>
         </div>
 
-        @include('onboarding.partials.stepper', ['current' => $current ?? 1])
+        @include('onboarding.partials.stepper', [
+            'current' => $current ?? 1,
+            'steps' => auth()->user()?->isPerformer()
+                ? [1 => 'Profile', 2 => 'Done']
+                : [1 => 'Profile', 2 => 'Verification', 3 => 'Done'],
+        ])
 
         @yield('onboarding-content')
-
-        <p class="text-center text-muted small mt-4 mb-0">
-            Already have an account? <a href="{{ route('login') }}">Sign in</a>
-        </p>
     </div>
 </div>
 @endsection

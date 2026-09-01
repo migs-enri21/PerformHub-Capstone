@@ -18,12 +18,12 @@
 
     <div class="auth-form-panel">
         <div class="w-100" style="max-width: 440px; margin: 0 auto;">
-            <a href="{{ route('home') }}" class="text-muted small mb-4 d-inline-block">
+            <a href="{{ route('home') }}" class="text-muted small mb-2 d-inline-block">
                 <i class="fas fa-chevron-left me-1"></i> Back to Home
             </a>
 
             <h2 class="fw-bold mb-1">Create your account</h2>
-            <p class="text-muted mb-4">Choose your role and get started</p>
+            <p class="text-muted mb-3">Choose your role and get started</p>
 
             @if($errors->any())
                 <div class="alert alert-danger py-2 mb-3">
@@ -141,44 +141,60 @@
                 </div>
 
                 <div id="registrationFields" style="{{ $showRegistration ? '' : 'display:none;' }}">
-                    <div class="row g-3 mb-3">
+                    <div class="row g-2 mb-2">
                         <div class="col-md-6">
-                            <label class="form-label text-muted small">First Name</label>
+                            <label class="form-label text-muted small mb-1">First Name</label>
                             <input type="text" name="first_name" class="form-control ph-input" value="{{ old('first_name') }}" required>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label text-muted small">Last Name</label>
+                            <label class="form-label text-muted small mb-1">Last Name</label>
                             <input type="text" name="last_name" class="form-control ph-input" value="{{ old('last_name') }}" required>
                         </div>
                     </div>
 
-                    <div class="mb-3">
-                        <label class="form-label text-muted small">Username <span class="text-muted fw-normal">(optional)</span></label>
-                        <input type="text" name="username" class="form-control ph-input @error('username') is-invalid @enderror" value="{{ old('username') }}" autocomplete="username" placeholder="Leave blank to auto-generate from your name">
-                        <div class="form-text text-muted">Letters and numbers only. Spaces become underscores (e.g. wency malinao → wency_malinao).</div>
+                    <div class="mb-2">
+                        <label class="form-label text-muted small mb-1">Username <span class="text-muted fw-normal">(optional)</span></label>
+                        <input type="text" name="username" class="form-control ph-input @error('username') is-invalid @enderror" value="{{ old('username') }}" autocomplete="username" placeholder="Auto from your name if blank">
                         @error('username')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
                     </div>
 
-                    <div class="mb-3">
-                        <label class="form-label text-muted small">Email Address</label>
-                        <input type="email" name="email" class="form-control ph-input @error('email') is-invalid @enderror" value="{{ old('email') }}" required autocomplete="email">
-                        @error('email')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+                    <div class="row g-2 mb-2">
+                        <div class="col-md-6">
+                            <label class="form-label text-muted small mb-1">Email Address</label>
+                            <input type="email" name="email" class="form-control ph-input @error('email') is-invalid @enderror" value="{{ old('email') }}" required autocomplete="email">
+                            @error('email')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label text-muted small mb-1">Phone Number</label>
+                            <input type="text" name="phone" class="form-control ph-input @error('phone') is-invalid @enderror" value="{{ old('phone') }}" placeholder="+63 9XX XXX XXXX" required>
+                            @error('phone')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+                        </div>
                     </div>
 
-                    <div class="mb-3">
-                        <label class="form-label text-muted small">Password</label>
-                        <input type="password" name="password" class="form-control ph-input @error('password') is-invalid @enderror" required autocomplete="new-password">
-                        <div class="form-text text-muted">At least 8 characters.</div>
-                        @error('password')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+                    <div class="row g-2 mb-2">
+                        <div class="col-md-6">
+                            <label class="form-label text-muted small mb-1">Password</label>
+                            <input type="password" name="password" class="form-control ph-input @error('password') is-invalid @enderror" required autocomplete="new-password">
+                            @error('password')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label text-muted small mb-1">Confirm Password</label>
+                            <input type="password" name="password_confirmation" class="form-control ph-input @error('password') is-invalid @enderror" required autocomplete="new-password">
+                        </div>
                     </div>
 
-                    <div class="mb-3">
-                        <label class="form-label text-muted small">Confirm Password</label>
-                        <input type="password" name="password_confirmation" class="form-control ph-input @error('password') is-invalid @enderror" required autocomplete="new-password">
+                    <div class="mb-2">
+                        <label class="form-label text-muted small mb-1">Location</label>
+                        @include('partials.location-select', [
+                            'region' => old('region'),
+                            'city' => old('city'),
+                            'barangay' => old('barangay'),
+                            'required' => true,
+                        ])
                     </div>
 
-                    <label class="form-label text-muted small mb-2">Register as</label>
-                    <div class="row g-2 mb-4">
+                    <label class="form-label text-muted small mb-1">Register as</label>
+                    <div class="row g-2 mb-2">
                         @foreach(['performer' => ['icon' => 'fa-microphone', 'label' => 'Performer'], 'organizer' => ['icon' => 'fa-building', 'label' => 'Organizer']] as $key => $item)
                             <div class="col-6">
                                 <div class="role-card {{ old('role', $role) === $key ? 'active' : '' }}" data-role="{{ $key }}">
@@ -189,44 +205,7 @@
                         @endforeach
                     </div>
 
-                    <p class="text-muted small mb-2">Identity Verification</p>
-                    @php
-                        $governmentIdType = old('government_id_type', '');
-                    @endphp
-                    <div class="mb-3">
-                        <label class="form-label text-muted small mb-2" for="government_id_type">Government ID Type <span class="text-danger">*</span></label>
-                        <select name="government_id_type" id="government_id_type" class="form-select ph-input @error('government_id_type') is-invalid @enderror" required>
-                            <option value="" disabled {{ $governmentIdType === '' ? 'selected' : '' }}>Select Government ID Type</option>
-                            @foreach([
-                                'PhilSys National ID' => 'PhilSys National ID',
-                                'Passport' => 'Passport',
-                                'Driver\'s License' => 'Driver\'s License',
-                                'UMID' => 'UMID',
-                                'PhilHealth ID' => 'PhilHealth ID',
-                                'Postal ID' => 'Postal ID',
-                                'PRC ID' => 'PRC ID',
-                                'SSS ID' => 'SSS ID',
-                                'GSIS eCard' => 'GSIS eCard',
-                                'OWWA ID' => 'OWWA ID',
-                                'NBI Clearance' => 'NBI Clearance',
-                                'Police Clearance' => 'Police Clearance',
-                                'PWD ID' => 'PWD ID',
-                                'Senior Citizen ID' => 'Senior Citizen ID',
-                                'Solo Parent ID' => 'Solo Parent ID',
-                                'Other Government-Issued ID' => 'Other Government-Issued ID',
-                            ] as $value => $label)
-                                <option value="{{ $value }}" {{ $governmentIdType === $value ? 'selected' : '' }}>{{ $label }}</option>
-                            @endforeach
-                        </select>
-                        @error('government_id_type')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                    </div>
-
-                    <div class="mb-3" id="government_id_other_group" style="display: {{ $governmentIdType === 'Other Government-Issued ID' ? 'block' : 'none' }};">
-                        <label class="form-label text-muted small mb-2" for="government_id_other">Specify Other Government ID</label>
-                        <input type="text" name="government_id_other" id="government_id_other" class="form-control ph-input @error('government_id_other') is-invalid @enderror" value="{{ old('government_id_other') }}" placeholder="Enter government ID type">
-                        @error('government_id_other')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                    </div>
-
+                    <p class="text-muted small mb-1">Identity Verification</p>
                     @include('onboarding.partials.upload-field', [
                         'name' => 'government_id',
                         'title' => 'Government-Issued ID',
@@ -235,9 +214,9 @@
                         'formats' => '.jpg .png .pdf — max 5 MB',
                         'icon' => 'fa-id-card',
                     ])
-                    @error('government_id')<div class="text-danger small mb-3">{{ $message }}</div>@enderror
+                    @error('government_id')<div class="text-danger small mb-2">{{ $message }}</div>@enderror
 
-                    <button type="submit" id="registerSubmitButton" class="btn ph-btn-primary w-100 mb-3" disabled>
+                    <button type="submit" id="registerSubmitButton" class="btn ph-btn-primary w-100 mb-2" disabled>
                         Create Account <i class="fas fa-arrow-right ms-2"></i>
                     </button>
 
@@ -290,21 +269,6 @@ if (continueButton) {
 
 if (registrationFields && registrationFields.style.display !== 'none' && termsCheckbox && termsCheckbox.checked) {
     submitButton.disabled = false;
-}
-
-const governmentIdTypeSelect = document.getElementById('government_id_type');
-const governmentIdOtherGroup = document.getElementById('government_id_other_group');
-
-if (governmentIdTypeSelect) {
-    governmentIdTypeSelect.addEventListener('change', () => {
-        if (governmentIdTypeSelect.value === 'Other Government-Issued ID') {
-            governmentIdOtherGroup.style.display = 'block';
-            document.getElementById('government_id_other').required = true;
-        } else {
-            governmentIdOtherGroup.style.display = 'none';
-            document.getElementById('government_id_other').required = false;
-        }
-    });
 }
 </script>
 @endpush

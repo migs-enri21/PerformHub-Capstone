@@ -8,6 +8,7 @@ use App\Models\OrganizerProfile;
 use App\Models\PerformerProfile;
 use App\Models\User;
 use App\Models\Notification;
+use App\Support\PhilippineLocations;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -67,18 +68,17 @@ class AuthController extends Controller
 
         $request->merge(['username' => $username]);
 
-        $validated = $request->validate([
+        $validated = $request->validate(array_merge([
             'first_name' => ['required', 'string', 'max:100'],
             'last_name' => ['required', 'string', 'max:100'],
             'username' => ['required', 'string', 'max:50', 'alpha_dash', 'unique:users,username'],
             'email' => ['required', 'email', 'max:255', 'unique:users,email'],
             'password' => ['required', 'confirmed', Password::min(8)],
+            'phone' => ['required', 'string', 'max:30'],
             'role' => ['required', 'in:performer,organizer'],
             'terms_accepted' => ['accepted'],
-            'government_id_type' => ['required', 'string', 'max:100'],
-            'government_id_other' => ['nullable', 'required_if:government_id_type,Other Government-Issued ID', 'string', 'max:100'],
             'government_id' => ['required', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'],
-        ], [
+        ], PhilippineLocations::locationFieldsRules()), [
             'username.alpha_dash' => 'Username can only use letters, numbers, dashes, and underscores (spaces are converted automatically).',
             'username.unique' => 'That username is already taken. Try another one.',
             'email.unique' => 'An account with this email already exists.',
@@ -88,36 +88,37 @@ class AuthController extends Controller
             'government_id.required' => 'Please upload a valid government ID.',
         ]);
 
+        $locationData = PhilippineLocations::profileLocationAttributes($validated);
+
         $user = User::create([
             'first_name' => $validated['first_name'],
             'last_name' => $validated['last_name'],
             'username' => $validated['username'],
             'email' => $validated['email'],
             'password' => $validated['password'],
+            'phone' => $validated['phone'],
             'role' => $validated['role'],
             'is_verified' => false,
             'is_active' => true,
-            // Role is chosen here at registration, so onboarding starts at the
-            // profile step — there's no separate role-selection step anymore.
-            'onboarding_step' => User::ONBOARDING_PROFILE,
+            'onboarding_step' => $validated['role'] === 'performer'
+                ? User::ONBOARDING_COMPLETE
+                : User::ONBOARDING_VERIFICATION,
         ]);
 
         if ($user->isPerformer()) {
-            PerformerProfile::create([
+            PerformerProfile::create(array_merge([
                 'user_id' => $user->id,
                 'stage_name' => $user->fullName(),
-            ]);
+            ], $locationData));
         } else {
-            OrganizerProfile::create([
+            OrganizerProfile::create(array_merge([
                 'user_id' => $user->id,
                 'organization_name' => $user->fullName(),
-            ]);
+                'phone' => $validated['phone'],
+            ], $locationData));
         }
 
-        $this->storeVerificationDocument($user, 'government_id', $request->file('government_id'), [
-            'government_id_type' => $validated['government_id_type'],
-            'government_id_other' => $validated['government_id_other'] ?? null,
-        ]);
+        $this->storeVerificationDocument($user, 'government_id', $request->file('government_id'));
 
         Auth::login($user);
 
@@ -131,8 +132,13 @@ class AuthController extends Controller
             Notification::send($admin, $type, $title, $message, $link);
         }
 
+        if ($user->isOrganizer()) {
+            return redirect()->route('onboarding.verification')
+                ->with('success', 'Account created. Upload your organization documents to finish sign-up.');
+        }
+
         return redirect($user->dashboardRoute())
-            ->with('success', 'Welcome to PerformHub! Your account is ready — complete sign-up anytime to unlock all features.');
+            ->with('success', 'Welcome to PerformHub! Your identity is under review.');
     }
 
     public function logout(Request $request): RedirectResponse

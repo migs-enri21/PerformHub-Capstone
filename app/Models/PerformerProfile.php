@@ -122,11 +122,19 @@ class PerformerProfile extends Model
 
     public function portfolioVisibleTo(?User $viewer): bool
     {
-        if ($viewer && $viewer->id === $this->user_id) {
+        if ($viewer && ($viewer->id === $this->user_id || $viewer->isAdmin())) {
             return true;
         }
 
-        return $this->user->hasCompletedOnboarding();
+        $owner = $this->user;
+
+        if (! $owner) {
+            return false;
+        }
+
+        return $owner->hasCompletedOnboarding()
+            && $owner->is_verified
+            && $this->is_verified_badge;
     }
 
     public function averageRating(): float

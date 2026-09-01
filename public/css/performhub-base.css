@@ -510,9 +510,29 @@ input[type="file"].ph-input::file-selector-button:hover {
 }
 
 @media (min-width: 992px) {
-    .auth-split { display: flex; }
-    .auth-hero { flex: 1; min-height: 100vh; }
-    .auth-form-panel { flex: 1; display: flex; flex-direction: column; justify-content: center; }
+    .auth-split {
+        display: flex;
+        height: 100vh;
+        min-height: 100vh;
+        max-height: 100vh;
+        overflow: hidden;
+    }
+    .auth-hero {
+        flex: 1;
+        height: 100vh;
+        min-height: 100vh;
+        overflow: hidden;
+    }
+    .auth-form-panel {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        height: 100vh;
+        min-height: 0;
+        overflow-y: auto;
+        padding: 2rem;
+    }
 }
 
 @media (max-width: 991px) {
@@ -560,7 +580,7 @@ input[type="file"].ph-input::file-selector-button:hover {
     font-weight: 600;
     background: var(--ph-bg-input);
     border: 2px solid var(--ph-border);
-    color: #020202;
+    color: #fff;
 }
 
 .onboarding-step.completed .onboarding-step-circle {

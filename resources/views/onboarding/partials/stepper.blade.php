@@ -1,5 +1,5 @@
 @php
-    $steps = [
+    $steps = $steps ?? [
         1 => 'Profile',
         2 => 'Verification',
         3 => 'Done',

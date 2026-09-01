@@ -53,44 +53,6 @@
                 <span class="small">Government ID already submitted during registration.</span>
             </div>
         @else
-            @php
-                $governmentIdType = old('government_id_type', '');
-            @endphp
-
-            <div class="mb-3">
-                <label class="form-label text-muted small mb-2" for="government_id_type">Government ID Type <span class="text-danger">*</span></label>
-                <select name="government_id_type" id="government_id_type" class="form-select ph-input @error('government_id_type') is-invalid @enderror" required>
-                    <option value="" disabled {{ $governmentIdType === '' ? 'selected' : '' }}>Select Government ID Type</option>
-                    @foreach([
-                        'PhilSys National ID' => 'PhilSys National ID',
-                        'Passport' => 'Passport',
-                        'Driver\'s License' => 'Driver\'s License',
-                        'UMID' => 'UMID',
-                        'PhilHealth ID' => 'PhilHealth ID',
-                        'Postal ID' => 'Postal ID',
-                        'PRC ID' => 'PRC ID',
-                        'SSS ID' => 'SSS ID',
-                        'GSIS eCard' => 'GSIS eCard',
-                        'OWWA ID' => 'OWWA ID',
-                        'NBI Clearance' => 'NBI Clearance',
-                        'Police Clearance' => 'Police Clearance',
-                        'PWD ID' => 'PWD ID',
-                        'Senior Citizen ID' => 'Senior Citizen ID',
-                        'Solo Parent ID' => 'Solo Parent ID',
-                        'Other Government-Issued ID' => 'Other Government-Issued ID',
-                    ] as $value => $label)
-                        <option value="{{ $value }}" {{ $governmentIdType === $value ? 'selected' : '' }}>{{ $label }}</option>
-                    @endforeach
-                </select>
-                @error('government_id_type')<div class="invalid-feedback">{{ $message }}</div>@enderror
-            </div>
-
-            <div class="mb-3" id="government_id_other_group" style="display: {{ $governmentIdType === 'Other Government-Issued ID' ? 'block' : 'none' }};">
-                <label class="form-label text-muted small mb-2" for="government_id_other">Specify Other Government ID</label>
-                <input type="text" name="government_id_other" id="government_id_other" class="form-control ph-input @error('government_id_other') is-invalid @enderror" value="{{ old('government_id_other') }}" placeholder="Enter government ID type">
-                @error('government_id_other')<div class="invalid-feedback">{{ $message }}</div>@enderror
-            </div>
-
             @include('onboarding.partials.upload-field', [
                 'name' => 'government_id',
                 'title' => 'Government-Issued ID',
@@ -132,44 +94,6 @@
             </div>
             <p class="text-muted small mb-0">You're all set — continue below to finish sign-up. You can upload photos and videos to your Portfolio anytime from your dashboard.</p>
         @else
-            @php
-                $governmentIdType = old('government_id_type', '');
-            @endphp
-
-            <div class="mb-3">
-                <label class="form-label text-muted small mb-2" for="government_id_type">Government ID Type <span class="text-danger">*</span></label>
-                <select name="government_id_type" id="government_id_type" class="form-select ph-input @error('government_id_type') is-invalid @enderror" required>
-                    <option value="" disabled {{ $governmentIdType === '' ? 'selected' : '' }}>Select Government ID Type</option>
-                    @foreach([
-                        'PhilSys National ID' => 'PhilSys National ID',
-                        'Passport' => 'Passport',
-                        'Driver\'s License' => 'Driver\'s License',
-                        'UMID' => 'UMID',
-                        'PhilHealth ID' => 'PhilHealth ID',
-                        'Postal ID' => 'Postal ID',
-                        'PRC ID' => 'PRC ID',
-                        'SSS ID' => 'SSS ID',
-                        'GSIS eCard' => 'GSIS eCard',
-                        'OWWA ID' => 'OWWA ID',
-                        'NBI Clearance' => 'NBI Clearance',
-                        'Police Clearance' => 'Police Clearance',
-                        'PWD ID' => 'PWD ID',
-                        'Senior Citizen ID' => 'Senior Citizen ID',
-                        'Solo Parent ID' => 'Solo Parent ID',
-                        'Other Government-Issued ID' => 'Other Government-Issued ID',
-                    ] as $value => $label)
-                        <option value="{{ $value }}" {{ $governmentIdType === $value ? 'selected' : '' }}>{{ $label }}</option>
-                    @endforeach
-                </select>
-                @error('government_id_type')<div class="invalid-feedback">{{ $message }}</div>@enderror
-            </div>
-
-            <div class="mb-3" id="government_id_other_group" style="display: {{ $governmentIdType === 'Other Government-Issued ID' ? 'block' : 'none' }};">
-                <label class="form-label text-muted small mb-2" for="government_id_other">Specify Other Government ID</label>
-                <input type="text" name="government_id_other" id="government_id_other" class="form-control ph-input @error('government_id_other') is-invalid @enderror" value="{{ old('government_id_other') }}" placeholder="Enter government ID type">
-                @error('government_id_other')<div class="invalid-feedback">{{ $message }}</div>@enderror
-            </div>
-
             @include('onboarding.partials.upload-field', [
                 'name' => 'government_id',
                 'title' => 'Government-Issued ID',
@@ -228,21 +152,6 @@ document.querySelectorAll('.org-type-card').forEach(card => {
         updateDocumentRequirements();
     });
 });
-
-    const governmentIdTypeSelect = document.getElementById('government_id_type');
-    const governmentIdOtherGroup = document.getElementById('government_id_other_group');
-
-    if (governmentIdTypeSelect) {
-        governmentIdTypeSelect.addEventListener('change', () => {
-            if (governmentIdTypeSelect.value === 'Other Government-Issued ID') {
-                governmentIdOtherGroup.style.display = 'block';
-                document.getElementById('government_id_other').required = true;
-            } else {
-                governmentIdOtherGroup.style.display = 'none';
-                document.getElementById('government_id_other').required = false;
-            }
-        });
-    }
 
     updateDocumentRequirements();
 </script>

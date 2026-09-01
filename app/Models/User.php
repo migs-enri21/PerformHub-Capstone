@@ -142,6 +142,21 @@ class User extends Authenticatable
         return ! $this->hasCompletedOnboarding();
     }
 
+    public function isAwaitingVerification(): bool
+    {
+        if ($this->isAdmin() || ! $this->isPerformer()) {
+            return false;
+        }
+
+        return $this->hasCompletedOnboarding()
+            && ! ($this->is_verified && $this->performerProfile?->is_verified_badge);
+    }
+
+    public function canUseBookingFeatures(): bool
+    {
+        return ! $this->hasLimitedAccess() && ! $this->isAwaitingVerification();
+    }
+
     public function onboardingStepLabel(): string
     {
         return match ($this->onboarding_step) {

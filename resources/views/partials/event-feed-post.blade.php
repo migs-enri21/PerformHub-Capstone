@@ -116,6 +116,10 @@
             <button type="button" class="event-feed-footer-btn event-feed-footer-btn--applied w-100" disabled>
                 <i class="fas fa-clock me-1"></i>Pending — awaiting organizer
             </button>
+        @elseif(auth()->user()->isAwaitingVerification())
+            <button type="button" class="event-feed-footer-btn w-100" disabled>
+                <i class="fas fa-lock me-1"></i> Available after verification
+            </button>
         @elseif(auth()->user()->hasLimitedAccess())
             <a href="{{ auth()->user()->onboardingRoute() }}" class="event-feed-footer-btn w-100">
                 <i class="fas fa-lock me-1"></i>Sign up
