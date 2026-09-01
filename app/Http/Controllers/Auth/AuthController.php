@@ -8,6 +8,7 @@ use App\Models\OrganizerProfile;
 use App\Models\PerformerProfile;
 use App\Models\User;
 use App\Models\Notification;
+use App\Support\PhilippineLocations;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -67,49 +68,57 @@ class AuthController extends Controller
 
         $request->merge(['username' => $username]);
 
-        $validated = $request->validate([
+        $validated = $request->validate(array_merge([
             'first_name' => ['required', 'string', 'max:100'],
             'last_name' => ['required', 'string', 'max:100'],
             'username' => ['required', 'string', 'max:50', 'alpha_dash', 'unique:users,username'],
             'email' => ['required', 'email', 'max:255', 'unique:users,email'],
-            'phone' => ['required', 'string', 'max:30'],
             'password' => ['required', 'confirmed', Password::min(8)],
+            'phone' => ['required', 'string', 'max:30'],
             'role' => ['required', 'in:performer,organizer'],
             'terms_accepted' => ['accepted'],
-        ], [
+            'government_id' => ['required', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'],
+        ], PhilippineLocations::locationFieldsRules()), [
             'username.alpha_dash' => 'Username can only use letters, numbers, dashes, and underscores (spaces are converted automatically).',
             'username.unique' => 'That username is already taken. Try another one.',
             'email.unique' => 'An account with this email already exists.',
+            'terms_accepted.accepted' => 'You must agree to the Terms & Agreement before continuing.',
             'password.confirmed' => 'Password and confirm password do not match.',
             'password.min' => 'Password must be at least 8 characters.',
             'government_id.required' => 'Please upload a valid government ID.',
         ]);
+
+        $locationData = PhilippineLocations::profileLocationAttributes($validated);
 
         $user = User::create([
             'first_name' => $validated['first_name'],
             'last_name' => $validated['last_name'],
             'username' => $validated['username'],
             'email' => $validated['email'],
-            'phone' => $validated['phone'],
             'password' => $validated['password'],
+            'phone' => $validated['phone'],
             'role' => $validated['role'],
             'is_verified' => false,
             'is_active' => true,
-            'onboarding_step' => User::ONBOARDING_REGISTERED,
+            'onboarding_step' => $validated['role'] === 'performer'
+                ? User::ONBOARDING_COMPLETE
+                : User::ONBOARDING_VERIFICATION,
         ]);
 
         if ($user->isPerformer()) {
-            PerformerProfile::create([
+            PerformerProfile::create(array_merge([
                 'user_id' => $user->id,
                 'stage_name' => $user->fullName(),
-            ]);
+            ], $locationData));
         } else {
-            OrganizerProfile::create([
+            OrganizerProfile::create(array_merge([
                 'user_id' => $user->id,
                 'organization_name' => $user->fullName(),
-                'phone' => $user->phone,
-            ]);
+                'phone' => $validated['phone'],
+            ], $locationData));
         }
+
+        $this->storeVerificationDocument($user, 'government_id', $request->file('government_id'));
 
         Auth::login($user);
 
@@ -123,7 +132,13 @@ class AuthController extends Controller
             Notification::send($admin, $type, $title, $message, $link);
         }
 
-        return redirect()->route('onboarding.profile');
+        if ($user->isOrganizer()) {
+            return redirect()->route('onboarding.verification')
+                ->with('success', 'Account created. Upload your organization documents to finish sign-up.');
+        }
+
+        return redirect($user->dashboardRoute())
+            ->with('success', 'Welcome to PerformHub! Your identity is under review.');
     }
 
     public function logout(Request $request): RedirectResponse

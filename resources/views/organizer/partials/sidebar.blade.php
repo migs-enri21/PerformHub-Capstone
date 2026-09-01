@@ -20,6 +20,9 @@
     <a class="nav-link @if(request()->routeIs('organizer.events.*')) active @endif" href="{{ route('organizer.events.index') }}"><i class="fas fa-plus me-2"></i> Events</a>
     <a class="nav-link @if(request()->routeIs('organizer.calendar.*')) active @endif" href="{{ route('organizer.calendar.index') }}"><i class="fas fa-calendar-alt me-2"></i> Calendar</a>
     <a class="nav-link @if(request()->routeIs('organizer.performers.*')) active @endif" href="{{ route('organizer.performers.index') }}"><i class="fas fa-search me-2"></i> Find Performers</a>
+    @if(auth()->user()->hasLimitedAccess())
+        <a class="nav-link text-warning" href="{{ auth()->user()->onboardingRoute() }}"><i class="fas fa-arrow-right me-2"></i> Complete Sign-up</a>
+    @endif
 </nav>
 
 <form action="{{ route('logout') }}" method="POST" class="mt-auto">

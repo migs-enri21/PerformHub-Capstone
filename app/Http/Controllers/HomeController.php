@@ -13,7 +13,8 @@ class HomeController extends Controller
         $categories = Category::query()->where('is_active', true)->get();
         $featuredPerformers = PerformerProfile::query()
             ->with(['user', 'categories'])
-            ->whereHas('user', fn ($q) => $q->where('is_active', true))
+            ->whereHas('user', fn ($q) => $q->where('is_active', true)->where('is_verified', true))
+            ->where('is_verified_badge', true)
             ->latest()
             ->limit(6)
             ->get();

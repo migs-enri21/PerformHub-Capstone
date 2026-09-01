@@ -28,7 +28,6 @@ class SupabaseStorageService
             'organization_logo'  => 'organization-logos',
             'event_banner'       => 'event-banners',
             'event_banners'      => 'event-banners',
-            'event_video'        => 'event-videos',
             'contract'           => 'contracts',
             'signed_contract'    => 'signed-contracts',
         ];

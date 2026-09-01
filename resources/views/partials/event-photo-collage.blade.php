@@ -29,18 +29,12 @@
         tabindex="0"
         data-bs-toggle="modal"
         data-bs-target="#{{ $modalId }}"
-        aria-label="View all {{ $count }} event files"
+        aria-label="View all {{ $count }} photos"
     @endif
 >
     @foreach($visible as $index => $photo)
         <div class="portfolio-collage-tile event-feed-collage-tile">
-            @if($photo->isVideo())
-                <video controls preload="metadata">
-                    <source src="{{ $photo->fileUrl() }}">
-                </video>
-            @else
-                <img src="{{ $photo->fileUrl() }}" alt="{{ $title }}" loading="lazy">
-            @endif
+            <img src="{{ $photo->fileUrl() }}" alt="{{ $title }}" loading="lazy">
             @if($hasMore && $index === 3)
                 <div class="portfolio-collage-more">+{{ $count - 4 }}</div>
             @endif
@@ -53,20 +47,14 @@
         <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">All event files ({{ $count }})</h5>
+                    <h5 class="modal-title">All {{ $count }} photos</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
                     <div class="portfolio-gallery-grid">
                         @foreach($photos as $photo)
                             <div class="portfolio-gallery-item">
-                                @if($photo->isVideo())
-                                    <video controls preload="metadata">
-                                        <source src="{{ $photo->fileUrl() }}">
-                                    </video>
-                                @else
-                                    <img src="{{ $photo->fileUrl() }}" alt="{{ $title }}">
-                                @endif
+                                <img src="{{ $photo->fileUrl() }}" alt="{{ $title }}">
                             </div>
                         @endforeach
                     </div>

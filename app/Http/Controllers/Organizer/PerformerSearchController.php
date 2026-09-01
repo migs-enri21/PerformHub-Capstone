@@ -51,8 +51,11 @@ class PerformerSearchController extends Controller
         $query = PerformerProfile::query()
             ->with(['user', 'categories'])
             ->whereHas('user', function ($user) {
-                return $user->where('is_active', true);
-            });
+                return $user->where('is_active', true)
+                    ->where('is_verified', true)
+                    ->where('onboarding_step', '>=', \App\Models\User::ONBOARDING_COMPLETE);
+            })
+            ->where('is_verified_badge', true);
 
         $this->applySearchFilter($query, $request->search);
         $this->applyCategoryFilter($query, $request->category_id);

@@ -19,10 +19,11 @@
             <p class="text-muted mb-0">{{ $performer->bio ?? 'No bio provided.' }}</p>
         </div>
 
-        @if($portfolioGroups->isNotEmpty())
-            <h5 class="fw-semibold mb-3">Portfolio Posts</h5>
-            @include('partials.portfolio-feed', ['posts' => $portfolioGroups->values()])
-        @endif
+        @include('partials.portfolio-work-samples', [
+            'groups' => $portfolioGroups,
+            'memberSince' => $performer->user?->created_at,
+            'emptyMessage' => 'This performer has not uploaded work samples yet.',
+        ])
 
         <div class="d-flex flex-wrap gap-2 mt-4">
             @if(auth()->user()->isOrganizer() && auth()->id() !== $performer->user_id)

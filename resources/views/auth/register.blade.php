@@ -10,20 +10,20 @@
                 <img src="{{ asset('images/logo.png') }}" alt="PerformHub" height="32" width="32" class="me-2 rounded-circle" style="object-fit: cover;">PerformHub
             </a>
         </div>
-        <div class="auth-hero-content auth-hero-intro">
-            <h1 class="display-5 fw-bold">Join the stage!</h1>
-            <p>Create your account and start connecting today.</p>
+        <div class="auth-hero-content">
+            <h1 class="display-5 fw-bold">Join the stage! </h1>
+            <p class="text-white-50 fs-5">Create your account and start connecting today.</p>
         </div>
     </div>
 
     <div class="auth-form-panel">
         <div class="w-100" style="max-width: 440px; margin: 0 auto;">
-            <a href="{{ route('home') }}" class="text-muted small mb-4 d-inline-block">
+            <a href="{{ route('home') }}" class="text-muted small mb-2 d-inline-block">
                 <i class="fas fa-chevron-left me-1"></i> Back to Home
             </a>
 
             <h2 class="fw-bold mb-1">Create your account</h2>
-            <p class="text-muted mb-4">Choose your role and get started</p>
+            <p class="text-muted mb-3">Choose your role and get started</p>
 
             @if($errors->any())
                 <div class="alert alert-danger py-2 mb-3">
@@ -141,50 +141,60 @@
                 </div>
 
                 <div id="registrationFields" style="{{ $showRegistration ? '' : 'display:none;' }}">
-                    <div class="row g-3 mb-3">
+                    <div class="row g-2 mb-2">
                         <div class="col-md-6">
-                            <label class="form-label text-muted small">First Name</label>
+                            <label class="form-label text-muted small mb-1">First Name</label>
                             <input type="text" name="first_name" class="form-control ph-input" value="{{ old('first_name') }}" required>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label text-muted small">Last Name</label>
+                            <label class="form-label text-muted small mb-1">Last Name</label>
                             <input type="text" name="last_name" class="form-control ph-input" value="{{ old('last_name') }}" required>
                         </div>
                     </div>
 
-                    <div class="mb-3">
-                        <label class="form-label text-muted small">Username <span class="text-muted fw-normal">(optional)</span></label>
-                        <input type="text" name="username" class="form-control ph-input @error('username') is-invalid @enderror" value="{{ old('username') }}" autocomplete="username" placeholder="Leave blank to auto-generate from your name">
-                        <div class="form-text text-muted">Letters and numbers only. Spaces become underscores (e.g. wency malinao → wency_malinao).</div>
+                    <div class="mb-2">
+                        <label class="form-label text-muted small mb-1">Username <span class="text-muted fw-normal">(optional)</span></label>
+                        <input type="text" name="username" class="form-control ph-input @error('username') is-invalid @enderror" value="{{ old('username') }}" autocomplete="username" placeholder="Auto from your name if blank">
                         @error('username')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
                     </div>
 
-                    <div class="mb-3">
-                        <label class="form-label text-muted small">Email Address</label>
-                        <input type="email" name="email" class="form-control ph-input @error('email') is-invalid @enderror" value="{{ old('email') }}" required autocomplete="email">
-                        @error('email')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+                    <div class="row g-2 mb-2">
+                        <div class="col-md-6">
+                            <label class="form-label text-muted small mb-1">Email Address</label>
+                            <input type="email" name="email" class="form-control ph-input @error('email') is-invalid @enderror" value="{{ old('email') }}" required autocomplete="email">
+                            @error('email')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label text-muted small mb-1">Phone Number</label>
+                            <input type="text" name="phone" class="form-control ph-input @error('phone') is-invalid @enderror" value="{{ old('phone') }}" placeholder="+63 9XX XXX XXXX" required>
+                            @error('phone')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+                        </div>
                     </div>
 
-                    <div class="mb-3">
-                        <label class="form-label text-muted small">Phone Number</label>
-                        <input type="text" name="phone" class="form-control ph-input @error('phone') is-invalid @enderror" value="{{ old('phone') }}" placeholder="+63 9XX XXX XXXX" required autocomplete="tel">
-                        @error('phone')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+                    <div class="row g-2 mb-2">
+                        <div class="col-md-6">
+                            <label class="form-label text-muted small mb-1">Password</label>
+                            <input type="password" name="password" class="form-control ph-input @error('password') is-invalid @enderror" required autocomplete="new-password">
+                            @error('password')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label text-muted small mb-1">Confirm Password</label>
+                            <input type="password" name="password_confirmation" class="form-control ph-input @error('password') is-invalid @enderror" required autocomplete="new-password">
+                        </div>
                     </div>
 
-                    <div class="mb-3">
-                        <label class="form-label text-muted small">Password</label>
-                        <input type="password" name="password" class="form-control ph-input @error('password') is-invalid @enderror" required autocomplete="new-password">
-                        <div class="form-text text-muted">At least 8 characters.</div>
-                        @error('password')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+                    <div class="mb-2">
+                        <label class="form-label text-muted small mb-1">Location</label>
+                        @include('partials.location-select', [
+                            'region' => old('region'),
+                            'city' => old('city'),
+                            'barangay' => old('barangay'),
+                            'required' => true,
+                        ])
                     </div>
 
-                    <div class="mb-3">
-                        <label class="form-label text-muted small">Confirm Password</label>
-                        <input type="password" name="password_confirmation" class="form-control ph-input @error('password') is-invalid @enderror" required autocomplete="new-password">
-                    </div>
-
-                    <label class="form-label text-muted small mb-2">Register as</label>
-                    <div class="row g-2 mb-4">
+                    <label class="form-label text-muted small mb-1">Register as</label>
+                    <div class="row g-2 mb-2">
                         @foreach(['performer' => ['icon' => 'fa-microphone', 'label' => 'Performer'], 'organizer' => ['icon' => 'fa-building', 'label' => 'Organizer']] as $key => $item)
                             <div class="col-6">
                                 <div class="role-card {{ old('role', $role) === $key ? 'active' : '' }}" data-role="{{ $key }}">
@@ -195,8 +205,19 @@
                         @endforeach
                     </div>
 
-                    <button type="submit" id="registerSubmitButton" class="btn ph-btn-primary w-100 mb-3" disabled>
-                        Continue <i class="fas fa-arrow-right ms-2"></i>
+                    <p class="text-muted small mb-1">Identity Verification</p>
+                    @include('onboarding.partials.upload-field', [
+                        'name' => 'government_id',
+                        'title' => 'Government-Issued ID',
+                        'required' => true,
+                        'desc' => 'Valid Philippine ID for identity verification.',
+                        'formats' => '.jpg .png .pdf — max 5 MB',
+                        'icon' => 'fa-id-card',
+                    ])
+                    @error('government_id')<div class="text-danger small mb-2">{{ $message }}</div>@enderror
+
+                    <button type="submit" id="registerSubmitButton" class="btn ph-btn-primary w-100 mb-2" disabled>
+                        Create Account <i class="fas fa-arrow-right ms-2"></i>
                     </button>
 
                     <p class="text-center text-muted small mb-0">

@@ -9,21 +9,14 @@ use App\Models\Portfolio;
 use App\Models\User;
 use App\Services\PerformerRecommendationService;
 use App\Support\PortfolioFeed;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 
 class DashboardController extends Controller
 {
-    public function index(PerformerRecommendationService $recommendations): View|RedirectResponse
+    public function index(PerformerRecommendationService $recommendations): View
     {
-        $user = Auth::user();
-
-        if (! $user->hasCompletedOnboarding()) {
-            return redirect($user->onboardingRoute());
-        }
-
         return view('organizer.dashboard', $this->getDashboardData($recommendations));
     }
 
@@ -90,7 +83,11 @@ class DashboardController extends Controller
         $portfolioPosts = PortfolioFeed::groupItems(
             Portfolio::with(['performerProfile.user', 'performerProfile.categories'])
                 ->whereHas('performerProfile.user', function ($query) {
-                    $query->where('onboarding_step', '>=', User::ONBOARDING_COMPLETE);
+                    $query->where('onboarding_step', '>=', User::ONBOARDING_COMPLETE)
+                        ->where('is_verified', true);
+                })
+                ->whereHas('performerProfile', function ($query) {
+                    $query->where('is_verified_badge', true);
                 })
                 ->latest()
                 ->take(50)

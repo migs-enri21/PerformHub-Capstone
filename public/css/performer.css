@@ -298,7 +298,7 @@
 .social-stat-card--facebook .social-stat-icon { background: rgba(24, 119, 242, 0.15); color: #1877f2; }
 .social-stat-card--instagram .social-stat-icon { background: rgba(225, 48, 108, 0.15); color: #e1306c; }
 .social-stat-card--youtube .social-stat-icon { background: rgba(255, 0, 0, 0.15); color: #ff4444; }
-.social-stat-card--tiktok .social-stat-icon { background: rgba(255, 255, 255, 0.08); color: #fff; }
+.social-stat-card--tiktok .social-stat-icon { background: rgba(0, 0, 0, 0.08); color: #111; }
 .social-stat-card--twitter .social-stat-icon { background: rgba(29, 161, 242, 0.15); color: #1da1f2; }
 
 /* Stat text wrapper */
@@ -344,6 +344,16 @@
 }
 
 /* --- Availability / calendar --- */
+#availability {
+    caret-color: transparent;
+}
+
+#availability h5,
+#availability p {
+    cursor: default;
+    user-select: none;
+}
+
 .availability-calendar-toolbar {
     width: 100%;
 }
@@ -1220,8 +1230,7 @@ button.av-day:not(:disabled):hover {
     line-height: 0;
 }
 
-.event-feed-cover img,
-.event-feed-cover video {
+.event-feed-cover img {
     display: block;
     width: 100%;
     height: auto;
@@ -1231,8 +1240,7 @@ button.av-day:not(:disabled):hover {
     background: #000;
 }
 
-.event-feed-collage .portfolio-collage-tile img,
-.event-feed-collage .portfolio-collage-tile video {
+.event-feed-collage .portfolio-collage-tile img {
     object-fit: contain;
     object-position: center;
     background: #000;
@@ -1244,8 +1252,7 @@ button.av-day:not(:disabled):hover {
     min-height: 220px;
 }
 
-.event-feed-collage.portfolio-collage--1 .portfolio-collage-tile img,
-.event-feed-collage.portfolio-collage--1 .portfolio-collage-tile video {
+.event-feed-collage.portfolio-collage--1 .portfolio-collage-tile img {
     object-fit: contain;
     max-height: 520px;
 }

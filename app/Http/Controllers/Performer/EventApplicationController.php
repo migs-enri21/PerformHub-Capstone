@@ -28,6 +28,10 @@ class EventApplicationController extends Controller
                 ->with('warning', 'Complete sign-up to apply for events.');
         }
 
+        if ($user->isAwaitingVerification()) {
+            return back()->with('warning', 'Your account is under review. You can apply to events after an admin verifies you.');
+        }
+
         $existing = EventApplication::where('event_id', $event->id)
             ->where('performer_id', $user->id)
             ->exists();

@@ -6,11 +6,10 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Illuminate\Database\Eloquent\SoftDeletes;
 
 class User extends Authenticatable
 {
-    use HasFactory, Notifiable, SoftDeletes;
+    use HasFactory, Notifiable;
 
     public const ROLE_PERFORMER = 'performer';
 
@@ -140,7 +139,22 @@ class User extends Authenticatable
             return false;
         }
 
-        return ! $this->is_verified;
+        return ! $this->hasCompletedOnboarding();
+    }
+
+    public function isAwaitingVerification(): bool
+    {
+        if ($this->isAdmin() || ! $this->isPerformer()) {
+            return false;
+        }
+
+        return $this->hasCompletedOnboarding()
+            && ! ($this->is_verified && $this->performerProfile?->is_verified_badge);
+    }
+
+    public function canUseBookingFeatures(): bool
+    {
+        return ! $this->hasLimitedAccess() && ! $this->isAwaitingVerification();
     }
 
     public function onboardingStepLabel(): string

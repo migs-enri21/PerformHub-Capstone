@@ -74,12 +74,6 @@
             @if($event->budget)
                 <span>₱{{ number_format((float) $event->budget, 0) }}</span>
             @endif
-            @if($event->compensation_type === 'hourly' && $event->rate_per_hour)
-                <span>Rate per hour: PHP {{ number_format((float) $event->rate_per_hour, 0) }}</span>
-            @endif
-            @if($event->compensation_type === 'contest')
-                <span>Contest prizes available</span>
-            @endif
         </p>
     </div>
 
@@ -87,13 +81,7 @@
         @include('partials.event-photo-collage', ['photos' => $galleryPhotos, 'title' => $event->title])
     @elseif($photoCount === 1)
         <div class="event-feed-cover">
-            @if($galleryPhotos->first()->isVideo())
-                <video controls preload="metadata">
-                    <source src="{{ $galleryPhotos->first()->fileUrl() }}">
-                </video>
-            @else
-                <img src="{{ $galleryPhotos->first()->fileUrl() }}" alt="{{ $event->title }}" loading="lazy">
-            @endif
+            <img src="{{ $galleryPhotos->first()->fileUrl() }}" alt="{{ $event->title }}" loading="lazy">
         </div>
     @elseif($event->coverPhotoUrl())
         <div class="event-feed-cover">
@@ -127,6 +115,10 @@
         @elseif($applicationStatus === 'pending')
             <button type="button" class="event-feed-footer-btn event-feed-footer-btn--applied w-100" disabled>
                 <i class="fas fa-clock me-1"></i>Pending — awaiting organizer
+            </button>
+        @elseif(auth()->user()->isAwaitingVerification())
+            <button type="button" class="event-feed-footer-btn w-100" disabled>
+                <i class="fas fa-lock me-1"></i> Available after verification
             </button>
         @elseif(auth()->user()->hasLimitedAccess())
             <a href="{{ auth()->user()->onboardingRoute() }}" class="event-feed-footer-btn w-100">

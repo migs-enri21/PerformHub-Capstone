@@ -10,8 +10,7 @@
 <h2 class="fw-bold mb-4">Booking History</h2>
 
 
-{{-- Add the filter here --}}
-{{-- <form method="GET" class="ph-card p-3 mb-4 d-flex gap-2 align-items-end">
+ <form method="GET" class="ph-card p-3 mb-4 d-flex gap-2 align-items-end">
     <div>
         <label class="form-label">Booking Status</label>
         <select name="status" class="form-select ph-input">
@@ -24,7 +23,7 @@
     </div>
 
     <button type="submit" class="btn ph-btn-primary">Filter</button>
-</form> --}}
+</form> 
 
 
 <div class="ph-card p-0 overflow-hidden">

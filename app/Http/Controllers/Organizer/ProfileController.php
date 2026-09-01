@@ -60,10 +60,7 @@ class ProfileController extends Controller
             'profile_photo' => ['nullable', 'image', 'max:5120'],
             'banner_photo' => ['nullable', 'image', 'max:5120'],
             'banner_position_y' => ['nullable', 'integer', 'min:0', 'max:100'],
-            'latitude' => ['nullable', 'numeric', 'between:-90,90'],
-            'longitude' => ['nullable', 'numeric', 'between:-180,180'],
-            'location' => ['nullable', 'string', 'max:500'],
-        ]));
+        ], PhilippineLocations::locationFieldsRules(required: false)));
     }
 
     private function storePhoto(Request $request, OrganizerProfile $profile, array $data, string $field, string $type): array
@@ -106,5 +103,8 @@ class ProfileController extends Controller
             'barangay',
         ])->all());
 
+        if (! empty($data['region']) && ! empty($data['city'])) {
+            $profile->update(PhilippineLocations::profileLocationAttributes($data));
+        }
     }
 }

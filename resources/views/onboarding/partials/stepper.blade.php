@@ -1,5 +1,5 @@
 @php
-    $steps = [
+    $steps = $steps ?? [
         1 => 'Profile',
         2 => 'Verification',
         3 => 'Done',
@@ -10,22 +10,12 @@
         <div class="onboarding-step {{ $num < $current ? 'completed' : ($num === $current ? 'active' : '') }}">
             <div class="onboarding-step-circle">
                 @if($num < $current)
-                    @if($num === 1)
-                        <a href="{{ route('onboarding.profile') }}" class="text-decoration-none text-reset" aria-label="Edit profile">
-                            <i class="fas fa-check"></i>
-                        </a>
-                    @else
-                        <i class="fas fa-check"></i>
-                    @endif
+                    <i class="fas fa-check"></i>
                 @else
                     {{ $num }}
                 @endif
             </div>
-            @if($num === 1 && $num < $current)
-                <a href="{{ route('onboarding.profile') }}" class="onboarding-step-label text-decoration-none">{{ $label }}</a>
-            @else
-                <span class="onboarding-step-label">{{ $label }}</span>
-            @endif
+            <span class="onboarding-step-label">{{ $label }}</span>
         </div>
         @if(!$loop->last)
             <div class="onboarding-step-line {{ $num < $current ? 'completed' : '' }}"></div>

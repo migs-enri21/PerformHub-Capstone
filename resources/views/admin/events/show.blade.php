@@ -55,7 +55,15 @@
                 </div>
                 <div class="col-md-6">
                     <div class="small text-muted">Contract</div>
-                    <div class="fw-semibold">{{ $booking->contractStatusLabel() }}</div>
+                    <div class="fw-semibold">
+                        @if($booking->hasSignedContract())
+                            Signed contract returned
+                        @elseif($booking->hasContract())
+                            Contract uploaded
+                        @else
+                            No contract
+                        @endif
+                    </div>
                 </div>
                 <div class="col-md-6">
                     <div class="small text-muted">Contract File</div>

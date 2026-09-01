@@ -24,8 +24,6 @@ class PerformerProfile extends Model
         'region',
         'city',
         'barangay',
-        'latitude',
-        'longitude',
         'profile_photo',
         'banner_photo',
         'banner_position_y',
@@ -51,8 +49,6 @@ class PerformerProfile extends Model
     {
         return [
             'rate' => 'decimal:2',
-            'latitude' => 'float',
-            'longitude' => 'float',
             'banner_position_y' => 'integer',
             'is_verified_badge' => 'boolean',
             'google_calendar_connected' => 'boolean',
@@ -126,11 +122,19 @@ class PerformerProfile extends Model
 
     public function portfolioVisibleTo(?User $viewer): bool
     {
-        if ($viewer && $viewer->id === $this->user_id) {
+        if ($viewer && ($viewer->id === $this->user_id || $viewer->isAdmin())) {
             return true;
         }
 
-        return $this->user->hasCompletedOnboarding();
+        $owner = $this->user;
+
+        if (! $owner) {
+            return false;
+        }
+
+        return $owner->hasCompletedOnboarding()
+            && $owner->is_verified
+            && $this->is_verified_badge;
     }
 
     public function averageRating(): float
