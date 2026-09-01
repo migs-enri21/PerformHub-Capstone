@@ -39,7 +39,13 @@
             @include('partials.event-photo-collage', ['photos' => $event->photos, 'title' => $event->title])
         @elseif($event->photos->count() === 1)
             <div class="organizer-event-cover">
-                <img src="{{ $event->photos->first()->fileUrl() }}" alt="{{ $event->title }}">
+                @if($event->photos->first()->isVideo())
+                    <video controls preload="metadata">
+                        <source src="{{ $event->photos->first()->fileUrl() }}">
+                    </video>
+                @else
+                    <img src="{{ $event->photos->first()->fileUrl() }}" alt="{{ $event->title }}">
+                @endif
             </div>
         @elseif($event->coverPhotoUrl())
             <div class="organizer-event-cover">
@@ -84,10 +90,26 @@
                         </span>
                     </div>
                 @endif
-                @if($event->budget)
+                @if($event->compensation_type === 'fixed' && $event->budget)
                     <div class="col-md-6">
-                        <strong class="event-detail-label d-block mb-1">Budget</strong>
+                        <strong class="event-detail-label d-block mb-1">Fixed Budget</strong>
                         <span class="text-muted">PHP {{ number_format((float) $event->budget, 0) }}</span>
+                    </div>
+                @endif
+                @if($event->compensation_type === 'hourly' && $event->rate_per_hour)
+                    <div class="col-md-6">
+                        <strong class="event-detail-label d-block mb-1">Rate per Hour</strong>
+                        <span class="text-muted">PHP {{ number_format((float) $event->rate_per_hour, 0) }}</span>
+                    </div>
+                @endif
+                @if($event->compensation_type === 'contest')
+                    <div class="col-md-6">
+                        <strong class="event-detail-label d-block mb-1">Contest Prizes</strong>
+                        <span class="text-muted">
+                            First: PHP {{ number_format((float) $event->first_prize, 0) }}<br>
+                            Second: PHP {{ number_format((float) $event->second_prize, 0) }}<br>
+                            Third: PHP {{ number_format((float) $event->third_prize, 0) }}
+                        </span>
                     </div>
                 @endif
             </div>

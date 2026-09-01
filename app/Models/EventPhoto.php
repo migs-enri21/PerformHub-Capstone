@@ -23,4 +23,11 @@ class EventPhoto extends Model
 
         return (new SupabaseStorageService)->url('organizer-files', $this->file_path);
     }
+
+    public function isVideo(): bool
+    {
+        $path = strtolower($this->file_path);
+
+        return str_ends_with($path, '.mp4') || str_ends_with($path, '.webm');
+    }
 }

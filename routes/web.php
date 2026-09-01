@@ -88,8 +88,10 @@ Route::middleware(['auth', 'role:organizer'])->prefix('organizer')->name('organi
     Route::get('/performers/{performer}', [PerformerSearchController::class, 'show'])->name('performers.show');
     Route::get('/bookings/{booking}', [OrganizerBookingController::class, 'show'])->name('bookings.show');
     Route::get('/events', [OrganizerEventController::class, 'index'])->name('events.index');
-    Route::get('/events/create', [OrganizerEventController::class, 'create'])->name('events.create');
-    Route::post('/events', [OrganizerEventController::class, 'store'])->name('events.store');
+    Route::middleware('full.access')->group(function () {
+        Route::get('/events/create', [OrganizerEventController::class, 'create'])->name('events.create');
+        Route::post('/events', [OrganizerEventController::class, 'store'])->name('events.store');
+    });
     Route::get('/events/{event}', [OrganizerEventController::class, 'show'])->name('events.show');
     Route::get('/events/{event}/edit', [OrganizerEventController::class, 'edit'])->name('events.edit');
     Route::put('/events/{event}', [OrganizerEventController::class, 'update'])->name('events.update');
@@ -120,6 +122,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::get('/users/{user}', [AdminUserController::class, 'show'])->name('users.show');
     Route::post('/users/{user}/verify', [AdminUserController::class, 'verify'])->name('users.verify');
     Route::post('/users/{user}/toggle', [AdminUserController::class, 'toggleActive'])->name('users.toggle');
+    Route::delete('/users/{user}', [AdminUserController::class, 'destroy'])->name('users.destroy');
     Route::get('/categories', [AdminCategoryController::class, 'index'])->name('categories.index');
     Route::post('/categories', [AdminCategoryController::class, 'store'])->name('categories.store');
     Route::patch('/categories/{category}/toggle', [AdminCategoryController::class, 'toggle'])->name('categories.toggle');

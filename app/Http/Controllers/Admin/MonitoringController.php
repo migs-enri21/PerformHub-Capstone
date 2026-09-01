@@ -16,7 +16,7 @@ class MonitoringController extends Controller
 
         if ($request->filled('search')) {
             $search = trim($request->search);
-            $query->where(function ($q) use ($search) {
+            $query->where(function ($q ) use ($search) {
                 $q->where('event_name', 'like', "%{$search}%")
                     ->orWhere('venue', 'like', "%{$search}%")
                     ->orWhere('requirements', 'like', "%{$search}%");

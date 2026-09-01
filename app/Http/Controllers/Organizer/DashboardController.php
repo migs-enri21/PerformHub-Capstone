@@ -9,14 +9,21 @@ use App\Models\Portfolio;
 use App\Models\User;
 use App\Services\PerformerRecommendationService;
 use App\Support\PortfolioFeed;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 
 class DashboardController extends Controller
 {
-    public function index(PerformerRecommendationService $recommendations): View
+    public function index(PerformerRecommendationService $recommendations): View|RedirectResponse
     {
+        $user = Auth::user();
+
+        if (! $user->hasCompletedOnboarding()) {
+            return redirect($user->onboardingRoute());
+        }
+
         return view('organizer.dashboard', $this->getDashboardData($recommendations));
     }
 

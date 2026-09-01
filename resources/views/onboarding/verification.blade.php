@@ -19,6 +19,17 @@
     @endif
 </p>
 
+@if($errors->any())
+    <div class="alert alert-danger small" role="alert">
+        <strong>Please fix the following:</strong>
+        <ul class="mb-0 mt-2">
+            @foreach($errors->all() as $error)
+                <li>{{ $error }}</li>
+            @endforeach
+        </ul>
+    </div>
+@endif
+
 <form method="POST" action="{{ route('onboarding.verification.store') }}" enctype="multipart/form-data">
     @csrf
 
@@ -57,9 +68,11 @@
                 'name' => 'government_id',
                 'title' => 'Government-Issued ID',
                 'required' => true,
-                'desc' => 'Valid Philippine ID of the authorized representative.',
-                'formats' => '.jpg .png .pdf — max 5 MB',
+                'desc' => 'Valid Philippine ID(s) of the authorized representative.',
+                'formats' => '.jpg .png .pdf — max 5 MB each',
                 'icon' => 'fa-id-card',
+                'multiple' => true,
+                'maxFiles' => 5,
             ])
         @endif
         @include('onboarding.partials.upload-field', [
@@ -98,9 +111,11 @@
                 'name' => 'government_id',
                 'title' => 'Government-Issued ID',
                 'required' => true,
-                'desc' => 'Valid Philippine ID for identity verification.',
-                'formats' => '.jpg .png .pdf — max 5 MB',
+                'desc' => 'Valid Philippine ID(s) for identity verification.',
+                'formats' => '.jpg .png .pdf — max 5 MB each',
                 'icon' => 'fa-id-card',
+                'multiple' => true,
+                'maxFiles' => 5,
             ])
         @endif
     @endif

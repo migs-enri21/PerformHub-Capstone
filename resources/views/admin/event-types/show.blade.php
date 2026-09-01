@@ -29,6 +29,10 @@
                 <p>{{ $eventType->description ?? 'No description' }}</p>
             </div>
             <div class="mb-3">
+                <label class="form-label text-muted">Compensation Type</label>
+                <p>{{ ucfirst($eventType->compensation_type) }}</p>
+            </div>
+            <div class="mb-3">
                 <label class="form-label text-muted">Created</label>
                 <p>{{ $eventType->created_at->format('M d, Y H:i') }}</p>
             </div>

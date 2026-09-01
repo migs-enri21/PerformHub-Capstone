@@ -1,7 +1,7 @@
-@props(['name', 'title', 'required' => false, 'desc' => '', 'formats' => '', 'icon' => 'fa-file'])
+@props(['name', 'title', 'required' => false, 'desc' => '', 'formats' => '', 'icon' => 'fa-file', 'multiple' => false, 'maxFiles' => 5])
 <div class="upload-field mb-3" data-field-name="{{ $name }}">
     <label class="upload-field-label w-100">
-        <input type="file" name="{{ $name }}" class="d-none upload-input" accept=".jpg,.jpeg,.png,.pdf{{ str_contains($formats, 'zip') ? ',.zip' : '' }}{{ str_contains($formats, 'mp4') ? ',.mp4,.mov' : '' }}" {{ $required ? 'required' : '' }} data-max-size="{{ preg_match('/max (\d+(?:\.\d+)?)\s*(MB|GB|KB)/i', $formats, $m) ? (int)($m[2] === 'GB' ? $m[1] * 1024 : ($m[2] === 'MB' ? $m[1] : $m[1] / 1024)) : 5 }}">
+        <input type="file" name="{{ $multiple ? $name.'[]' : $name }}" class="d-none upload-input" accept=".jpg,.jpeg,.png,.pdf{{ str_contains($formats, 'zip') ? ',.zip' : '' }}{{ str_contains($formats, 'mp4') ? ',.mp4,.mov' : '' }}" {{ $required ? 'required' : '' }} {{ $multiple ? 'multiple' : '' }} data-max-files="{{ $maxFiles }}" data-max-size="{{ preg_match('/max (\d+(?:\.\d+)?)\s*(MB|GB|KB)/i', $formats, $m) ? (int)($m[2] === 'GB' ? $m[1] * 1024 : ($m[2] === 'MB' ? $m[1] : $m[1] / 1024)) : 5 }}">
         <div class="upload-field-inner d-flex align-items-start gap-3">
             <div class="upload-field-icon"><i class="fas {{ $icon }}"></i></div>
             <div class="flex-grow-1">
@@ -45,17 +45,25 @@ document.querySelectorAll('.upload-field').forEach(field => {
         errorEl.classList.add('d-none');
         
         if (input.files.length) {
-            const file = input.files[0];
-            const fileSizeMB = (file.size / (1024 * 1024)).toFixed(2);
-            
-            if (file.size > maxSizeBytes) {
-                errorEl.textContent = `❌ File too large! "${file.name}" is ${fileSizeMB} MB. Maximum allowed: ${maxSizeMB} MB`;
+            const files = Array.from(input.files);
+            const maxFiles = parseInt(input.getAttribute('data-max-files') || '1', 10);
+            const oversizedFile = files.find(file => file.size > maxSizeBytes);
+
+            if (files.length > maxFiles) {
+                errorEl.textContent = `You can upload up to ${maxFiles} files.`;
+                errorEl.classList.remove('d-none');
+                nameEl.classList.add('d-none');
+                field.querySelector('.upload-field-inner').classList.remove('has-file');
+                input.value = '';
+            } else if (oversizedFile) {
+                const fileSizeMB = (oversizedFile.size / (1024 * 1024)).toFixed(2);
+                errorEl.textContent = `"${oversizedFile.name}" is ${fileSizeMB} MB. Maximum allowed: ${maxSizeMB} MB`;
                 errorEl.classList.remove('d-none');
                 nameEl.classList.add('d-none');
                 field.querySelector('.upload-field-inner').classList.remove('has-file');
                 input.value = '';
             } else {
-                nameTextEl.textContent = `✓ ${file.name} (${fileSizeMB} MB)`;
+                nameTextEl.textContent = files.map(file => `${file.name} (${(file.size / (1024 * 1024)).toFixed(2)} MB)`).join(', ');
                 nameEl.classList.remove('d-none');
                 field.querySelector('.upload-field-inner').classList.add('has-file');
             }
