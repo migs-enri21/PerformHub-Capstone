@@ -42,20 +42,13 @@
 </div>
 
 @php
-    $portfolioGroups = $performer->portfolios
-        ->sortByDesc('created_at')
-        ->groupBy(function ($item) {
-            return \App\Support\PortfolioFeed::groupKey($item);
-        })
-        ->map(function ($group) {
-            return $group->values();
-        });
+    $portfolioGroups = \App\Support\PortfolioFeed::groupItems($performer->portfolios);
 @endphp
-@if($portfolioGroups->isNotEmpty())
-    <div class="ph-card p-4 mb-4">
-        <h5 class="fw-semibold mb-3">Portfolio</h5>
-        @include('partials.portfolio-feed', ['posts' => $portfolioGroups->values()])
-    </div>
-@endif
+
+@include('partials.portfolio-work-samples', [
+    'groups' => $portfolioGroups,
+    'memberSince' => $performer->user?->created_at,
+    'emptyMessage' => 'This performer has not uploaded work samples yet.',
+])
 
 @endsection

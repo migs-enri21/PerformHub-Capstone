@@ -3,6 +3,13 @@
 @php
     $stats = $performer->socialStats();
     $missingCounts = collect($stats)->contains(fn ($stat) => $stat['count'] === null);
+    $platformIcons = [
+        'facebook' => 'fab fa-facebook',
+        'instagram' => 'fab fa-instagram',
+        'youtube' => 'fab fa-youtube',
+        'tiktok' => 'fab fa-tiktok',
+        'twitter' => 'fab fa-x-twitter',
+    ];
 @endphp
 
 @if(count($stats))
@@ -20,7 +27,7 @@
                 <div class="col-6 col-lg-3">
                     <a href="{{ $stat['url'] }}" target="_blank" rel="noopener" class="social-stat-card social-stat-card--{{ $platform }}">
                         <span class="social-stat-icon">
-                            <i class="fab fa-{{ $platform }}"></i>
+                            <i class="{{ $platformIcons[$platform] ?? 'fab fa-'.$platform }}"></i>
                         </span>
                         <span class="social-stat-body">
                             @if($stat['count'] !== null)

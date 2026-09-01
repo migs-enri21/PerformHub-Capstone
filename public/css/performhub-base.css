@@ -20,6 +20,14 @@ body {
     color: var(--ph-text);
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
     min-height: 100vh;
+    caret-color: transparent;
+}
+
+input,
+textarea,
+select,
+[contenteditable="true"] {
+    caret-color: auto;
 }
 
 a { color: var(--ph-purple); text-decoration: none; }
@@ -552,7 +560,7 @@ input[type="file"].ph-input::file-selector-button:hover {
     font-weight: 600;
     background: var(--ph-bg-input);
     border: 2px solid var(--ph-border);
-    color: var(--ph-text-muted);
+    color: #020202;
 }
 
 .onboarding-step.completed .onboarding-step-circle {

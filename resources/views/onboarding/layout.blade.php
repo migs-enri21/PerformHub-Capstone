@@ -10,7 +10,7 @@
         </a>
 
         <div class="text-center mb-4">
-            <a href="{{ route('home') }}" class="text-white text-decoration-none fw-bold fs-5 d-inline-flex align-items-center">
+            <a href="{{ route('home') }}" class="text-dark text-decoration-none fw-bold fs-5 d-inline-flex align-items-center">
                 <img src="{{ asset('images/logo.png') }}" alt="PerformHub" height="36" width="36" class="me-2 rounded-circle" style="object-fit: cover;">PerformHub
             </a>
         </div>
