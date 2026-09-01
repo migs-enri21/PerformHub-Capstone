@@ -86,9 +86,9 @@
                     <div class="col-12">
                         <label class="form-label text-muted small">Location</label>
                         @include('partials.location-select', [
-                            'latitude' => $profile->latitude,
-                            'longitude' => $profile->longitude,
-                            'location' => $profile->location,
+                            'region' => $profile->region,
+                            'city' => $profile->city,
+                            'barangay' => $profile->barangay,
                         ])
                     </div>
                     <div class="col-12">

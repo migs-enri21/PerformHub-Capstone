@@ -19,11 +19,6 @@ class Event extends Model
         'end_time',
         'venue',
         'budget',
-        'compensation_type',
-        'first_prize',
-        'second_prize',
-        'third_prize',
-        'rate_per_hour',
         'status',
         'cover_photo',
     ];

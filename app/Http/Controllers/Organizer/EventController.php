@@ -50,15 +50,8 @@ class EventController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $validated = $this->validatedEvent($request);
-
-        if ($this->mediaCount($request) > 3) {
-            return back()->withInput()->withErrors([
-                'photos' => 'You can upload up to 3 photos or videos for one event.',
-            ]);
-        }
-
         $categoryIds = $validated['category_ids'];
-        unset($validated['cover_photo'], $validated['photos'], $validated['videos'], $validated['category_ids']);
+        unset($validated['cover_photo'], $validated['photos'], $validated['category_ids']);
 
         $validated['organizer_id'] = Auth::id();
         $validated['status'] = 'Open';
@@ -66,7 +59,7 @@ class EventController extends Controller
         $event = Event::create($validated);
 
         $this->syncEventCategories($event, $categoryIds);
-        $this->storeUploadedMedia($event, $request);
+        $this->storeUploadedPhotos($event, $request);
 
         return redirect()
             ->route('organizer.events.index')
@@ -115,22 +108,13 @@ class EventController extends Controller
         $this->authorizeEvent($event);
 
         $validated = $this->validatedEvent($request, true);
-
-        $newMediaCount = $this->mediaCount($request);
-
-        if ($newMediaCount > 0 && $event->photos()->count() + $newMediaCount > 3) {
-            return back()->withInput()->withErrors([
-                'photos' => 'An event can have up to 3 photos or videos only.',
-            ]);
-        }
-
         $categoryIds = $validated['category_ids'];
-        unset($validated['cover_photo'], $validated['photos'], $validated['videos'], $validated['category_ids']);
+        unset($validated['cover_photo'], $validated['photos'], $validated['category_ids']);
 
         $event->update($validated);
 
         $this->syncEventCategories($event, $categoryIds);
-        $this->storeUploadedMedia($event, $request);
+        $this->storeUploadedPhotos($event, $request);
 
         return redirect()
             ->route('organizer.events.index')
@@ -210,90 +194,34 @@ class EventController extends Controller
 
     private function validatedEvent(Request $request, bool $updating = false): array
     {
-        $rules = [
+        return $request->validate([
             'event_type_id' => ['required', 'exists:event_types,id'],
             'category_ids' => ['required', 'array', 'min:1'],
             'category_ids.*' => ['exists:categories,id'],
             'title' => ['required', 'string', 'max:255'],
             'cover_photo' => ['nullable', 'image', 'max:5120'],
-            'photos' => ['nullable', 'array', 'max:3'],
+            'photos' => ['nullable', 'array', 'max:5'],
             'photos.*' => ['image', 'max:5120'],
-            'videos' => ['nullable', 'array', 'max:3'],
-            'videos.*' => ['file', 'mimes:mp4,webm', 'max:25600'],
             'description' => ['nullable', 'string'],
             'event_date' => ['required', 'date'],
             'start_time' => ['required'],
             'end_time' => ['required'],
             'venue' => ['required', 'string', 'max:255'],
             'budget' => ['nullable', 'numeric'],
-            'first_prize' => ['nullable', 'numeric', 'min:0'],
-            'second_prize' => ['nullable', 'numeric', 'min:0'],
-            'third_prize' => ['nullable', 'numeric', 'min:0'],
-            'rate_per_hour' => ['nullable', 'numeric', 'min:0'],
             'status' => $this->statusRules($updating),
-        ];
 
-        $eventType = EventType::find($request->input('event_type_id'));
-
-        if ($eventType && $eventType->compensation_type === 'contest') {
-            $rules['first_prize'] = ['required', 'numeric', 'min:0'];
-            $rules['second_prize'] = ['required', 'numeric', 'min:0'];
-            $rules['third_prize'] = ['required', 'numeric', 'min:0'];
-        }
-
-        if ($eventType && $eventType->compensation_type === 'hourly') {
-            $rules['rate_per_hour'] = ['required', 'numeric', 'min:0'];
-        }
-
-        if ($eventType && $eventType->compensation_type === 'fixed') {
-            $rules['budget'] = ['required', 'numeric', 'min:0'];
-        }
-
-        $validated = $request->validate($rules);
-
-        if ($eventType) {
-            $validated['compensation_type'] = $eventType->compensation_type;
-            $this->clearUnusedCompensationFields($validated, $eventType->compensation_type);
-        }
-
-        return $validated;
+        ]);
     }
 
-    private function clearUnusedCompensationFields(array &$eventDetails, string $compensationType): void
+    private function storeUploadedPhotos(Event $event, Request $request): void
     {
-        if ($compensationType === 'contest') {
-            $eventDetails['budget'] = null;
-            $eventDetails['rate_per_hour'] = null;
+        $photos = $request->file('photos', []);
+
+        if ($photos === [] && $request->hasFile('cover_photo')) {
+            $photos = [$request->file('cover_photo')];
         }
 
-        if ($compensationType === 'hourly') {
-            $eventDetails['budget'] = null;
-            $eventDetails['first_prize'] = null;
-            $eventDetails['second_prize'] = null;
-            $eventDetails['third_prize'] = null;
-        }
-
-        if ($compensationType === 'fixed') {
-            $eventDetails['first_prize'] = null;
-            $eventDetails['second_prize'] = null;
-            $eventDetails['third_prize'] = null;
-            $eventDetails['rate_per_hour'] = null;
-        }
-    }
-
-    private function storeUploadedMedia(Event $event, Request $request): void
-    {
-        $media = $request->file('photos', []);
-
-        foreach ($request->file('videos', []) as $video) {
-            $media[] = $video;
-        }
-
-        if ($media === [] && $request->hasFile('cover_photo')) {
-            $media = [$request->file('cover_photo')];
-        }
-
-        if ($media === []) {
+        if ($photos === []) {
             $this->syncLegacyCoverPhoto($event);
 
             return;
@@ -303,18 +231,12 @@ class EventController extends Controller
         $sortOrder = ((int) $event->photos()->max('sort_order')) + 1;
         $firstPath = null;
 
-        foreach ($media as $file) {
-            if (! $file->isValid()) {
+        foreach ($photos as $photo) {
+            if (! $photo->isValid()) {
                 continue;
             }
 
-            $folder = 'event_banner';
-
-            if (str_starts_with($file->getMimeType(), 'video/')) {
-                $folder = 'event_video';
-            }
-
-            $path = $supabase->upload($file, 'organizer-files', $folder, Auth::id());
+            $path = $supabase->upload($photo, 'organizer-files', 'event_banner', Auth::id());
 
             $event->photos()->create([
                 'file_path' => $path,
@@ -329,14 +251,6 @@ class EventController extends Controller
         if (! $event->cover_photo && $firstPath) {
             $event->update(['cover_photo' => $firstPath]);
         }
-    }
-
-    private function mediaCount(Request $request): int
-    {
-        $count = count($request->file('photos', []));
-        $count += count($request->file('videos', []));
-
-        return $count;
     }
 
     private function syncEventCategories(Event $event, array $categoryIds): void

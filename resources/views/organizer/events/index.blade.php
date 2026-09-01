@@ -40,13 +40,7 @@
                         @include('partials.event-photo-collage', ['photos' => $event->photos, 'title' => $event->title])
                     @elseif($event->photos->count() === 1)
                         <div class="organizer-event-cover">
-                            @if($event->photos->first()->isVideo())
-                                <video controls preload="metadata">
-                                    <source src="{{ $event->photos->first()->fileUrl() }}">
-                                </video>
-                            @else
-                                <img src="{{ $event->photos->first()->fileUrl() }}" alt="{{ $event->title }}">
-                            @endif
+                            <img src="{{ $event->photos->first()->fileUrl() }}" alt="{{ $event->title }}">
                         </div>
                     @elseif($event->coverPhotoUrl())
                         <div class="organizer-event-cover">

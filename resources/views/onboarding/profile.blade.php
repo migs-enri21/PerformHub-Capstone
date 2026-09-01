@@ -6,40 +6,29 @@
     Set up your {{ $user->isPerformer() ? 'performer' : 'organizer' }} profile
 </p>
 
-<form method="POST" action="{{ route('onboarding.profile.store') }}" enctype="multipart/form-data">
+<form method="POST" action="{{ route('onboarding.profile.store') }}">
     @csrf
 
     <div class="row g-3 mb-3">
         <div class="col-md-6">
             <label class="form-label text-muted small">First Name</label>
-            <input type="text" class="form-control ph-input" value="{{ $user->first_name }}" readonly>
+            <input type="text" name="first_name" class="form-control ph-input" value="{{ old('first_name', $user->first_name) }}" required>
         </div>
         <div class="col-md-6">
             <label class="form-label text-muted small">Last Name</label>
-            <input type="text" class="form-control ph-input" value="{{ $user->last_name }}" readonly>
+            <input type="text" name="last_name" class="form-control ph-input" value="{{ old('last_name', $user->last_name) }}" required>
         </div>
     </div>
 
     <div class="mb-3">
         <label class="form-label text-muted small">Email Address</label>
-        <input type="email" class="form-control ph-input" value="{{ $user->email }}" readonly>
+        <input type="email" class="form-control ph-input" value="{{ $user->email }}" disabled>
     </div>
 
     <div class="mb-3">
         <label class="form-label text-muted small">Phone Number</label>
-        <input type="text" class="form-control ph-input" value="{{ $user->phone }}" readonly>
+        <input type="text" name="phone" class="form-control ph-input" value="{{ old('phone', $user->phone) }}" placeholder="+63 9XX XXX XXXX" required>
     </div>
-
-    @if($user->isOrganizer())
-        <div class="mb-3">
-            <label for="organization_name" class="form-label text-muted small">Organization Name</label>
-            <input type="text" id="organization_name" name="organization_name" class="form-control ph-input"
-                value="{{ old('organization_name', $user->organizerProfile?->organization_name) }}" maxlength="255" required>
-            @error('organization_name')
-                <div class="text-danger small mt-1">{{ $message }}</div>
-            @enderror
-        </div>
-    @endif
 
     <div class="mb-4">
         <label class="form-label text-muted small mb-2">Location</label>
@@ -47,17 +36,15 @@
             $profile = $user->isPerformer() ? $user->performerProfile : $user->organizerProfile;
         @endphp
         @include('partials.location-select', [
-            'latitude' => $profile?->latitude,
-            'longitude' => $profile?->longitude,
-            'location' => $profile?->location,
+            'region' => $profile?->region,
+            'city' => $profile?->city,
+            'barangay' => $profile?->barangay,
             'required' => true,
         ])
     </div>
 
-    <div class="d-flex gap-2">
-        <button type="submit" class="btn ph-btn-primary flex-grow-1">
-            Submit for Verification <i class="fas fa-arrow-right ms-2"></i>
-        </button>
-    </div>
+    <button type="submit" class="btn ph-btn-primary w-100">
+        Continue <i class="fas fa-arrow-right ms-2"></i>
+    </button>
 </form>
 @endsection

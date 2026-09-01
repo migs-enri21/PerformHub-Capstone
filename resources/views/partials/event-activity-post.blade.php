@@ -49,12 +49,6 @@
             @if($event->budget)
                 <span>₱{{ number_format((float) $event->budget, 0) }}</span>
             @endif
-            @if($event->compensation_type === 'hourly' && $event->rate_per_hour)
-                <span>Rate per hour: PHP {{ number_format((float) $event->rate_per_hour, 0) }}</span>
-            @endif
-            @if($event->compensation_type === 'contest')
-                <span>Contest prizes available</span>
-            @endif
         </p>
     </div>
 
@@ -62,13 +56,7 @@
         @include('partials.event-photo-collage', ['photos' => $event->photos, 'title' => $event->title])
     @elseif($event->photos->count() === 1)
         <div class="event-feed-cover">
-            @if($event->photos->first()->isVideo())
-                <video controls preload="metadata">
-                    <source src="{{ $event->photos->first()->fileUrl() }}">
-                </video>
-            @else
-                <img src="{{ $event->photos->first()->fileUrl() }}" alt="{{ $event->title }}" loading="lazy">
-            @endif
+            <img src="{{ $event->photos->first()->fileUrl() }}" alt="{{ $event->title }}" loading="lazy">
         </div>
     @elseif($event->coverPhotoUrl())
         <div class="event-feed-cover">

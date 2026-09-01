@@ -72,8 +72,7 @@
     justify-content: center;
 }
 
-.organizer-event-cover img,
-.organizer-event-cover video {
+.organizer-event-cover img {
     display: block;
     width: 100%;
     max-height: 280px;
@@ -190,35 +189,6 @@
     background: #f8f6ff;
     border: 2px solid #cfc0ff;
     box-shadow: 0 10px 24px rgba(91, 59, 180, 0.10);
-}
-
-.organizer-event-form .form-label,
-.organizer-event-form .form-check-label {
-    color: var(--ph-text);
-}
-
-.organizer-form-section {
-    background: #ffffff;
-    border: 1px solid #ded4ff;
-    border-left: 4px solid var(--ph-purple);
-    border-radius: 12px;
-    padding: 1.25rem;
-}
-
-.organizer-form-section h5 {
-    color: var(--ph-text);
-    font-weight: 700;
-    margin-bottom: 0.25rem;
-}
-
-.organizer-form-help {
-    color: var(--ph-text-muted);
-    font-size: 0.9rem;
-    margin-bottom: 1.25rem;
-}
-
-.organizer-compensation-section {
-    background: #f5f1ff;
 }
 
 .organizer-event-form .form-control,

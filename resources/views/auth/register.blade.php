@@ -10,9 +10,9 @@
                 <img src="{{ asset('images/logo.png') }}" alt="PerformHub" height="32" width="32" class="me-2 rounded-circle" style="object-fit: cover;">PerformHub
             </a>
         </div>
-        <div class="auth-hero-content auth-hero-intro">
-            <h1 class="display-5 fw-bold">Join the stage!</h1>
-            <p>Create your account and start connecting today.</p>
+        <div class="auth-hero-content">
+            <h1 class="display-5 fw-bold">Join the stage! </h1>
+            <p class="text-white-50 fs-5">Create your account and start connecting today.</p>
         </div>
     </div>
 
@@ -182,14 +182,13 @@
                             <input type="password" name="password_confirmation" class="form-control ph-input @error('password') is-invalid @enderror" required autocomplete="new-password">
                         </div>
                     </div>
-                    <div class="form-text text-muted small mb-2">Password must be at least 8 characters.</div>
 
                     <div class="mb-2">
                         <label class="form-label text-muted small mb-1">Location</label>
                         @include('partials.location-select', [
-                            'latitude' => old('latitude'),
-                            'longitude' => old('longitude'),
-                            'location' => old('location'),
+                            'region' => old('region'),
+                            'city' => old('city'),
+                            'barangay' => old('barangay'),
                             'required' => true,
                         ])
                     </div>

@@ -36,18 +36,11 @@
     <h5 class="fw-bold mb-3">Create Event Type</h5>
     <form method="POST" action="{{ route('admin.event-types.store') }}" class="row g-3 align-items-end">
         @csrf
-        <div class="col-md-3">
+        <div class="col-md-4">
             <input type="text" name="name" class="form-control ph-input" placeholder="Event type name" required>
         </div>
-        <div class="col-md-3">
+        <div class="col-md-5">
             <input type="text" name="description" class="form-control ph-input" placeholder="Description">
-        </div>
-        <div class="col-md-3">
-            <select name="compensation_type" class="form-select ph-input" required>
-                <option value="fixed">Fixed Budget</option>
-                <option value="hourly">Hourly Rate</option>
-                <option value="contest">Contest Prizes</option>
-            </select>
         </div>
         <div class="col-md-3">
             <button class="btn ph-btn-primary w-100">Add Event Type</button>
@@ -60,7 +53,6 @@
         <thead>
             <tr>
                 <th>Name</th>
-                <th>Compensation</th>
                 <th>Description</th>
                 <th>Status</th>
                 <th class="text-end">Actions</th>
@@ -70,7 +62,6 @@
             @forelse($eventTypes as $eventType)
                 <tr>
                     <td>{{ $eventType->name }}</td>
-                    <td>{{ ucfirst($eventType->compensation_type) }}</td>
                     <td>{{ $eventType->description ?? '—' }}</td>
                     <td>
                         <span class="badge {{ $eventType->is_active ? 'bg-success' : 'bg-secondary' }}">
@@ -92,7 +83,7 @@
                 </tr>
             @empty
                 <tr>
-                    <td colspan="5" class="text-center text-muted py-5">No event types found.</td>
+                    <td colspan="4" class="text-center text-muted py-5">No event types found.</td>
                 </tr>
             @endforelse
         </tbody>

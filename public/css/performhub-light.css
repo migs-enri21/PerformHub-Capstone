@@ -73,39 +73,10 @@ body {
     color: var(--ph-text) !important;
 }
 
-.hero-landing .btn.ph-btn-outline,
-.hero-landing .btn.ph-btn-outline i {
-    color: var(--ph-purple) !important;
-    background: #ffffff;
-    border-color: #ffffff;
-    text-align: center;
-}
-
 .btn.ph-btn-outline:hover,
 .btn.ph-btn-outline:hover i {
     color: var(--ph-purple) !important;
     background: transparent !important;
-}
-
-.hero-landing .btn.ph-btn-outline:hover,
-.hero-landing .btn.ph-btn-outline:hover i {
-    color: var(--ph-purple-hover) !important;
-    background: #ffffff !important;
-    border-color: #ffffff;
-}
-
-.hero-landing .btn {
-    width: 220px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-}
-
-@media (max-width: 575.98px) {
-    .hero-landing .btn {
-        width: 100%;
-    }
 }
 
 .ph-card .form-label,

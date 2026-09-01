@@ -28,15 +28,6 @@
                 <label class="form-check-label" for="is_active">This event type is active</label>
             </div>
         </div>
-        <div class="col-md-6">
-            <label class="form-label">Compensation Type</label>
-            <select name="compensation_type" class="form-select ph-input @error('compensation_type') is-invalid @enderror" required>
-                <option value="fixed" @selected(old('compensation_type', $eventType->compensation_type) === 'fixed')>Fixed Budget</option>
-                <option value="hourly" @selected(old('compensation_type', $eventType->compensation_type) === 'hourly')>Hourly Rate</option>
-                <option value="contest" @selected(old('compensation_type', $eventType->compensation_type) === 'contest')>Contest Prizes</option>
-            </select>
-            @error('compensation_type') <span class="text-danger small">{{ $message }}</span> @enderror
-        </div>
         <div class="col-12">
             <label class="form-label">Description</label>
             <textarea name="description" rows="4" class="form-control ph-input @error('description') is-invalid @enderror">{{ old('description', $eventType->description) }}</textarea>

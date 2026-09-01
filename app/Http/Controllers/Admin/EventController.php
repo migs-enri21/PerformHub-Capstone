@@ -27,7 +27,7 @@ class EventController extends Controller
         if ($request->filled('status')) {
             $query->where('status', $request->status);
         }
-        
+
         if ($request->filled('organizer_id')) {
             $query->where('organizer_id', $request->organizer_id);
         }
