@@ -23,6 +23,7 @@ use App\Http\Controllers\Performer\BookingController as PerformerBookingControll
 use App\Http\Controllers\Performer\DashboardController as PerformerDashboardController;
 use App\Http\Controllers\Performer\EventApplicationController;
 use App\Http\Controllers\Performer\GoogleCalendarController;
+use App\Http\Controllers\Performer\OrganizerProfileController as PerformerOrganizerProfileController;
 use App\Http\Controllers\Performer\PortfolioController;
 use App\Http\Controllers\Performer\ProfileController as PerformerProfileController;
 use Illuminate\Support\Facades\Route;
@@ -56,6 +57,7 @@ Route::middleware('auth')->group(function () {
 Route::middleware(['auth', 'role:performer'])->prefix('performer')->name('performer.')->group(function () {
     Route::get('/dashboard', [PerformerDashboardController::class, 'index'])->name('dashboard');
     Route::get('/profile', [PerformerProfileController::class, 'show'])->name('profile.show');
+    Route::get('/organizers/{organizer}', [PerformerOrganizerProfileController::class, 'show'])->name('organizers.show');
     Route::get('/profile/edit', [PerformerProfileController::class, 'edit'])->name('profile.edit');
     Route::put('/profile', [PerformerProfileController::class, 'update'])->name('profile.update');
     Route::get('/portfolio', [PortfolioController::class, 'index'])->name('portfolio.index');

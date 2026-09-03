@@ -38,7 +38,15 @@
     <div class="event-feed-post-header">
         <img src="{{ $photoUrl }}" alt="" class="rounded-circle event-feed-avatar flex-shrink-0" width="40" height="40">
         <div class="flex-grow-1 min-w-0">
-            <p class="event-card-organizer mb-0 text-truncate">{{ $orgName }}</p>
+            @if(auth()->user()->isPerformer())
+                @if($organizer)
+                    <a href="{{ route('performer.organizers.show', $organizer) }}" class="event-card-organizer mb-0 text-truncate d-block">{{ $orgName }}</a>
+                @else
+                    <p class="event-card-organizer mb-0 text-truncate">{{ $orgName }}</p>
+                @endif
+            @else
+                <p class="event-card-organizer mb-0 text-truncate">{{ $orgName }}</p>
+            @endif
             <small class="text-muted">
                 @if($event->created_at)
                     {{ $event->created_at->diffForHumans() }}
