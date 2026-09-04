@@ -72,7 +72,8 @@
     justify-content: center;
 }
 
-.organizer-event-cover img {
+.organizer-event-cover img,
+.organizer-event-cover video {
     display: block;
     width: 100%;
     max-height: 280px;

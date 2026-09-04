@@ -34,7 +34,11 @@
 >
     @foreach($visible as $index => $photo)
         <div class="portfolio-collage-tile event-feed-collage-tile">
-            <img src="{{ $photo->fileUrl() }}" alt="{{ $title }}" loading="lazy">
+            @if($photo->isVideo())
+                <video controls preload="metadata"><source src="{{ $photo->fileUrl() }}"></video>
+            @else
+                <img src="{{ $photo->fileUrl() }}" alt="{{ $title }}" loading="lazy">
+            @endif
             @if($hasMore && $index === 3)
                 <div class="portfolio-collage-more">+{{ $count - 4 }}</div>
             @endif
@@ -54,7 +58,11 @@
                     <div class="portfolio-gallery-grid">
                         @foreach($photos as $photo)
                             <div class="portfolio-gallery-item">
-                                <img src="{{ $photo->fileUrl() }}" alt="{{ $title }}">
+                                @if($photo->isVideo())
+                                    <video controls preload="metadata"><source src="{{ $photo->fileUrl() }}"></video>
+                                @else
+                                    <img src="{{ $photo->fileUrl() }}" alt="{{ $title }}">
+                                @endif
                             </div>
                         @endforeach
                     </div>
