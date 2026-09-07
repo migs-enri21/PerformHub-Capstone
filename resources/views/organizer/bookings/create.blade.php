@@ -35,7 +35,17 @@
     $selectedEventBudget = $eventDetails['budget'];
 @endphp
 
-<h2 class="fw-bold mb-4">Book {{ $performer->stage_name }}</h2>
+<h2 class="fw-bold mb-2">
+    @if(! empty($fromApplication))
+        Accept Application: {{ $performer->stage_name }}
+    @else
+        Book {{ $performer->stage_name }}
+    @endif
+</h2>
+
+@if(! empty($fromApplication))
+    <p class="text-muted mb-4">This performer already applied. Submitting this form marks the application as accepted.</p>
+@endif
 @if($existingBooking)
     <div class="alert alert-success">
         @if($existingBooking->status === 'pending')
@@ -92,7 +102,13 @@
             <div class="col-12"><label class="form-label text-muted small">Notes</label><textarea name="notes" class="form-control ph-input" rows="2"></textarea></div>
 
         </div>
-        <button type="submit" class="btn ph-btn-primary mt-4">Send Booking Request</button>
+        <button type="submit" class="btn ph-btn-primary mt-4">
+            @if(! empty($fromApplication))
+                Accept Application
+            @else
+                Send Booking Request
+            @endif
+        </button>
     </div>
 </form>
 @endif

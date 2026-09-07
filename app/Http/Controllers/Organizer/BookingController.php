@@ -67,9 +67,15 @@ class BookingController extends Controller
         $this->updateApplicationStatus($booking, $fromApplication);
         $this->sendBookingNotification($booking, $performer, $fromApplication);
 
+        $successMessage = 'Booking request sent.';
+
+        if ($fromApplication) {
+            $successMessage = 'Application accepted. Upload the contract for the performer.';
+        }
+
         return redirect()
             ->route('organizer.bookings.show', $booking)
-            ->with('success', 'Booking request sent.');
+            ->with('success', $successMessage);
     }
 
     public function show(Booking $booking): View

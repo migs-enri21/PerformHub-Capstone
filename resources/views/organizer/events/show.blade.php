@@ -120,6 +120,19 @@
 
             $bookingMessage = null;
             $bookingMessageClass = 'text-muted';
+            $applicationStatusLabel = 'Pending';
+
+            if ($application->status === 'invited') {
+                $applicationStatusLabel = 'Booking request sent';
+            }
+
+            if ($application->status === 'accepted') {
+                $applicationStatusLabel = 'Performer accepted';
+            }
+
+            if ($application->status === 'declined') {
+                $applicationStatusLabel = 'Declined';
+            }
 
             if ($application->status === 'invited') {
                 $bookingMessage = 'Booking request sent - waiting for performer';
@@ -145,33 +158,49 @@
         @endphp
         <div class="ph-card p-3 mb-3">
             <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <h5 class="mb-1">
-                        {{ $applicantName }}
-                    </h5>
-
-                    <span class="badge
-                        @if($application->status == 'pending')
-                            bg-warning
-                        @elseif($application->status == 'invited')
-                            bg-info
-                        @elseif($application->status == 'accepted')
-                            bg-success
-                        @elseif($application->status == 'declined')
-                            bg-danger
-                        @endif">
-                        {{ ucfirst($application->status) }}
-                    </span>
-
-                    @if($bookingMessage)
-                        <small class="{{ $bookingMessageClass }} d-block mt-2">{{ $bookingMessage }}</small>
+                <div class="d-flex align-items-center gap-3">
+                    @if($applicantProfile)
+                        <a href="{{ route('organizer.performers.show', $applicantProfile) }}">
+                            <img src="{{ $applicant->avatarUrl(96) }}" alt="{{ $applicantName }}" class="rounded-circle" width="52" height="52">
+                        </a>
+                    @else
+                        <img src="{{ $applicant->avatarUrl(96) }}" alt="{{ $applicantName }}" class="rounded-circle" width="52" height="52">
                     @endif
+
+                    <div>
+                        <h5 class="mb-1">
+                            @if($applicantProfile)
+                                <a href="{{ route('organizer.performers.show', $applicantProfile) }}" class="text-decoration-none text-dark">
+                                    {{ $applicantName }}
+                                </a>
+                            @else
+                                {{ $applicantName }}
+                            @endif
+                        </h5>
+
+                        <span class="badge
+                            @if($application->status == 'pending')
+                                bg-warning
+                            @elseif($application->status == 'invited')
+                                bg-info
+                            @elseif($application->status == 'accepted')
+                                bg-success
+                            @elseif($application->status == 'declined')
+                                bg-danger
+                            @endif">
+                            {{ $applicationStatusLabel }}
+                        </span>
+
+                        @if($bookingMessage)
+                            <small class="{{ $bookingMessageClass }} d-block mt-2">{{ $bookingMessage }}</small>
+                        @endif
+                    </div>
                 </div>
 
                 <div class="d-flex justify-content-end flex-wrap gap-2">
                     @if($application->status === 'pending')
                         <a href="{{ route('organizer.bookings.create', ['performer' => $application->performer->performerProfile, 'event' => $event->id, 'from_application' => 1]) }}" class="btn ph-btn-primary btn-sm">
-                            Accept & Send Booking
+                            Accept Application
                         </a>
                         <form method="POST" action="{{ route('organizer.events.applications.decline', [$event, $application]) }}" onsubmit="return confirm('Decline this applicant?');">
                             @csrf
