@@ -36,6 +36,16 @@
 @endphp
 
 <h2 class="fw-bold mb-4">Book {{ $performer->stage_name }}</h2>
+@if($existingBooking)
+    <div class="alert alert-success">
+        @if($existingBooking->status === 'pending')
+            A booking request has already been sent to this performer for this event.
+        @else
+            This performer is already booked for this event.
+        @endif
+        <a href="{{ route('organizer.bookings.show', $existingBooking) }}" class="alert-link ms-2">View Booking</a>
+    </div>
+@else
 <form method="POST" action="{{ route('organizer.bookings.store', $performer) }}">
     @csrf
     <div class="ph-card p-4">
@@ -84,6 +94,7 @@
         <button type="submit" class="btn ph-btn-primary mt-4">Send Booking Request</button>
     </div>
 </form>
+@endif
 
     <script>
     document.addEventListener('DOMContentLoaded', () => {

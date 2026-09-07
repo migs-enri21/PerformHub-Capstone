@@ -8,10 +8,6 @@
 
 @section('content')
 @php
-    $bookingUrl = route('organizer.bookings.create', [
-        'performer' => $performer,
-        'event' => request('event'),
-    ]);
     $onboardingRoute = null;
 
     if (auth()->user()->hasLimitedAccess()) {
@@ -24,6 +20,7 @@
     'performer' => $performer,
     'editable' => false,
     'bookingUrl' => $bookingUrl,
+    'bookingMessage' => $bookingMessage,
     'onboardingRoute' => $onboardingRoute,
 ])
 

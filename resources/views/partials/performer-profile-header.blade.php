@@ -2,6 +2,7 @@
     'performer',
     'editable' => false,
     'bookingUrl' => null,
+    'bookingMessage' => null,
     'onboardingRoute' => null,
 ])
 
@@ -57,7 +58,7 @@
                         @if($subtitle)
                             <p class="text-muted mb-0 performer-profile-subtitle">{{ $subtitle }}</p>
                         @endif
-                        @if($bookingUrl || $onboardingRoute)
+                        @if($bookingUrl || $onboardingRoute || $bookingMessage)
                             <div class="profile-booking-bar d-flex flex-wrap align-items-center gap-2 mt-3">
                                 @if($performer->rate)
                                     <span class="profile-rate-pill">
@@ -73,6 +74,8 @@
                                     <a href="{{ $bookingUrl }}" class="btn ph-btn-primary btn-sm">
                                         Send Booking Request
                                     </a>
+                                @elseif($bookingMessage)
+                                    <span class="text-success small fw-semibold">{{ $bookingMessage }}</span>
                                 @endif
                             </div>
                         @endif

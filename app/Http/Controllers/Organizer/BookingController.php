@@ -21,16 +21,20 @@ class BookingController extends Controller
     {
         $events = Event::where('organizer_id', Auth::id())->latest()->get();
         $selectedEvent = $this->getSelectedEvent($request);
+        $existingBooking = $this->findActiveBooking($performer, $selectedEvent);
 
-        return view('organizer.bookings.create', compact('performer', 'events', 'selectedEvent'));
+        return view('organizer.bookings.create', compact('performer', 'events', 'selectedEvent', 'existingBooking'));
     }
 
     public function store(Request $request, PerformerProfile $performer): RedirectResponse
     {
         $validated = $this->validateBooking($request);
 
-        if ($this->hasPendingBooking($performer, $validated['event_id'])) {
-            return back()->with('error', 'A booking request has already been sent to this performer for this event.');
+        $event = Event::find($validated['event_id']);
+        $existingBooking = $this->findActiveBooking($performer, $event);
+
+        if ($existingBooking) {
+            return back()->with('error', $this->existingBookingMessage($existingBooking));
         }
 
         $validated['organizer_id'] = Auth::id();
@@ -114,13 +118,26 @@ class BookingController extends Controller
         ]);
     }
 
-    private function hasPendingBooking(PerformerProfile $performer, int $eventId): bool
+    private function findActiveBooking(PerformerProfile $performer, ?Event $event): ?Booking
     {
+        if (! $event) {
+            return null;
+        }
+
         return Booking::where('organizer_id', Auth::id())
             ->where('performer_id', $performer->user_id)
-            ->where('event_id', $eventId)
-            ->where('status', 'pending')
-            ->exists();
+            ->where('event_id', $event->id)
+            ->whereIn('status', ['pending', 'accepted', 'completed'])
+            ->first();
+    }
+
+    private function existingBookingMessage(Booking $booking): string
+    {
+        if ($booking->status === 'pending') {
+            return 'A booking request has already been sent to this performer for this event.';
+        }
+
+        return 'This performer is already booked for this event.';
     }
 
     private function updateApplicationStatus(Booking $booking): void

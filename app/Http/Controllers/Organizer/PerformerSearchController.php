@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Organizer;
 
 use App\Http\Controllers\Controller;
 use App\Models\Category;
+use App\Models\Booking;
 use App\Models\Event;
 use App\Models\PerformerProfile;
 use App\Support\AvailabilityCalendar;
@@ -33,8 +34,10 @@ class PerformerSearchController extends Controller
         }
 
         $calendar = AvailabilityCalendar::calendarData($performer);
+        $bookingMessage = $this->bookingMessage($performer);
+        $bookingUrl = $this->bookingUrl($performer, $bookingMessage);
 
-        return view('organizer.performers.show', compact('performer', 'calendar'));
+        return view('organizer.performers.show', compact('performer', 'calendar', 'bookingUrl', 'bookingMessage'));
     }
 
     private function getSelectedEvent(Request $request): ?Event
@@ -125,5 +128,42 @@ class PerformerSearchController extends Controller
                     return $busyDate->whereDate('date', $date);
                 });
         });
+    }
+
+    private function bookingUrl(PerformerProfile $performer, ?string $bookingMessage): ?string
+    {
+        if ($bookingMessage) {
+            return null;
+        }
+
+        return route('organizer.bookings.create', [
+            'performer' => $performer,
+            'event' => request('event'),
+        ]);
+    }
+
+    private function bookingMessage(PerformerProfile $performer): ?string
+    {
+        $eventId = request('event');
+
+        if (! $eventId) {
+            return null;
+        }
+
+        $booking = Booking::where('organizer_id', Auth::id())
+            ->where('performer_id', $performer->user_id)
+            ->where('event_id', $eventId)
+            ->whereIn('status', ['pending', 'accepted', 'completed'])
+            ->first();
+
+        if (! $booking) {
+            return null;
+        }
+
+        if ($booking->status === 'pending') {
+            return 'Booking request already sent for this event.';
+        }
+
+        return 'Already booked for this event.';
     }
 }
