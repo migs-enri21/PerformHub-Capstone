@@ -37,6 +37,11 @@
     </div>
 
     @once
+        @push('styles')
+            <style>
+                .pac-container { z-index: 20000 !important; }
+            </style>
+        @endpush
         @push('scripts')
             <script>
             (function () {
@@ -55,7 +60,35 @@
                     };
                 }
 
+                function isVisible(el) {
+                    return !!(el.offsetWidth || el.offsetHeight || el.getClientRects().length);
+                }
+
+                function whenVisible(el, callback) {
+                    if (isVisible(el)) {
+                        callback();
+                        return;
+                    }
+
+                    const observer = new MutationObserver(() => {
+                        if (isVisible(el)) {
+                            observer.disconnect();
+                            callback();
+                        }
+                    });
+
+                    let node = el;
+                    while (node && node !== document.body) {
+                        observer.observe(node, { attributes: true, attributeFilter: ['style', 'class', 'hidden'] });
+                        node = node.parentElement;
+                    }
+                }
+
                 function initCascade(root) {
+                    if (root.dataset.phLocationReady === '1') {
+                        return;
+                    }
+
                     const searchInput = root.querySelector('.ph-location-search');
                     const regionInput = root.querySelector('.ph-location-region-input');
                     const cityInput = root.querySelector('.ph-location-city-input');
@@ -63,6 +96,7 @@
                     const geoButton = root.querySelector('.ph-location-geolocate');
                     const statusEl = root.querySelector('.ph-location-status');
                     const isRequired = root.dataset.required === '1';
+                    root.dataset.phLocationReady = '1';
 
                     function applyResult(components, formattedAddress) {
                         const parsed = parseAddressComponents(components);
@@ -147,15 +181,26 @@
                     }
                 }
 
-                window.__initPhLocationCascade = initCascade;
+                function bindWhenReady(root) {
+                    whenVisible(root, () => {
+                        if (window.google && window.google.maps && window.google.maps.places) {
+                            initCascade(root);
+                        } else {
+                            window.__phLocationPending.push(root);
+                        }
+                    });
+                }
 
-                document.querySelectorAll('.ph-location-cascade').forEach((root) => {
-                    if (window.google && window.google.maps && window.google.maps.places) {
-                        initCascade(root);
-                    } else {
-                        window.__phLocationPending.push(root);
-                    }
-                });
+                window.__initPhLocationCascade = bindWhenReady;
+
+                document.querySelectorAll('.ph-location-cascade').forEach(bindWhenReady);
+
+                window.gm_authFailure = function () {
+                    document.querySelectorAll('.ph-location-status').forEach((el) => {
+                        el.textContent = 'Google Maps rejected this API key. Enable Maps JavaScript API and Places API, and allow localhost in the key restrictions.';
+                        el.classList.add('text-danger');
+                    });
+                };
             })();
 
             function __onGoogleMapsLoaded() {

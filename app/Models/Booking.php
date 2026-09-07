@@ -21,6 +21,7 @@ class Booking extends Model
         'requirements',
         'duration_hours',
         'status',
+        'source',
         'contract_path',
         'signed_contract_path',
         'signed_contract_uploaded_at',
@@ -118,5 +119,20 @@ class Booking extends Model
         }
 
         return (new SupabaseStorageService)->url('organizer-files', $this->signed_contract_path);
+    }
+
+    public function cameFromApplication(): bool
+    {
+        return $this->source === 'application';
+    }
+
+    public function sameDayConfirmedConflict(): ?self
+    {
+        return static::query()
+            ->where('performer_id', $this->performer_id)
+            ->whereDate('event_date', $this->event_date)
+            ->whereIn('status', ['accepted', 'completed'])
+            ->where('id', '!=', $this->id)
+            ->first();
     }
 }

@@ -36,14 +36,26 @@ public function index(Request $request): View
     {
         abort_unless($booking->performer_id === Auth::id(), 403);
         $booking->load('organizer.organizerProfile');
+        $dayConflict = $booking->status === 'pending'
+            ? $booking->sameDayConfirmedConflict()
+            : null;
 
-        return view('performer.bookings.show', compact('booking'));
+        return view('performer.bookings.show', compact('booking', 'dayConflict'));
     }
 
     public function accept(Booking $booking): RedirectResponse
     {
         abort_unless($booking->performer_id === Auth::id(), 403);
         abort_unless($booking->status === 'pending', 400);
+
+        $conflict = $booking->sameDayConfirmedConflict();
+
+        if ($conflict) {
+            return back()->with(
+                'warning',
+                'You already have "'.$conflict->event_name.'" on '.$booking->event_date->format('F d, Y').'. PerformHub allows 1 event per day.'
+            );
+        }
 
         $booking->update(['status' => 'accepted']);
 

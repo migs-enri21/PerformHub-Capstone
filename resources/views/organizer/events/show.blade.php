@@ -125,10 +125,10 @@
                     $bookingMessage = 'Signed contract received';
                     $bookingMessageClass = 'text-primary';
                 } elseif ($booking->hasContract()) {
-                    $bookingMessage = 'Performer accepted - waiting for signed contract';
+                    $bookingMessage = 'Waiting for performer to upload the signed contract';
                     $bookingMessageClass = 'text-primary';
                 } else {
-                    $bookingMessage = 'Performer accepted - upload contract';
+                    $bookingMessage = 'Application accepted — upload the contract';
                     $bookingMessageClass = 'text-primary';
                 }
             }
@@ -160,7 +160,7 @@
 
                 <div class="d-flex justify-content-end flex-wrap gap-2">
                     @if($application->status === 'pending')
-                        <a href="{{ route('organizer.bookings.create', ['performer' => $application->performer->performerProfile, 'event' => $event->id]) }}" class="btn ph-btn-primary btn-sm">
+                        <a href="{{ route('organizer.bookings.create', ['performer' => $application->performer->performerProfile, 'event' => $event->id, 'from_application' => 1]) }}" class="btn ph-btn-primary btn-sm">
                             Accept & Send Booking
                         </a>
                         <form method="POST" action="{{ route('organizer.events.applications.decline', [$event, $application]) }}" onsubmit="return confirm('Decline this applicant?');">

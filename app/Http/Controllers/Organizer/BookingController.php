@@ -21,8 +21,9 @@ class BookingController extends Controller
     {
         $events = Event::where('organizer_id', Auth::id())->latest()->get();
         $selectedEvent = $this->getSelectedEvent($request);
+        $fromApplication = $request->boolean('from_application');
 
-        return view('organizer.bookings.create', compact('performer', 'events', 'selectedEvent'));
+        return view('organizer.bookings.create', compact('performer', 'events', 'selectedEvent', 'fromApplication'));
     }
 
     public function store(Request $request, PerformerProfile $performer): RedirectResponse
@@ -33,14 +34,28 @@ class BookingController extends Controller
             return back()->with('error', 'A booking request has already been sent to this performer for this event.');
         }
 
+        $sameDayBooking = Booking::where('performer_id', $performer->user_id)
+            ->whereDate('event_date', $validated['event_date'])
+            ->whereIn('status', ['accepted', 'completed'])
+            ->first();
+
+        if ($sameDayBooking) {
+            return back()->with(
+                'error',
+                'This performer already has "'.$sameDayBooking->event_name.'" on that date. PerformHub allows 1 event per day.'
+            );
+        }
+
         $validated['organizer_id'] = Auth::id();
         $validated['performer_id'] = $performer->user_id;
-        $validated['status'] = 'pending';
+        $fromApplication = $request->boolean('from_application');
+        $validated['source'] = $fromApplication ? 'application' : 'invite';
+        $validated['status'] = $fromApplication ? 'accepted' : 'pending';
 
         $booking = Booking::create($validated);
 
-        $this->updateApplicationStatus($booking);
-        $this->sendBookingNotification($booking, $performer);
+        $this->updateApplicationStatus($booking, $fromApplication);
+        $this->sendBookingNotification($booking, $performer, $fromApplication);
 
         return redirect()
             ->route('organizer.bookings.show', $booking)
@@ -119,19 +134,31 @@ class BookingController extends Controller
         return Booking::where('organizer_id', Auth::id())
             ->where('performer_id', $performer->user_id)
             ->where('event_id', $eventId)
-            ->where('status', 'pending')
+            ->whereIn('status', ['pending', 'accepted'])
             ->exists();
     }
 
-    private function updateApplicationStatus(Booking $booking): void
+    private function updateApplicationStatus(Booking $booking, bool $appliedFirst): void
     {
         EventApplication::where('event_id', $booking->event_id)
             ->where('performer_id', $booking->performer_id)
-            ->update(['status' => 'invited']);
+            ->update(['status' => $appliedFirst ? 'accepted' : 'invited']);
     }
 
-    private function sendBookingNotification(Booking $booking, PerformerProfile $performer): void
+    private function sendBookingNotification(Booking $booking, PerformerProfile $performer, bool $appliedFirst): void
     {
+        if ($appliedFirst) {
+            Notification::send(
+                $performer->user,
+                'booking',
+                'Application Accepted',
+                Auth::user()->name.' accepted your application for '.$booking->event_name.'. Wait for the contract, then upload the signed copy.',
+                route('performer.bookings.show', $booking)
+            );
+
+            return;
+        }
+
         Notification::send(
             $performer->user,
             'booking',
