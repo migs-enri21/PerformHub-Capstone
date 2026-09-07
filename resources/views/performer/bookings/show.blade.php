@@ -19,8 +19,18 @@
 @if($booking->status === 'pending')
     <div class="ph-card p-4 mb-4">
         <h5 class="fw-semibold mb-3">Respond to Booking</h5>
+        @if($dayConflict)
+            <div class="alert alert-warning small mb-3">
+                You already have <strong>{{ $dayConflict->event_name }}</strong> on
+                {{ $booking->event_date->format('F d, Y') }}. PerformHub allows <strong>1 event per day</strong>,
+                so this request cannot be accepted. Decline it, or free that date first.
+            </div>
+        @endif
         <div class="d-flex flex-wrap gap-2">
-            <form method="POST" action="{{ route('performer.bookings.accept', $booking) }}">@csrf<button class="btn ph-btn-primary">Accept Booking</button></form>
+            <form method="POST" action="{{ route('performer.bookings.accept', $booking) }}">
+                @csrf
+                <button class="btn ph-btn-primary" @disabled($dayConflict)>Accept Booking</button>
+            </form>
             <form method="POST" action="{{ route('performer.bookings.reject', $booking) }}">@csrf<button class="btn ph-btn-outline">Decline</button></form>
         </div>
     </div>
@@ -58,7 +68,13 @@
                 </form>
             @endif
         @else
-            <p class="text-muted small mb-0">The organizer has not uploaded a contract yet.</p>
+            <p class="text-muted small mb-0">
+                @if($booking->cameFromApplication())
+                    The organizer accepted your application. Wait for them to upload the contract, then you can send the signed copy here.
+                @else
+                    Wait for the organizer to upload the contract, then you can send the signed copy here.
+                @endif
+            </p>
         @endif
     </div>
 @endif

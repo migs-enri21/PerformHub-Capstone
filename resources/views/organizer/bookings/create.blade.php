@@ -48,6 +48,7 @@
 @else
 <form method="POST" action="{{ route('organizer.bookings.store', $performer) }}">
     @csrf
+    <input type="hidden" name="from_application" value="{{ ! empty($fromApplication) ? 1 : 0 }}">
     <div class="ph-card p-4">
         <div class="row g-3">
             <div class="mb-4">
