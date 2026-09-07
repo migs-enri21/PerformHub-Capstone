@@ -24,7 +24,6 @@ class PerformerRecommendationService
                     ->where('onboarding_step', '>=', User::ONBOARDING_COMPLETE);
             })
             ->where('is_verified_badge', true)
-            })
             ->whereHas('categories', function ($query) use ($categoryIds) {
                 $query->whereIn('categories.id', $categoryIds);
             })

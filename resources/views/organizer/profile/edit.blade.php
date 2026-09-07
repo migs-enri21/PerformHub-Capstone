@@ -70,6 +70,14 @@
                         <input type="text" name="organization_name" class="form-control ph-input" value="{{ old('organization_name', $profile->organization_name) }}" required>
                     </div>
                     <div class="col-md-6">
+                        <label class="form-label text-muted small">Organization Type</label>
+                        <select name="organization_type" class="form-select ph-input" required>
+                            <option value="company" @if(old('organization_type', $profile->organization_type) == 'company') selected @endif>Company or Organization</option>
+                            <option value="individual" @if(old('organization_type', $profile->organization_type) == 'individual') selected @endif>Individual Organizer</option>
+                            <option value="nonprofit" @if(old('organization_type', $profile->organization_type) == 'nonprofit') selected @endif>Non-profit Organization</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
                         <label class="form-label text-muted small">Phone</label>
                         <input type="text" name="phone" class="form-control ph-input" value="{{ old('phone', $profile->phone) }}">
                     </div>

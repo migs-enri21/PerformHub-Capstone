@@ -67,7 +67,7 @@
                                 @endif
                                 @if($onboardingRoute)
                                     <a href="{{ $onboardingRoute }}" class="btn ph-btn-primary btn-sm">
-                                        <i class="fas fa-lock me-1"></i> Complete sign-up to book
+                                        <i class="fas fa-lock me-1"></i> Pending Verification
                                     </a>
                                 @elseif($bookingUrl)
                                     <a href="{{ $bookingUrl }}" class="btn ph-btn-primary btn-sm">

@@ -29,7 +29,7 @@
             @if(auth()->user()->isOrganizer() && auth()->id() !== $performer->user_id)
                 @if(auth()->user()->hasLimitedAccess())
                     <a href="{{ auth()->user()->onboardingRoute() }}" class="btn ph-btn-primary">
-                        <i class="fas fa-lock me-1"></i> Complete sign-up to book
+                        <i class="fas fa-lock me-1"></i> Pending Verification
                     </a>
                 @else
                     <a href="{{ route('organizer.bookings.create', $performer) }}" class="btn ph-btn-primary">Send Booking Request</a>

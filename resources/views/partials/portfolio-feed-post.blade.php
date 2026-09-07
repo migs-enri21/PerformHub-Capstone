@@ -57,7 +57,7 @@
             @if(auth()->user()->isOrganizer() && ! $isOwn)
                 @if(auth()->user()->hasLimitedAccess())
                     <a href="{{ auth()->user()->onboardingRoute() }}" class="btn btn-sm ph-btn-primary">
-                        <i class="fas fa-lock me-1"></i> Complete sign-up to book
+                        <i class="fas fa-lock me-1"></i> Pending Verification
                     </a>
                 @else
                     <a href="{{ route('organizer.bookings.create', $performer) }}" class="btn btn-sm ph-btn-primary">

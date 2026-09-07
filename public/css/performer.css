@@ -1230,7 +1230,8 @@ button.av-day:not(:disabled):hover {
     line-height: 0;
 }
 
-.event-feed-cover img {
+.event-feed-cover img,
+.event-feed-cover video {
     display: block;
     width: 100%;
     height: auto;

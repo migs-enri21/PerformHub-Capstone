@@ -16,8 +16,13 @@ class ProfileController extends Controller
     public function show(): View
     {
         $profile = $this->getProfile();
+        $events = Auth::user()->events()
+            ->with('eventType')
+            ->latest('event_date')
+            ->take(6)
+            ->get();
 
-        return view('organizer.profile.show', compact('profile'));
+        return view('organizer.profile.show', compact('profile', 'events'));
     }
 
     public function edit(): View
@@ -54,6 +59,7 @@ class ProfileController extends Controller
             'first_name' => ['required', 'string', 'max:100'],
             'last_name' => ['required', 'string', 'max:100'],
             'organization_name' => ['required', 'string', 'max:255'],
+            'organization_type' => ['required', 'in:company,individual,nonprofit'],
             'bio' => ['nullable', 'string', 'max:2000'],
             'phone' => ['nullable', 'string', 'max:30'],
             'website' => ['nullable', 'url', 'max:255'],

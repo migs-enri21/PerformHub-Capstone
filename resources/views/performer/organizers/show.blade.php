@@ -1,28 +1,27 @@
 @extends('layouts.app')
 
-@section('title', 'My Profile')
+@section('title', $profile->organization_name)
 
 @section('sidebar')
-@include('organizer.partials.sidebar')
+@include('performer.partials.sidebar')
 @endsection
 
 @section('content')
 <div class="d-flex justify-content-end mb-2">
-    <a href="{{ route('organizer.profile.edit') }}" class="btn ph-btn-outline btn-sm">
-        <i class="fas fa-pen me-1"></i> Edit Profile
-    </a>
+    <a href="{{ route('performer.dashboard') }}" class="btn ph-btn-outline btn-sm">Back to Dashboard</a>
 </div>
 
 @include('partials.organizer-profile-header', [
     'organizer' => $profile,
-    'editable' => true,
+    'editable' => false,
 ])
 
 <div class="row g-4">
     <div class="col-md-6">
         <div class="ph-card p-4 h-100">
             <h5 class="fw-semibold mb-3">Contact Info</h5>
-            <p class="text-muted mb-1"><i class="fas fa-phone me-2"></i>
+            <p class="text-muted mb-1">
+                <i class="fas fa-phone me-2"></i>
                 @if($profile->phone)
                     {{ $profile->phone }}
                 @else
@@ -54,28 +53,24 @@
 </div>
 
 <div class="mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h5 class="fw-semibold mb-0">My Events</h5>
-        <a href="{{ route('organizer.events.index') }}" class="btn ph-btn-outline btn-sm">View All Events</a>
-    </div>
+    <h5 class="fw-semibold mb-3">Open Events</h5>
 
     @if($events->isNotEmpty())
         <div class="row g-3">
             @foreach($events as $event)
                 <div class="col-md-6 col-lg-4">
-                    <a href="{{ route('organizer.events.show', $event) }}" class="ph-card p-3 h-100 d-block text-decoration-none text-dark">
+                    <div class="ph-card p-3 h-100">
                         <p class="text-muted small mb-1">{{ \Illuminate\Support\Carbon::parse($event->event_date)->format('F d, Y') }}</p>
                         <h6 class="fw-semibold mb-1">{{ $event->title }}</h6>
                         @if($event->eventType)
-                            <p class="text-muted small mb-2">{{ $event->eventType->name }}</p>
+                            <p class="text-muted small mb-0">{{ $event->eventType->name }}</p>
                         @endif
-                        <span class="badge bg-primary">{{ $event->status }}</span>
-                    </a>
+                    </div>
                 </div>
             @endforeach
         </div>
     @else
-        <div class="ph-card p-4 text-muted">You have not created any events yet.</div>
+        <div class="ph-card p-4 text-muted">This organizer has no open upcoming events right now.</div>
     @endif
 </div>
 @endsection
