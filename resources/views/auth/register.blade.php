@@ -152,12 +152,6 @@
                         </div>
                     </div>
 
-                    <div class="mb-2">
-                        <label class="form-label text-muted small mb-1">Username <span class="text-muted fw-normal">(optional)</span></label>
-                        <input type="text" name="username" class="form-control ph-input @error('username') is-invalid @enderror" value="{{ old('username') }}" autocomplete="username" placeholder="Auto from your name if blank">
-                        @error('username')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
-                    </div>
-
                     <div class="row g-2 mb-2">
                         <div class="col-md-6">
                             <label class="form-label text-muted small mb-1">Email Address</label>

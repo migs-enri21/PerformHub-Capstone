@@ -115,7 +115,7 @@
 
     <div class="event-feed-footer">
         @if($applicationStatus === 'accepted')
-            <a href="{{ route('performer.profile.show') }}#availability" class="event-feed-footer-btn event-feed-footer-btn--accepted w-100">
+            <a href="{{ route('performer.availability.index') }}" class="event-feed-footer-btn event-feed-footer-btn--accepted w-100">
                 <i class="fas fa-check me-1"></i>Accepted — on your calendar
             </a>
         @elseif($applicationStatus === 'invited' && $bookingUrl)
@@ -131,9 +131,13 @@
                 <i class="fas fa-times me-1"></i>Declined
             </button>
         @elseif($applicationStatus === 'pending')
-            <button type="button" class="event-feed-footer-btn event-feed-footer-btn--applied w-100" disabled>
-                <i class="fas fa-clock me-1"></i>Pending — awaiting organizer
-            </button>
+            <form method="POST" action="{{ route('performer.events.apply.cancel', $event) }}" class="m-0 w-100">
+                @csrf
+                @method('DELETE')
+                <button type="submit" class="event-feed-footer-btn event-feed-footer-btn--applied w-100">
+                    Cancel application
+                </button>
+            </form>
         @elseif(auth()->user()->isAwaitingVerification())
             <button type="button" class="event-feed-footer-btn w-100" disabled>
                 <i class="fas fa-lock me-1"></i> Available after verification

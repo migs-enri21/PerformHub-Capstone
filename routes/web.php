@@ -65,7 +65,6 @@ Route::middleware(['auth', 'role:performer'])->prefix('performer')->name('perfor
     Route::post('/portfolio/update', [PortfolioController::class, 'update'])->name('portfolio.update');
     Route::delete('/portfolio/{portfolio}', [PortfolioController::class, 'destroy'])->name('portfolio.destroy');
     Route::middleware('full.access')->group(function () {
-        Route::get('/availability', [AvailabilityController::class, 'index'])->name('availability.index');
         Route::post('/availability', [AvailabilityController::class, 'store'])->name('availability.store');
         Route::delete('/availability/{schedule}', [AvailabilityController::class, 'destroy'])->name('availability.destroy');
         Route::get('/google-calendar/connect', [GoogleCalendarController::class, 'connect'])->name('google-calendar.connect');
@@ -76,7 +75,9 @@ Route::middleware(['auth', 'role:performer'])->prefix('performer')->name('perfor
         Route::post('/bookings/{booking}/reject', [PerformerBookingController::class, 'reject'])->name('bookings.reject');
         Route::post('/bookings/{booking}/signed-contract', [PerformerBookingController::class, 'uploadSignedContract'])->name('bookings.signed-contract');
         Route::post('/events/{event}/apply', [EventApplicationController::class, 'store'])->name('events.apply');
+        Route::delete('/events/{event}/apply', [EventApplicationController::class, 'destroy'])->name('events.apply.cancel');
     });
+    Route::get('/availability', [AvailabilityController::class, 'index'])->name('availability.index');
     Route::get('/bookings', [PerformerBookingController::class, 'index'])->name('bookings.index');
     Route::get('/bookings/{booking}', [PerformerBookingController::class, 'show'])->name('bookings.show');
 });
