@@ -4,9 +4,7 @@ namespace App\Http\Controllers\Performer;
 
 use App\Http\Controllers\Controller;
 use App\Models\Category;
-use App\Services\GoogleCalendarService;
 use App\Services\SupabaseStorageService;
-use App\Support\AvailabilityCalendar;
 use App\Support\PerformerGenres;
 use App\Support\PhilippineLocations;
 use App\Support\SocialMedia;
@@ -17,31 +15,11 @@ use Illuminate\View\View;
 
 class ProfileController extends Controller
 {
-    public function show(GoogleCalendarService $googleCalendar): View
+    public function show(): View
     {
         $profile = Auth::user()->performerProfile()->with('categories')->firstOrFail();
-        $profile = AvailabilityCalendar::loadCalendarRelations($profile);
-
-        $wasGoogleConnected = $profile->google_calendar_connected;
-
-        if ($googleCalendar->shouldSync($profile)) {
-            try {
-                $googleCalendar->syncBusyDates($profile);
-                $profile = AvailabilityCalendar::loadCalendarRelations($profile->fresh('categories'));
-            } catch (\Throwable $exception) {
-                if (str_contains($exception->getMessage(), 'link expired')
-                    || str_contains($exception->getMessage(), 'link is invalid')) {
-                    session()->flash('error', $exception->getMessage());
-                    $profile = AvailabilityCalendar::loadCalendarRelations($profile->fresh('categories'));
-                }
-            }
-        } elseif ($wasGoogleConnected && ! $profile->google_calendar_connected) {
-            session()->flash('error', 'Your Google Calendar link is invalid. Click Connect Google Calendar to sign in again.');
-        }
-
-        $calendar = AvailabilityCalendar::calendarData($profile);
-
-        return view('performer.profile.show', compact('profile', 'calendar'));
+    
+        return view('performer.profile.show', compact('profile'));
     }
 
     public function edit(): View

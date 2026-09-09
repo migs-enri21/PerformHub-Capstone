@@ -62,4 +62,25 @@ class EventApplicationController extends Controller
 
         return back()->with('success', 'Your application was submitted.');
     }
+
+    public function destroy(Event $event): RedirectResponse
+        
+    {
+        $application = EventApplication::where('event_id', $event->id)
+            ->where('performer_id', Auth::id())
+            ->first();
+
+        if (! $application) {
+            return back()->with('warning', 'You have not applied to this event.');
+        }
+
+        if ($application->status !== 'pending') {
+            return back()->with('warning', 'This application can no longer be cancelled.');
+        }
+
+        $application->delete();
+
+        return back()->with('success', 'Your application was cancelled.');
+    }
+
 }

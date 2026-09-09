@@ -51,6 +51,15 @@ class DashboardController extends Controller
             ])
             ->all();
 
+        $nextBooking = Booking::where('performer_id', $user->id)
+            ->where('status', 'accepted')
+            ->whereDate('event_date', '>=', today())
+            ->orderBy('event_date')
+            ->orderBy('event_time')
+            ->first();
+
+        $recentNotifications = $user->notifications()->latest()->take(3)->get();
+
         return view('performer.dashboard', compact(
             'profile',
             'pendingBookings',
@@ -58,6 +67,8 @@ class DashboardController extends Controller
             'availableEvents',
             'applicationStatuses',
             'pendingBookingUrls',
+            'nextBooking',
+            'recentNotifications',
         ));
     }
     public function clickMe(): View

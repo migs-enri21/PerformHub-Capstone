@@ -48,6 +48,10 @@
         ->mapWithKeys(fn ($booking) => [
             $booking->event_date->format('Y-m-d') => [
                 'event_name' => $booking->event_name,
+                'event_time' => $formatTime($booking->event_time),
+                'end_time' => $formatTime($booking->end_time),
+                'venue' => $booking->venue,
+                'url' => $editable ? route('performer.bookings.show', $booking) : null,
             ],
         ])
         ->all();
@@ -112,8 +116,17 @@
                     @csrf
                     <div class="modal-body">
                         <p class="text-muted small mb-3" id="availabilityModalDate"></p>
+                        <div class="alert alert-warning small d-none mb-3" id="availabilityBookingLockNotice">
+                            You already have a booking this day, so you can't change the status. You can still see the event below.
+                        </div>
+                        <div class="d-none mb-0" id="availabilityBookingView">
+                            <p class="fw-semibold mb-1" id="availabilityBookingEventName"></p>
+                            <p class="text-muted small mb-1" id="availabilityBookingMeta"></p>
+                            <p class="text-muted small mb-2" id="availabilityBookingVenue"></p>
+                            <a href="#" class="small d-none" id="availabilityBookingLink">View booking</a>
+                        </div>
                         <input type="hidden" name="date" id="availabilityDateInput">
-                        <div class="row g-3">
+                        <div class="row g-3" id="availabilityEditorFields">
                             <div class="col-6">
                                 <label class="form-label text-muted small" for="availabilityStart">Start time</label>
                                 <input type="time" name="start_time" id="availabilityStart" class="form-control ph-input">
@@ -147,7 +160,7 @@
                         </div>
                     </div>
                     <div class="modal-footer" style="border-color: var(--ph-border);">
-                        <button type="button" class="btn ph-btn-outline" data-bs-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn ph-btn-outline" data-bs-dismiss="modal" id="availabilityCancelButton">Cancel</button>
                         <button type="submit" class="btn ph-btn-primary">Save</button>
                     </div>
                 </form>
@@ -213,6 +226,98 @@
                 modeInputs = form.querySelectorAll('input[name="availability_mode"]');
             }
             const modalDateLabel = document.getElementById('availabilityModalDate');
+            const modalTitle = document.getElementById('availabilityModalLabel');
+            const bookingLockNotice = document.getElementById('availabilityBookingLockNotice');
+            const bookingView = document.getElementById('availabilityBookingView');
+            const bookingEventName = document.getElementById('availabilityBookingEventName');
+            const bookingMeta = document.getElementById('availabilityBookingMeta');
+            const bookingVenue = document.getElementById('availabilityBookingVenue');
+            const bookingLink = document.getElementById('availabilityBookingLink');
+            const editorFields = document.getElementById('availabilityEditorFields');
+            const cancelButton = document.getElementById('availabilityCancelButton');
+            const availableModeInput = document.getElementById('availabilityModeAvailable');
+            const blockedModeInput = document.getElementById('availabilityModeBlocked');
+            const saveButton = form ? form.querySelector('button[type="submit"]') : null;
+
+            function formatTimeDisplay(time) {
+                if (!time) {
+                    return '';
+                }
+
+                const parts = String(time).split(':');
+                const hour = parseInt(parts[0], 10);
+                const minute = parts[1] || '00';
+
+                if (Number.isNaN(hour)) {
+                    return time;
+                }
+
+                const suffix = hour >= 12 ? 'PM' : 'AM';
+                const hour12 = hour % 12 || 12;
+
+                return `${hour12}:${minute} ${suffix}`;
+            }
+
+            function setBookingLocked(locked, booking = null) {
+                if (availableModeInput) {
+                    availableModeInput.disabled = locked;
+                }
+                if (blockedModeInput) {
+                    blockedModeInput.disabled = locked;
+                }
+                if (saveButton) {
+                    saveButton.disabled = locked;
+                    saveButton.classList.toggle('d-none', locked);
+                }
+                if (bookingLockNotice) {
+                    bookingLockNotice.classList.toggle('d-none', !locked);
+                }
+                if (editorFields) {
+                    editorFields.classList.toggle('d-none', locked);
+                }
+                if (bookingView) {
+                    bookingView.classList.toggle('d-none', !locked);
+                }
+                if (modalTitle) {
+                    modalTitle.textContent = locked ? 'Event this day' : 'Set Availability';
+                }
+                if (cancelButton) {
+                    cancelButton.textContent = locked ? 'Close' : 'Cancel';
+                }
+
+                if (bookingEventName) {
+                    bookingEventName.textContent = booking && booking.event_name ? booking.event_name : '';
+                }
+
+                if (bookingMeta) {
+                    let meta = '';
+                    if (booking && (booking.event_time || booking.end_time)) {
+                        if (booking.event_time && booking.end_time) {
+                            meta = `${formatTimeDisplay(booking.event_time)} – ${formatTimeDisplay(booking.end_time)}`;
+                        } else {
+                            meta = formatTimeDisplay(booking.event_time || booking.end_time);
+                        }
+                    }
+                    bookingMeta.textContent = meta;
+                    bookingMeta.classList.toggle('d-none', !meta);
+                }
+
+                if (bookingVenue) {
+                    const venue = booking && booking.venue ? `Venue: ${booking.venue}` : '';
+                    bookingVenue.textContent = venue;
+                    bookingVenue.classList.toggle('d-none', !venue);
+                }
+
+                if (bookingLink) {
+                    if (booking && booking.url) {
+                        bookingLink.href = booking.url;
+                        bookingLink.classList.remove('d-none');
+                    } else {
+                        bookingLink.removeAttribute('href');
+                        bookingLink.classList.add('d-none');
+                    }
+                }
+            }
 
             function syncAvailabilityMode() {
                 if (!form) {
@@ -247,6 +352,14 @@
             }
 
             modeInputs.forEach(input => input.addEventListener('change', syncAvailabilityMode));
+
+            if (form) {
+                form.addEventListener('submit', (event) => {
+                    if (confirmedDates[dateInput.value]) {
+                        event.preventDefault();
+                    }
+                });
+            }
 
             const today = new Date();
             today.setHours(0, 0, 0, 0);
@@ -442,7 +555,7 @@
                         button.appendChild(event);
                     }
 
-                    if (editable && cellDate >= today) {
+                    if (editable && (cellDate >= today || confirmedDates[dateKey])) {
                         button.addEventListener('click', () => openEditor(dateKey, entry));
                     } else if (editable && cellDate < today) {
                         button.disabled = true;
@@ -530,7 +643,7 @@
                     }
                 }
 
-                if (entry && entry.id && deleteForm) {
+                if (entry && entry.id && deleteForm && !confirmedBooking) {
                     deleteForm.action = destroyUrlFor(entry.id);
                     deleteForm.classList.remove('d-none');
                     if (entry.is_available) {
@@ -541,6 +654,12 @@
                 } else if (deleteForm) {
                     deleteForm.classList.add('d-none');
                 }
+
+                setBookingLocked(Boolean(confirmedBooking), confirmedBooking || null);
+                startInput.readOnly = Boolean(confirmedBooking);
+                endInput.readOnly = Boolean(confirmedBooking);
+                notesInput.readOnly = Boolean(confirmedBooking);
+                notesInput.removeAttribute('required');
 
                 availabilityModal.show();
             }
