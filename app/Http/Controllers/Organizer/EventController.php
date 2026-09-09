@@ -84,11 +84,16 @@ class EventController extends Controller
         $bookings = Booking::where('event_id', $event->id)->get()->keyBy('performer_id');
         $canCompleteEvent = false;
         $hasConfirmedBooking = false;
+        $reservedBudget = 0;
+        $remainingBudget = null;
 
         foreach ($bookings as $booking) {
             if ($booking->status === 'completed') {
                 $hasConfirmedBooking = true;
-                break;
+            }
+
+            if ($booking->status === 'accepted' || $booking->status === 'completed') {
+                $reservedBudget += (float) $booking->budget;
             }
         }
 
@@ -96,7 +101,17 @@ class EventController extends Controller
             $canCompleteEvent = true;
         }
 
-        return view('organizer.events.show', compact('event', 'bookings', 'canCompleteEvent'));
+        if ($event->compensation_type === 'fixed' && $event->budget !== null) {
+            $remainingBudget = (float) $event->budget - $reservedBudget;
+        }
+
+        return view('organizer.events.show', compact(
+            'event',
+            'bookings',
+            'canCompleteEvent',
+            'reservedBudget',
+            'remainingBudget'
+        ));
     }
 
     public function edit(Event $event): View

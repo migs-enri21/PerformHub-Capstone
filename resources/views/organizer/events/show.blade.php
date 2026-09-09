@@ -89,9 +89,21 @@
                     </div>
                 @endif
                 @if($event->compensation_type === 'fixed' && $event->budget)
-                    <div class="col-md-6">
+                    <div class="col-md-4">
                         <strong class="event-detail-label d-block mb-1">Fixed Budget</strong>
                         <span class="text-muted">PHP {{ number_format((float) $event->budget, 0) }}</span>
+                    </div>
+                    <div class="col-md-4">
+                        <strong class="event-detail-label d-block mb-1">Reserved for Performers</strong>
+                        <span class="text-muted">PHP {{ number_format($reservedBudget, 0) }}</span>
+                    </div>
+                    <div class="col-md-4">
+                        <strong class="event-detail-label d-block mb-1">Remaining Budget</strong>
+                        @if($remainingBudget < 0)
+                            <span class="text-danger">Over budget by PHP {{ number_format(abs($remainingBudget), 0) }}</span>
+                        @else
+                            <span class="text-success">PHP {{ number_format($remainingBudget, 0) }}</span>
+                        @endif
                     </div>
                 @endif
                 @if($event->compensation_type === 'hourly' && $event->rate_per_hour)
