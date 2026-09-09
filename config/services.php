@@ -54,4 +54,9 @@ return [
     'service_key' => env('SUPABASE_SERVICE_ROLE_KEY'),
 ],
 
+    'signwell' => [
+        'api_key' => env('SIGNWELL_API_KEY'),
+        'test_mode' => env('SIGNWELL_TEST_MODE', false),
+    ],
+
 ];

@@ -9,6 +9,7 @@ use App\Models\EventApplication;
 use App\Models\Notification;
 use App\Models\PerformerProfile;
 use App\Services\SupabaseStorageService;
+use App\Services\SignWellService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -86,9 +87,14 @@ class BookingController extends Controller
         return view('organizer.bookings.show', compact('booking'));
     }
 
-    public function uploadContract(Request $request, Booking $booking): RedirectResponse
+    public function uploadContract(Request $request, Booking $booking, SignWellService $signWell): RedirectResponse
     {
         $this->ensureBookingOwner($booking);
+
+        if ($booking->signwell_document_id) {
+            return back()->with('warning', 'This contract has already been sent through SignWell and cannot be replaced.');
+        }
+
         $file = $request->validate([
             'contract' => ['required', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:10240'],
         ])['contract'];
@@ -96,19 +102,75 @@ class BookingController extends Controller
         $this->saveContract($booking, $file);
 
         if ($booking->status === 'accepted') {
-            $this->sendContractNotification($booking);
+            if ($signWell->isConfigured()) {
+                try {
+                    $signWell->sendContractForSignature($booking);
+                    $this->sendContractNotification($booking, true);
+
+                    return back()->with('success', 'Contract uploaded. The performer was notified to sign it inside PerformHub.');
+                } catch (\RuntimeException $exception) {
+                    return back()->with('warning', 'Contract uploaded, but SignWell could not prepare it: '.$exception->getMessage());
+                }
+            }
+
+            $this->sendContractNotification($booking, false);
         }
 
-        return back()->with('success', 'Contract uploaded.');
+        return back()->with('success', 'Contract uploaded. Add the SignWell API key to send it for e-signature.');
     }
 
-    public function complete(Booking $booking): RedirectResponse
+    public function sendForSignature(Booking $booking, SignWellService $signWell): RedirectResponse
+    {
+        $this->ensureBookingOwner($booking);
+        abort_unless($booking->status === 'accepted' && $booking->hasContract(), 400);
+
+        if ($booking->signwell_document_id) {
+            return back()->with('warning', 'This contract was already sent through SignWell.');
+        }
+
+        try {
+            $signWell->sendContractForSignature($booking);
+            $this->sendContractNotification($booking, true);
+        } catch (\RuntimeException $exception) {
+            return back()->with('error', $exception->getMessage());
+        }
+
+        return back()->with('success', 'Contract is ready for the performer to sign inside PerformHub.');
+    }
+
+    public function syncSignatureStatus(Booking $booking, SignWellService $signWell): RedirectResponse
+    {
+        $this->ensureBookingOwner($booking);
+
+        try {
+            $isNewlyCompleted = $signWell->syncStatus($booking);
+        } catch (\RuntimeException $exception) {
+            return back()->with('error', $exception->getMessage());
+        }
+
+        if ($isNewlyCompleted) {
+            return back()->with('success', 'The signed contract was received from SignWell. You can now confirm the booking.');
+        }
+
+        return back()->with('success', 'SignWell status updated: '.ucfirst($booking->fresh()->signwell_status).'.');
+    }
+
+    public function complete(Booking $booking, SignWellService $signWell): RedirectResponse
     {
         $this->ensureBookingOwner($booking);
         abort_unless($booking->status === 'accepted', 400);
 
+        if ($booking->signwell_document_id && ! $booking->hasSignedContract()) {
+            try {
+                $signWell->syncStatus($booking);
+                $booking->refresh();
+            } catch (\RuntimeException $exception) {
+                return back()->with('error', $exception->getMessage());
+            }
+        }
+
         if (! $booking->hasSignedContract()) {
-            return back()->with('warning', 'Wait for the performer to upload the signed contract before confirming this booking.');
+            return back()->with('warning', 'Wait for the signed contract before confirming this booking.');
         }
 
         $booking->update(['status' => 'completed']);
@@ -220,18 +282,29 @@ class BookingController extends Controller
             'contract_path' => $path,
             'signed_contract_path' => null,
             'signed_contract_uploaded_at' => null,
+            'signwell_document_id' => null,
+            'signwell_status' => null,
+            'signwell_signing_url' => null,
+            'signwell_sent_at' => null,
+            'signwell_completed_at' => null,
             'performer_confirmed_contract' => false,
             'contract_confirmed_at' => null,
         ]);
     }
 
-    private function sendContractNotification(Booking $booking): void
+    private function sendContractNotification(Booking $booking, bool $isElectronic): void
     {
+        $message = 'A contract has been uploaded for '.$booking->event_name;
+
+        if ($isElectronic) {
+            $message = 'A contract is ready for you to sign inside PerformHub for '.$booking->event_name.'.';
+        }
+
         Notification::send(
             $booking->performer,
             'contract',
             'Contract Uploaded',
-            'A contract has been uploaded for '.$booking->event_name,
+            $message,
             route('performer.bookings.show', $booking)
         );
     }

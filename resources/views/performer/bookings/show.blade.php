@@ -52,7 +52,21 @@
         <h5 class="fw-semibold mb-1">Contract</h5>
 
         @if($booking->hasContract())
-            <p class="text-muted small mb-3">Download the organizer's contract, sign it, then upload the signed copy below.</p>
+            @if($booking->signwell_document_id)
+                <p class="text-muted small mb-3">The organizer uploaded a contract for electronic signature. Sign it here in PerformHub.</p>
+                <a href="{{ $booking->contractUrl() }}" target="_blank" class="btn ph-btn-outline btn-sm mb-3">View Contract</a>
+
+                @if($booking->hasSignedContract())
+                    <p class="text-success small mb-2">Your electronic signature is complete.</p>
+                    <a href="{{ $booking->signedContractUrl() }}" target="_blank" class="btn ph-btn-outline btn-sm">View Signed Contract</a>
+                @else
+                    <p class="text-primary small mb-2">SignWell status: {{ ucfirst($booking->signwell_status) }}</p>
+                    @if($booking->status === 'accepted')
+                        <a href="{{ route('performer.bookings.sign', $booking) }}" class="btn ph-btn-primary btn-sm">Sign Contract</a>
+                    @endif
+                @endif
+            @else
+                <p class="text-muted small mb-3">Download the organizer's contract, sign it, then upload the signed copy below.</p>
             <a href="{{ $booking->contractUrl() }}" target="_blank" class="btn ph-btn-outline btn-sm mb-3">Download Contract</a>
 
             @if($booking->hasSignedContract())
@@ -66,6 +80,7 @@
                     <small class="text-muted d-block mb-2">PDF, JPG, JPEG, or PNG. Maximum 10 MB.</small>
                     <button class="btn ph-btn-primary btn-sm">Send Signed Contract</button>
                 </form>
+            @endif
             @endif
         @else
             <p class="text-muted small mb-0">
