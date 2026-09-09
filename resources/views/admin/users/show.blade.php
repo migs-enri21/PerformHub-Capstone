@@ -20,9 +20,6 @@
                 <dt class="col-sm-4 text-muted">Name</dt>
                 <dd class="col-sm-8">{{ $user->fullName() }}</dd>
 
-                <dt class="col-sm-4 text-muted">Username</dt>
-                <dd class="col-sm-8">{{ $user->username }}</dd>
-
                 <dt class="col-sm-4 text-muted">Email</dt>
                 <dd class="col-sm-8">{{ $user->email }}</dd>
 
@@ -56,10 +53,13 @@
             @elseif($user->isOrganizer() && $user->organizerProfile)
                 <dl class="row">
                     <dt class="col-sm-4 text-muted">Organization</dt>
-                    <dd class="col-sm-8">{{ $user->organizerProfile->organization_name }}</dd>
-
-                    <dt class="col-sm-4 text-muted">Type</dt>
-                    <dd class="col-sm-8">{{ ucfirst($user->organizerProfile->organization_type ?? 'N/A') }}</dd>
+                    <dd class="col-sm-8">
+                        {{ [
+                            'company' => 'Company / Corp.',
+                            'individual' => 'Individual / Solo',
+                            'nonprofit' => 'Non-Profit / NGO',
+                        ][$user->organizerProfile->organization_type ?? ''] ?? 'N/A' }}
+                    </dd>
 
                     <dt class="col-sm-4 text-muted">Location</dt>
                     <dd class="col-sm-8">{{ $user->organizerProfile->shortLocation() }}</dd>

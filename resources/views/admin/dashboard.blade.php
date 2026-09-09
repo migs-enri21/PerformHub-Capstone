@@ -27,33 +27,7 @@
 </div>
 
 <div class="row g-4 mb-4">
-    <div class="col-lg-6">
-        <div class="ph-card p-4 h-100">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h5 class="fw-semibold mb-0">New Account Alerts</h5>
-                <a href="{{ route('notifications.index') }}" class="btn btn-sm ph-btn-outline">All Notifications</a>
-            </div>
-            <div class="list-group list-group-flush">
-                @forelse($recentRegistrationAlerts as $alert)
-                    <form method="POST" action="{{ route('notifications.read', $alert) }}" class="mb-0">
-                        @csrf
-                        <button type="submit" class="list-group-item list-group-item-action px-0 border-0 border-bottom text-start w-100 bg-transparent {{ $alert->is_read ? '' : 'fw-semibold' }}">
-                            <div class="d-flex justify-content-between gap-2">
-                                <div>
-                                    <div>{{ $alert->title }}</div>
-                                    <small class="text-muted">{{ $alert->message }}</small>
-                                </div>
-                                <small class="text-muted text-nowrap">{{ $alert->created_at->diffForHumans() }}</small>
-                            </div>
-                        </button>
-                    </form>
-                @empty
-                    <div class="text-muted py-3">No new account alerts yet.</div>
-                @endforelse
-            </div>
-        </div>
-    </div>
-    <div class="col-lg-6">
+    <div class="col-12">
         <div class="ph-card p-4 h-100">
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <h5 class="fw-semibold mb-0">Recent Bookings</h5>
