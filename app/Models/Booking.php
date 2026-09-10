@@ -25,6 +25,11 @@ class Booking extends Model
         'contract_path',
         'signed_contract_path',
         'signed_contract_uploaded_at',
+        'signwell_document_id',
+        'signwell_status',
+        'signwell_signing_url',
+        'signwell_sent_at',
+        'signwell_completed_at',
         'contract_confirmed_at',
         'performer_confirmed_contract',
         'notes',
@@ -36,6 +41,8 @@ class Booking extends Model
         return [
             'event_date' => 'date',
             'signed_contract_uploaded_at' => 'datetime',
+            'signwell_sent_at' => 'datetime',
+            'signwell_completed_at' => 'datetime',
             'contract_confirmed_at' => 'datetime',
             'performer_confirmed_contract' => 'boolean',
         ];

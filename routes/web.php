@@ -74,12 +74,14 @@ Route::middleware(['auth', 'role:performer'])->prefix('performer')->name('perfor
         Route::post('/bookings/{booking}/accept', [PerformerBookingController::class, 'accept'])->name('bookings.accept');
         Route::post('/bookings/{booking}/reject', [PerformerBookingController::class, 'reject'])->name('bookings.reject');
         Route::post('/bookings/{booking}/signed-contract', [PerformerBookingController::class, 'uploadSignedContract'])->name('bookings.signed-contract');
+        Route::post('/bookings/{booking}/signature-status', [PerformerBookingController::class, 'syncElectronicSignature'])->name('bookings.signature.sync');
         Route::post('/events/{event}/apply', [EventApplicationController::class, 'store'])->name('events.apply');
         Route::delete('/events/{event}/apply', [EventApplicationController::class, 'destroy'])->name('events.apply.cancel');
     });
     Route::get('/availability', [AvailabilityController::class, 'index'])->name('availability.index');
     Route::get('/bookings', [PerformerBookingController::class, 'index'])->name('bookings.index');
     Route::get('/bookings/{booking}', [PerformerBookingController::class, 'show'])->name('bookings.show');
+    Route::get('/bookings/{booking}/sign-contract', [PerformerBookingController::class, 'signContract'])->name('bookings.sign');
 });
 
 Route::middleware(['auth', 'role:organizer'])->prefix('organizer')->name('organizer.')->group(function () {
@@ -104,6 +106,8 @@ Route::middleware(['auth', 'role:organizer'])->prefix('organizer')->name('organi
         Route::get('/bookings/create/{performer}', [OrganizerBookingController::class, 'create'])->name('bookings.create');
         Route::post('/bookings/{performer}', [OrganizerBookingController::class, 'store'])->name('bookings.store');
         Route::post('/bookings/{booking}/contract', [OrganizerBookingController::class, 'uploadContract'])->name('bookings.contract');
+        Route::post('/bookings/{booking}/send-signature', [OrganizerBookingController::class, 'sendForSignature'])->name('bookings.signwell.send');
+        Route::post('/bookings/{booking}/sync-signature', [OrganizerBookingController::class, 'syncSignatureStatus'])->name('bookings.signwell.sync');
         Route::post('/bookings/{booking}/complete', [OrganizerBookingController::class, 'complete'])->name('bookings.complete');
         Route::post('/events/{event}/applications/{application}/decline', [OrganizerEventApplicationController::class, 'decline'])->name('events.applications.decline');
     });

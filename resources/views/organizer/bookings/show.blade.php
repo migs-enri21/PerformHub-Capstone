@@ -47,40 +47,67 @@
 
         <div class="ph-card p-4">
             <h5 class="fw-semibold mb-1">Contract Management</h5>
-            <p class="text-muted small mb-3">Upload the contract. The performer can download it, sign it, and send the signed copy back.</p>
+            <p class="text-muted small mb-3">Upload the contract, then send it to the performer for electronic signature.</p>
 
             @if($booking->hasContract())
                 <a href="{{ $booking->contractUrl() }}" target="_blank" class="btn ph-btn-outline btn-sm mb-3">View Organizer Contract</a>
             @endif
 
-            <form method="POST" action="{{ route('organizer.bookings.contract', $booking) }}" enctype="multipart/form-data" class="border-top pt-3">
-                @csrf
-                @if($booking->hasContract())
-                    <input type="file" name="contract" class="form-control ph-input mb-2" accept=".pdf,.jpg,.jpeg,.png">
-                @else
-                    <input type="file" name="contract" class="form-control ph-input mb-2" accept=".pdf,.jpg,.jpeg,.png" required>
+            @if($booking->signwell_document_id)
+                <div class="border-top pt-3">
+                    <h6 class="fw-semibold mb-2">SignWell E-Signature</h6>
+                    <p class="small mb-2">The contract is ready for the performer to sign inside PerformHub.</p>
+                    <p class="small mb-3"><strong>Current status:</strong> {{ ucfirst($booking->signwell_status) }}</p>
+                    <form method="POST" action="{{ route('organizer.bookings.signwell.sync', $booking) }}">
+                        @csrf
+                        <button class="btn ph-btn-outline btn-sm">Check SignWell Status</button>
+                    </form>
+                </div>
+            @else
+                <form method="POST" action="{{ route('organizer.bookings.contract', $booking) }}" enctype="multipart/form-data" class="border-top pt-3">
+                    @csrf
+                    @if($booking->hasContract())
+                        <input type="file" name="contract" class="form-control ph-input mb-2" accept=".pdf,.jpg,.jpeg,.png">
+                    @else
+                        <input type="file" name="contract" class="form-control ph-input mb-2" accept=".pdf,.jpg,.jpeg,.png" required>
+                    @endif
+                    <small class="text-muted d-block mb-2">PDF, JPG, JPEG, or PNG. Maximum 10 MB.</small>
+                    @if($booking->hasContract())
+                        <button class="btn ph-btn-primary btn-sm">Replace Contract</button>
+                    @else
+                        <button class="btn ph-btn-primary btn-sm">Upload Contract</button>
+                    @endif
+                </form>
+
+                @if($booking->status === 'accepted' && $booking->hasContract())
+                    @if(filled(config('services.signwell.api_key')))
+                        <form method="POST" action="{{ route('organizer.bookings.signwell.send', $booking) }}" class="mt-2">
+                            @csrf
+                            <button class="btn ph-btn-outline btn-sm">Prepare Existing Contract for E-Signature</button>
+                        </form>
+                    @else
+                        <p class="text-muted small mt-2 mb-0">Add the SignWell API key in the .env file to email this contract for e-signature.</p>
+                    @endif
                 @endif
-                <small class="text-muted d-block mb-2">PDF, JPG, JPEG, or PNG. Maximum 10 MB.</small>
-                @if($booking->hasContract())
-                    <button class="btn ph-btn-primary btn-sm">Replace Contract</button>
-                @else
-                    <button class="btn ph-btn-primary btn-sm">Upload Contract</button>
-                @endif
-            </form>
+            @endif
 
             <hr>
 
             <h6 class="fw-semibold mb-2">Signed Contract from Performer</h6>
             @if($booking->hasSignedContract())
                 <p class="text-success small mb-2">
-                    The performer uploaded the signed copy.
+                    The signed copy is ready.
                     @if($booking->signed_contract_uploaded_at)
                         Uploaded on {{ $booking->signed_contract_uploaded_at->format('M d, Y g:i A') }}.
                     @endif
                 </p>
                 <a href="{{ $booking->signedContractUrl() }}" target="_blank" class="btn ph-btn-outline btn-sm">View Signed Contract</a>
             @else
-                <p class="text-muted small mb-0">Waiting for the performer to upload the signed contract.</p>
+                @if($booking->signwell_document_id)
+                    <p class="text-muted small mb-0">Waiting for the performer to complete the SignWell signature.</p>
+                @else
+                    <p class="text-muted small mb-0">Waiting for the performer to upload the signed contract.</p>
+                @endif
             @endif
         </div>
     </div>
@@ -111,7 +138,7 @@
                 @else
                     <span class="badge bg-secondary">Pending</span>
                 @endif
-                Signed Contract Returned
+                Signed Contract Ready
             </p>
             <p class="mb-0">
                 @if($booking->status === 'completed')
@@ -132,7 +159,11 @@
                         <button class="btn btn-success w-100">Confirm Booking</button>
                     </form>
                 @else
-                    <p class="text-primary small mb-0">The performer must upload the signed contract first.</p>
+                    @if($booking->signwell_document_id)
+                        <p class="text-primary small mb-0">Wait for the performer to finish signing through SignWell, then check the status.</p>
+                    @else
+                        <p class="text-primary small mb-0">A signed contract is required before this booking can be confirmed.</p>
+                    @endif
                 @endif
             </div>
         @endif

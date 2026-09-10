@@ -7,6 +7,7 @@ use App\Models\Booking;
 use App\Models\Notification;
 use App\Models\EventApplication;
 use App\Services\SupabaseStorageService;
+use App\Services\SignWellService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
@@ -43,7 +44,7 @@ public function index(Request $request): View
         return view('performer.bookings.show', compact('booking', 'dayConflict'));
     }
 
-    public function accept(Booking $booking): RedirectResponse
+    public function accept(Booking $booking, SignWellService $signWell): RedirectResponse
     {
         abort_unless($booking->performer_id === Auth::id(), 403);
         abort_unless($booking->status === 'pending', 400);
@@ -73,7 +74,18 @@ public function index(Request $request): View
             route('organizer.bookings.show', $booking)
         );
 
-        return back()->with('success', 'Booking accepted.');
+        $message = 'Booking accepted.';
+
+        if ($booking->hasContract() && ! $booking->signwell_document_id && $signWell->isConfigured()) {
+            try {
+                $signWell->sendContractForSignature($booking);
+                $message = 'Booking accepted. Your contract is ready for electronic signature.';
+            } catch (\RuntimeException $exception) {
+                $message = 'Booking accepted. The organizer contract is available, but electronic signing is not ready yet.';
+            }
+        }
+
+        return back()->with('success', $message);
     }
 
     public function reject(Booking $booking): RedirectResponse
@@ -105,6 +117,10 @@ public function index(Request $request): View
         abort_unless($booking->performer_id === Auth::id(), 403);
         abort_unless($booking->status === 'accepted' && $booking->hasContract(), 400); // bad request
 
+        if ($booking->signwell_document_id) {
+            return back()->with('warning', 'This contract must be signed through the SignWell signing screen.');
+        }
+
         $file = $request->validate([
             'signed_contract' => ['required', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:10240'],
         ])['signed_contract'];
@@ -131,5 +147,54 @@ public function index(Request $request): View
         );
 
         return back()->with('success', 'Signed contract sent to the organizer.');
+    }
+
+    public function signContract(Booking $booking, SignWellService $signWell)
+    {
+        abort_unless($booking->performer_id === Auth::id(), 403);
+        abort_unless($booking->status === 'accepted' && $booking->signwell_document_id, 400);
+
+        try {
+            $signingUrl = $signWell->signingUrl($booking);
+        } catch (\RuntimeException $exception) {
+            return redirect()
+                ->route('performer.bookings.show', $booking)
+                ->with('error', $exception->getMessage());
+        }
+
+        if (! $signingUrl) {
+            return redirect()
+                ->route('performer.bookings.show', $booking)
+                ->with('warning', 'The signing screen is not ready yet. Please try again shortly.');
+        }
+
+        return view('performer.bookings.sign', compact('booking', 'signingUrl'));
+    }
+
+    public function syncElectronicSignature(Booking $booking, SignWellService $signWell): RedirectResponse
+    {
+        abort_unless($booking->performer_id === Auth::id(), 403);
+
+        try {
+            $signedContractSaved = $signWell->syncStatus($booking);
+        } catch (\RuntimeException $exception) {
+            return redirect()
+                ->route('performer.bookings.show', $booking)
+                ->with('warning', 'Your signature was completed. The signed PDF is still being prepared, so check the booking again shortly.');
+        }
+
+        if ($signedContractSaved) {
+            Notification::send(
+                $booking->organizer,
+                'contract',
+                'Contract Electronically Signed',
+                Auth::user()->name.' signed the contract for '.$booking->event_name.'. You can now confirm the booking.',
+                route('organizer.bookings.show', $booking)
+            );
+        }
+
+        return redirect()
+            ->route('performer.bookings.show', $booking)
+            ->with('success', 'Electronic signature completed. The organizer has been notified.');
     }
 }

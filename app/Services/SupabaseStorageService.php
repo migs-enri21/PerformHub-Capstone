@@ -75,6 +75,33 @@ class SupabaseStorageService
         return "{$url}/storage/v1/object/public/{$bucket}/{$path}";
     }
 
+    public function uploadContents(string $contents, string $filename, string $bucket, string $type, int $userId, string $mimeType): string
+    {
+        $url = rtrim(Config::get('services.supabase.url'), '/');
+        $key = Config::get('services.supabase.service_key');
+
+        $folders = [
+            'signed_contract' => 'signed-contracts',
+        ];
+
+        $folder = $folders[$type] ?? $type;
+        $safeName = preg_replace('/[^A-Za-z0-9._-]/', '-', $filename);
+        $path = $folder.'/'.$userId.'/'.time().'_'.$safeName;
+
+        $response = Http::withoutVerifying()->withHeaders([
+            'Authorization' => 'Bearer '.$key,
+            'apikey' => $key,
+            'x-upsert' => 'true',
+        ])->withBody($contents, $mimeType)
+            ->post("{$url}/storage/v1/object/{$bucket}/{$path}");
+
+        if ($response->failed()) {
+            throw new RuntimeException("Supabase upload failed for {$bucket}/{$path}: ".$response->body());
+        }
+
+        return $path;
+    }
+
     public function delete(string $bucket, string $path): void
     {
         $url = rtrim(Config::get('services.supabase.url'), '/');
