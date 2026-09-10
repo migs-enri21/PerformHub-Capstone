@@ -9,7 +9,7 @@
 @section('content')
 <h2 class="fw-bold mb-4">Booking History</h2>
 
-
+{{--
  <form method="GET" class="ph-card p-3 mb-4 d-flex gap-2 align-items-end">
     <div>
         <label class="form-label">Booking Status</label>
@@ -24,7 +24,7 @@
 
     <button type="submit" class="btn ph-btn-primary">Filter</button>
 </form> 
-
+--}}
 
 <div class="ph-card p-0 overflow-hidden">
     <table class="table table-dark table-hover mb-0">
