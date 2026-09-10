@@ -204,12 +204,11 @@
                         'name' => 'government_id',
                         'title' => 'Government-Issued ID',
                         'required' => true,
-                        'multiple' => true,
-                        'maxFiles' => 4,
-                        'desc' => 'Upload ID pictures (front and back). You can add up to 4 photos.',
-                        'formats' => '.jpg .png .pdf — max 5 MB each',
+                        'desc' => 'Valid Philippine ID for identity verification.',
+                        'formats' => '.jpg .png .pdf — max 5 MB',
                         'icon' => 'fa-id-card',
                     ])
+                    @error('government_id')<div class="text-danger small mb-2">{{ $message }}</div>@enderror
 
                     <button type="submit" id="registerSubmitButton" class="btn ph-btn-primary w-100 mb-2" disabled>
                         Create Account <i class="fas fa-arrow-right ms-2"></i>

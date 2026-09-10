@@ -700,19 +700,6 @@ input[type="file"].ph-input::file-selector-button:hover {
     flex-shrink: 0;
 }
 
-.upload-file-list {
-    list-style: none;
-}
-
-.upload-file-item {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 0.5rem;
-    color: #15803d;
-    overflow-wrap: anywhere;
-}
-
 .onboarding-success-icon {
     width: 72px;
     height: 72px;
