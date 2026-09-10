@@ -117,12 +117,16 @@ class OnboardingController extends Controller
         $user = Auth::user();
 
         $hasGovernmentId = $user->verificationDocuments()->where('document_type', 'government_id')->exists();
-        $governmentIdRule = $hasGovernmentId ? ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'] : ['required', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'];
+        $governmentIdRule = $hasGovernmentId
+            ? ['nullable', 'array', 'max:4']
+            : ['required', 'array', 'min:1', 'max:4'];
+        $governmentIdFileRule = ['file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'];
 
         if ($user->isOrganizer()) {
             $validated = $request->validate([
                 'organization_type' => ['required', 'in:company,individual,nonprofit'],
                 'government_id' => $governmentIdRule,
+                'government_id.*' => $governmentIdFileRule,
                 'business_permit' => ['required_unless:organization_type,individual', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:10240'],
                 'proof_of_events' => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf,zip', 'max:51200'],
                 'bir_certificate' => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'],
@@ -133,10 +137,11 @@ class OnboardingController extends Controller
                 ['organization_type' => $validated['organization_type']]
             );
 
-            if ($request->hasFile('government_id')) {
-                $this->storeVerificationDocument($user, 'government_id', $request->file('government_id'));
+            $this->storeVerificationDocuments($user, 'government_id', $this->uploadedFiles($request, 'government_id'));
+
+            if ($request->hasFile('business_permit')) {
+                $this->storeVerificationDocument($user, 'business_permit', $request->file('business_permit'));
             }
-            $this->storeVerificationDocument($user, 'business_permit', $request->file('business_permit'));
 
             if ($request->hasFile('proof_of_events')) {
                 $this->storeVerificationDocument($user, 'proof_of_events', $request->file('proof_of_events'));
@@ -148,11 +153,10 @@ class OnboardingController extends Controller
         } else {
             $request->validate([
                 'government_id' => $governmentIdRule,
+                'government_id.*' => $governmentIdFileRule,
             ]);
 
-            if ($request->hasFile('government_id')) {
-                $this->storeVerificationDocument($user, 'government_id', $request->file('government_id'));
-            }
+            $this->storeVerificationDocuments($user, 'government_id', $this->uploadedFiles($request, 'government_id'));
         }
 
         return $this->finishOnboarding($user);

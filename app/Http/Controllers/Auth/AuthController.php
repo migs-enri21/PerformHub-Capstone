@@ -4,10 +4,10 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Concerns\HandlesVerificationDocuments;
 use App\Http\Controllers\Controller;
+use App\Models\Notification;
 use App\Models\OrganizerProfile;
 use App\Models\PerformerProfile;
 use App\Models\User;
-use App\Models\Notification;
 use App\Support\PhilippineLocations;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -64,13 +64,18 @@ class AuthController extends Controller
             'phone' => ['required', 'string', 'max:30'],
             'role' => ['required', 'in:performer,organizer'],
             'terms_accepted' => ['accepted'],
-            'government_id' => ['required', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'],
+            'government_id' => ['required', 'array', 'min:1', 'max:4'],
+            'government_id.*' => ['file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'],
         ], PhilippineLocations::locationFieldsRules()), [
             'email.unique' => 'An account with this email already exists.',
             'terms_accepted.accepted' => 'You must agree to the Terms & Agreement before continuing.',
             'password.confirmed' => 'Password and confirm password do not match.',
             'password.min' => 'Password must be at least 8 characters.',
-            'government_id.required' => 'Please upload a valid government ID.',
+            'government_id.required' => 'Please upload at least one government ID picture.',
+            'government_id.min' => 'Please upload at least one government ID picture.',
+            'government_id.max' => 'You can upload up to 4 ID pictures (for example front and back).',
+            'government_id.*.mimes' => 'Each ID file must be a JPG, PNG, or PDF.',
+            'government_id.*.max' => 'Each ID picture must be 5 MB or smaller.',
         ]);
 
         $locationData = PhilippineLocations::profileLocationAttributes($validated);
@@ -102,7 +107,7 @@ class AuthController extends Controller
             ], $locationData));
         }
 
-        $this->storeVerificationDocument($user, 'government_id', $request->file('government_id'));
+        $this->storeVerificationDocuments($user, 'government_id', $this->uploadedFiles($request, 'government_id'));
 
         Auth::login($user);
 

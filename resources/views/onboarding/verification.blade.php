@@ -57,8 +57,10 @@
                 'name' => 'government_id',
                 'title' => 'Government-Issued ID',
                 'required' => true,
-                'desc' => 'Valid Philippine ID of the authorized representative.',
-                'formats' => '.jpg .png .pdf — max 5 MB',
+                'multiple' => true,
+                'maxFiles' => 4,
+                'desc' => 'Upload ID pictures of the authorized representative (front and back).',
+                'formats' => '.jpg .png .pdf — max 5 MB each',
                 'icon' => 'fa-id-card',
             ])
         @endif
@@ -98,8 +100,10 @@
                 'name' => 'government_id',
                 'title' => 'Government-Issued ID',
                 'required' => true,
-                'desc' => 'Valid Philippine ID for identity verification.',
-                'formats' => '.jpg .png .pdf — max 5 MB',
+                'multiple' => true,
+                'maxFiles' => 4,
+                'desc' => 'Upload ID pictures (front and back). You can add up to 4 photos.',
+                'formats' => '.jpg .png .pdf — max 5 MB each',
                 'icon' => 'fa-id-card',
             ])
         @endif

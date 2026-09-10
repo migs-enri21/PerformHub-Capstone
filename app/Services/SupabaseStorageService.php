@@ -36,7 +36,7 @@ class SupabaseStorageService
         $folder = $folders[$type] ?? $type;
 
         $safeName = preg_replace('/[^A-Za-z0-9._-]/', '-', $file->getClientOriginalName());
-        $filename = time() . '_' . $safeName;
+        $filename = time() . '_' . uniqid() . '_' . $safeName;
 
         $path = $folder . '/' . $userId . '/' . $filename;
 
