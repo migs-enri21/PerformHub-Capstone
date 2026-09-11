@@ -14,11 +14,7 @@
         : '';
     $rating = 0; // reviews/ratings not implemented yet
     $subtitle = collect([$performer->categoryNames(), $performer->shortLocation()])->filter()->implode(' · ');
-    $tags = array_values(array_filter(array_unique([
-        ...$performer->categories->pluck('name')->all(),
-        $performer->specialty,
-        $performer->genre,
-    ])));
+    $tags = $performer->displayTags();
 @endphp
 
 <div class="performer-profile-card ph-card mb-4">

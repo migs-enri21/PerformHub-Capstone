@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>How organizers find performers</title>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 880px; margin: 32px auto; padding: 0 16px; color: #222; }
+    h1 { font-size: 22px; margin-bottom: 6px; }
+    .sub { color: #555; margin-bottom: 20px; }
+    .nav { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+    .nav button, .pager button { border: 1px solid #ccc; background: #fff; padding: 8px 10px; cursor: pointer; }
+    .nav button.on, .pager button.primary { background: #6346ff; color: #fff; border-color: #6346ff; }
+    .frame { border: 1px solid #ddd; padding: 18px; min-height: 280px; }
+    .hidden { display: none; }
+    .row { display: flex; gap: 12px; flex-wrap: wrap; }
+    .col { flex: 1; min-width: 240px; border: 1px solid #eee; padding: 12px; }
+    .chip { display: inline-block; border: 1px solid #ccc; border-radius: 999px; padding: 3px 10px; margin: 3px 4px 0 0; font-size: 13px; }
+    .chip.on { border-color: #6346ff; color: #6346ff; }
+    .ok { color: #0a7a32; font-weight: 700; }
+    .no { color: #b42318; font-weight: 700; }
+    .pager { display: flex; justify-content: space-between; margin-top: 14px; }
+    p { line-height: 1.45; }
+  </style>
+</head>
+<body>
+  <h1>How organizers find performers</h1>
+  <p class="sub">Click the numbers or Next. One example person: Kai.</p>
+
+  <div class="nav" id="nav"></div>
+
+  <div class="frame" data-step="0">
+    <h2>1. Three fields, not tags</h2>
+    <p>There is no free-text tag box. The system only understands these:</p>
+    <div class="row">
+      <div class="col"><b>Category = role</b><br>Admin list. Same ID on event and performer.<br>
+        <span class="chip on">Singer</span><span class="chip on">Dancer</span><span class="chip">Host</span></div>
+      <div class="col"><b>Specialty = skill</b><br>Fixed list in code. Can pick more than one.<br>
+        <span class="chip on">Bass</span><span class="chip on">Electric Guitar</span></div>
+      <div class="col"><b>Genre = style</b><br>Fixed list in code. Can pick more than one.<br>
+        <span class="chip on">R&amp;B</span><span class="chip on">Other</span></div>
+    </div>
+  </div>
+
+  <div class="frame hidden" data-step="1">
+    <h2>2. Performer fills profile</h2>
+    <p>Kai does not type tags. Kai picks from the lists on Edit Profile.</p>
+    <p><b>Categories</b> (every role they do)</p>
+    <span class="chip on">Singer</span><span class="chip on">Dancer</span><span class="chip">Host</span>
+    <p><b>Specialty dropdown</b> — open and pick more than one</p>
+    <span class="chip on">Bass</span><span class="chip on">Electric Guitar</span>
+    <p><b>Genre dropdown</b> — open and pick more than one</p>
+    <span class="chip on">R&amp;B</span><span class="chip on">Other</span>
+  </div>
+
+  <div class="frame hidden" data-step="2">
+    <h2>3. Organizer searches</h2>
+    <p>Find Performers. Empty filter = skip that field. Filled filter = must match.</p>
+    <p>Example filter:</p>
+    <span class="chip on">Category: Singer</span>
+    <span class="chip on">Specialty: Bass</span>
+    <span class="chip on">Genre: R&amp;B</span>
+    <span class="chip on">Date: Sep 20</span>
+    <p>The system checks each filled box, then requires all of them (AND).</p>
+  </div>
+
+  <div class="frame hidden" data-step="3">
+    <h2>4. Does Kai match?</h2>
+    <div class="row">
+      <div class="col">
+        <p class="ok">SHOW Kai</p>
+        <p>Singer → Kai has Singer</p>
+        <p>Bass → inside [Bass, Electric Guitar]</p>
+        <p>R&amp;B → inside [R&amp;B, Other]</p>
+        <p>Also works: Guitar, Other, or Dancer.</p>
+      </div>
+      <div class="col">
+        <p class="no">HIDE Kai</p>
+        <p>Host → Kai did not check Host</p>
+        <p>Classical → not in Kai’s genres</p>
+        <p>Violin → not in Kai’s specialties</p>
+        <p>Or Sep 20 is booked / day-off / Google busy.</p>
+      </div>
+    </div>
+    <p><b>Rule:</b> organizer filters = AND. Kai’s lists = OR.</p>
+  </div>
+
+  <div class="frame hidden" data-step="4">
+    <h2>5. Suggested vs search</h2>
+    <div class="row">
+      <div class="col"><b>Find Performers</b><br>Uses category + specialty + genre + date.</div>
+      <div class="col"><b>Suggested performers</b><br>Uses event categories ∩ performer categories only. Genre is ignored here.</div>
+    </div>
+    <p>Performer Home recommended events = the reverse: open events that share a category ID.</p>
+  </div>
+
+  <div class="frame hidden" data-step="5">
+    <h2>6. Who is hidden anyway</h2>
+    <p>Even a perfect match is hidden unless all of these are true:</p>
+    <p>Active account · onboarding done · admin verified · verified badge</p>
+    <p>If a date is set: no pending/accepted/completed booking that day, not day-off, not Google-busy.</p>
+  </div>
+
+  <div class="pager">
+    <button type="button" id="back">Back</button>
+    <button type="button" class="primary" id="next">Next</button>
+  </div>
+
+  <script>
+    const frames = [...document.querySelectorAll('.frame')];
+    const nav = document.getElementById('nav');
+    let step = 0;
+    const labels = ['Fields', 'Kai profile', 'Search', 'Match', 'Suggested', 'Hidden'];
+
+    labels.forEach((label, i) => {
+      const b = document.createElement('button');
+      b.textContent = (i + 1) + '. ' + label;
+      b.onclick = () => show(i);
+      nav.appendChild(b);
+    });
+
+    function show(i) {
+      step = i;
+      frames.forEach((el, idx) => el.classList.toggle('hidden', idx !== step));
+      [...nav.children].forEach((b, idx) => b.classList.toggle('on', idx === step));
+      document.getElementById('back').disabled = step === 0;
+      document.getElementById('next').disabled = step === frames.length - 1;
+    }
+
+    document.getElementById('back').onclick = () => show(step - 1);
+    document.getElementById('next').onclick = () => show(step + 1);
+    show(0);
+  </script>
+</body>
+</html>

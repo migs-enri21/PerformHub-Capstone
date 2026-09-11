@@ -37,6 +37,7 @@
     <div class="col-lg-6">
         <div class="ph-card p-4 h-100">
             <h5 class="fw-bold mb-3">Create Category</h5>
+            <p class="text-muted small">Use a role (Singer, Dancer, Host) — not a style like Rap or OPM. Style belongs in Genre.</p>
             <form method="POST" action="{{ route('admin.categories.store') }}" class="row g-3">
                 @csrf
                 <div class="col-12"><input type="text" name="name" class="form-control ph-input" placeholder="Category name" required></div>

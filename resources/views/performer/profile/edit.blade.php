@@ -61,19 +61,12 @@
                         <label class="form-label text-muted small">Stage Name</label>
                         <input type="text" name="stage_name" class="form-control ph-input" value="{{ old('stage_name', $profile->stage_name) }}" required>
                     </div>
-                    <div class="col-md-6">
-                        <label class="form-label text-muted small">Genre</label>
-                        @include('partials.genre-select', ['value' => $profile->genre])
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label text-muted small">Specialty / Instrument</label>
-                        <input type="text" name="specialty" class="form-control ph-input" value="{{ old('specialty', $profile->specialty) }}" placeholder="e.g. Guitar, Piano, Vocals">
-                    </div>
                     @php
                         $selectedCategoryIds = old('category_ids', $profile->categories->pluck('id')->all());
                     @endphp
                     <div class="col-12">
-                        <label class="form-label text-muted small">Categories <span class="text-muted">(select all that apply — e.g. Singer and Dancer)</span></label>
+                        <label class="form-label text-muted small">Categories</label>
+                        <p class="text-muted small mb-2">Check every role you do. A singer who also dances should select both Singer and Dancer.</p>
                         <div class="category-checkbox-grid">
                             @foreach($categories as $cat)
                                 <label class="category-checkbox-option">
@@ -82,6 +75,22 @@
                                 </label>
                             @endforeach
                         </div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label text-muted small">Specialty / Instrument</label>
+                        <p class="text-muted small mb-2">Open the list and pick more than one if needed (Bass and Guitar).</p>
+                        @include('partials.specialty-select', [
+                            'value' => $profile->specialtyList(),
+                            'multiple' => true,
+                        ])
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label text-muted small">Genre</label>
+                        <p class="text-muted small mb-2">Open the list and pick more than one if needed (R&amp;B and Other).</p>
+                        @include('partials.genre-select', [
+                            'value' => $profile->genreList(),
+                            'multiple' => true,
+                        ])
                     </div>
                     <div class="col-md-6">
                         <label class="form-label text-muted small">Rate (₱)</label>

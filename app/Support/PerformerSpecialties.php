@@ -4,22 +4,22 @@ namespace App\Support;
 
 use Illuminate\Validation\Rule;
 
-class PerformerGenres
+class PerformerSpecialties
 {
     public static function all(): array
     {
-        return config('genres.options', []);
+        return config('specialties.options', []);
     }
 
-    public static function validationRule(bool $required = false): array
+    public static function validationRule(?string $current = null): array
     {
-        $rules = $required
-            ? ['required', 'string', 'max:100']
-            : ['nullable', 'string', 'max:100'];
+        $allowed = self::all();
 
-        $rules[] = Rule::in(self::all());
+        if ($current && ! in_array($current, $allowed, true)) {
+            $allowed[] = $current;
+        }
 
-        return $rules;
+        return ['nullable', 'string', 'max:100', Rule::in($allowed)];
     }
 
     /**

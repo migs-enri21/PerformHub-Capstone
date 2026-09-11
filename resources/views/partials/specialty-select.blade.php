@@ -1,8 +1,8 @@
 @props([
-    'name' => 'genre',
+    'name' => 'specialty',
     'value' => '',
     'required' => false,
-    'placeholder' => 'Select genre',
+    'placeholder' => 'Select specialty / instrument',
     'multiple' => false,
 ])
 
@@ -12,5 +12,5 @@
     'required' => $required,
     'placeholder' => $placeholder,
     'multiple' => $multiple,
-    'options' => \App\Support\PerformerGenres::all(),
+    'options' => \App\Support\PerformerSpecialties::all(),
 ])
