@@ -23,7 +23,7 @@
         </div>
         <div class="d-flex gap-2">
             @if($canCompleteEvent)
-                <form method="POST" action="{{ route('organizer.events.complete', $event) }}" onsubmit="return confirm('Mark this event as completed? This action means the event has finished.');">
+                <form method="POST" action="{{ route('organizer.events.complete', $event) }}" class="organizer-confirm-form" data-confirm-title="Mark Event Completed" data-confirm-message="Mark this event as completed? This means the event has finished." data-confirm-button="Mark Completed">
                     @csrf
                     @method('PATCH')
                     <button type="submit" class="btn btn-success btn-sm">Mark Event Completed</button>
@@ -224,7 +224,7 @@
                         <a href="{{ route('organizer.bookings.create', ['performer' => $application->performer->performerProfile, 'event' => $event->id, 'from_application' => 1]) }}" class="btn ph-btn-primary btn-sm">
                             Accept Application
                         </a>
-                        <form method="POST" action="{{ route('organizer.events.applications.decline', [$event, $application]) }}" onsubmit="return confirm('Decline this applicant?');">
+                        <form method="POST" action="{{ route('organizer.events.applications.decline', [$event, $application]) }}" class="organizer-confirm-form" data-confirm-title="Decline Applicant" data-confirm-message="Decline this applicant?" data-confirm-button="Decline Applicant">
                             @csrf
                             <button type="submit" class="btn btn-outline-danger btn-sm">Decline</button>
                         </form>
@@ -239,4 +239,5 @@
         <div class="alert alert-secondary">No performers have applied yet.</div>
     @endforelse
 </div>
+@include('organizer.partials.confirmation-modal')
 @endsection

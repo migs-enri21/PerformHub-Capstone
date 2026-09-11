@@ -27,7 +27,7 @@
 <div class="container">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2 class="fw-bold mb-0">Edit Event</h2>
-        <form method="POST" action="{{ route('organizer.events.destroy', $event) }}" onsubmit="return confirm('Delete this event permanently?');">
+        <form method="POST" action="{{ route('organizer.events.destroy', $event) }}" class="organizer-confirm-form" data-confirm-title="Delete Event" data-confirm-message="Delete this event permanently? This cannot be undone." data-confirm-button="Delete Event">
             @csrf
             @method('DELETE')
             <button type="submit" class="btn btn-outline-danger btn-sm">Delete Event</button>
@@ -217,6 +217,7 @@
         </form>
     </div>
 </div>
+@include('organizer.partials.confirmation-modal')
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     const eventType = document.getElementById('event_type_id');
