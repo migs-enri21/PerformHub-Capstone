@@ -104,7 +104,7 @@
                         <span class="text-muted">PHP {{ number_format((float) $event->budget, 0) }}</span>
                     </div>
                     <div class="col-md-4">
-                        <strong class="event-detail-label d-block mb-1">Reserved for Performers</strong>
+                        <strong class="event-detail-label d-block mb-1">Allocated to Confirmed Bookings</strong>
                         <span class="text-muted">PHP {{ number_format($reservedBudget, 0) }}</span>
                     </div>
                     <div class="col-md-4">

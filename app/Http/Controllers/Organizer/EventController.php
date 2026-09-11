@@ -94,7 +94,7 @@ class EventController extends Controller
                 $hasConfirmedBooking = true;
             }
 
-            if ($booking->status === 'accepted' || $booking->status === 'completed') {
+            if ($booking->status === 'completed') {
                 $reservedBudget += (float) $booking->budget;
             }
         }
