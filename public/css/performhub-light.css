@@ -103,7 +103,8 @@ body {
 }
 
 .form-select.ph-input option,
-.form-select.ph-input optgroup {
+.form-select.ph-input optgroup,
+.ph-select-menu {
     background: #ffffff;
     color: var(--ph-text);
 }

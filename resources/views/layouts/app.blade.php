@@ -72,6 +72,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="{{ asset('js/portfolio-autoplay.js') }}"></script>
+    <script src="{{ asset('js/ph-select.js') }}?v={{ filemtime(public_path('js/ph-select.js')) }}"></script>
     <script>
         document.querySelectorAll('.ph-autodismiss-alert').forEach(function (alertEl) {
             setTimeout(function () {

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Services\SupabaseStorageService;
 use App\Support\PerformerGenres;
+use App\Support\PerformerSpecialties;
 use App\Support\PhilippineLocations;
 use App\Support\SocialMedia;
 use Illuminate\Http\RedirectResponse;
@@ -39,8 +40,10 @@ class ProfileController extends Controller
             'last_name' => ['required', 'string', 'max:100'],
             'stage_name' => ['required', 'string', 'max:255'],
             'bio' => ['nullable', 'string', 'max:2000'],
-            'genre' => PerformerGenres::validationRule(),
-            'specialty' => ['nullable', 'string', 'max:100'],
+            'genre' => ['nullable', 'array', 'max:8'],
+            'genre.*' => PerformerGenres::listItemRule($profile->genreList()),
+            'specialty' => ['nullable', 'array', 'max:8'],
+            'specialty.*' => PerformerSpecialties::listItemRule($profile->specialtyList()),
             'category_ids' => ['nullable', 'array'],
             'category_ids.*' => ['integer', 'exists:categories,id'],
             'rate' => ['nullable', 'numeric', 'min:0'],
@@ -58,6 +61,9 @@ class ProfileController extends Controller
             'banner_photo' => ['nullable', 'image', 'max:5120'],
             'banner_position_y' => ['nullable', 'integer', 'min:0', 'max:100'],
         ], PhilippineLocations::locationFieldsRules(required: false)));
+
+        $validated['genre'] = array_values($validated['genre'] ?? []);
+        $validated['specialty'] = array_values($validated['specialty'] ?? []);
 
         $supabase = new SupabaseStorageService();
 
