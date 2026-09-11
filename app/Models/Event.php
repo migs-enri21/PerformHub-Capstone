@@ -18,6 +18,7 @@ class Event extends Model
         'start_time',
         'end_time',
         'venue',
+        'preferred_genres',
         'budget',
         'compensation_type',
         'first_prize',
@@ -26,6 +27,10 @@ class Event extends Model
         'rate_per_hour',
         'status',
         'cover_photo',
+    ];
+
+    protected $casts = [
+        'preferred_genres' => 'array',
     ];
 
     public function organizer()
@@ -62,11 +67,11 @@ class Event extends Model
         return $this->photos()->exists() || $this->cover_photo !== null;
     }
 
-    public static function completePastEvents(): int
+    public static function markPastEventsEnded(): int
     {
         return static::whereIn('status', ['Open', 'open'])
             ->whereDate('event_date', '<', today())
-            ->update(['status' => 'Completed']);
+            ->update(['status' => 'Ended']);
     }
 
     public function coverPhotoUrl(): ?string

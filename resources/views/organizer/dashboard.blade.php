@@ -50,7 +50,10 @@
             </div>
 
             @if($recommendationEvent)
-                <p class="text-muted small mb-3">Based on your upcoming event: {{ $recommendationEvent->title }}</p>
+                <p class="text-muted small mb-3">Based on your nearest upcoming event: {{ $recommendationEvent->title }}</p>
+                @if(! empty($recommendationEvent->preferred_genres))
+                    <p class="text-muted small mb-3">Required categories are matched first. Preferred genres are shown first within those matches.</p>
+                @endif
 
                 @forelse($recommendedPerformers as $performer)
                     <a href="{{ route('organizer.performers.show', $performer) }}" class="org-list-item">
@@ -67,6 +70,9 @@
                             @else
                                 <small class="text-muted d-block">Performer</small>
                             @endif
+                            @if($performer->genre)
+                                <small class="text-muted d-block">Genre: {{ $performer->genre }}</small>
+                            @endif
                             @if($performer->portfolios->count())
                                 <small class="text-primary">{{ $performer->portfolios->count() }} portfolio {{ Str::plural('item', $performer->portfolios->count()) }}</small>
                             @endif
@@ -81,7 +87,8 @@
         </div>
 
         <section class="mb-4">
-            <h5 class="fw-bold mb-3">Activity Feed</h5>
+            <h5 class="fw-bold mb-1">Recent Activity</h5>
+            <p class="text-muted small mb-3">Your event posts and recent portfolio posts from suggested performers.</p>
 
             <div class="portfolio-feed-stream">
                 @forelse($feedPosts as $post)

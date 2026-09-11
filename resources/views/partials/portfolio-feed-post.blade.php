@@ -8,6 +8,11 @@
 @php
     $first = $items->first();
     $postedAt = $first->created_at;
+    $postedDate = $postedAt->format('F j, Y');
+
+    if ($postedAt->greaterThanOrEqualTo(now()->subWeeks(2))) {
+        $postedDate = $postedAt->diffForHumans();
+    }
     $photoUrl = $performer->profilePhotoUrl();
 
     if ($photoUrl === null) {
@@ -46,7 +51,7 @@
             <small class="text-muted d-block">
                 {{ $categoryNames }}
             </small>
-            <small class="text-muted">{{ $postedAt->diffForHumans() }}</small>
+            <small class="text-muted">{{ $postedDate }}</small>
         </div>
     </div>
 

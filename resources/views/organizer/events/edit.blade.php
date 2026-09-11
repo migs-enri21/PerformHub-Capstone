@@ -13,11 +13,21 @@
     if ($selectedCategoryIds === null) {
         $selectedCategoryIds = $event->categories->pluck('id')->all();
     }
+
+    $selectedPreferredGenres = old('preferred_genres');
+
+    if ($selectedPreferredGenres === null) {
+        $selectedPreferredGenres = $event->preferred_genres;
+    }
+
+    if (! $selectedPreferredGenres) {
+        $selectedPreferredGenres = [];
+    }
 @endphp
 <div class="container">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2 class="fw-bold mb-0">Edit Event</h2>
-        <form method="POST" action="{{ route('organizer.events.destroy', $event) }}" onsubmit="return confirm('Delete this event permanently?');">
+        <form method="POST" action="{{ route('organizer.events.destroy', $event) }}" class="organizer-confirm-form" data-confirm-title="Delete Event" data-confirm-message="Delete this event permanently? This cannot be undone." data-confirm-button="Delete Event">
             @csrf
             @method('DELETE')
             <button type="submit" class="btn btn-outline-danger btn-sm">Delete Event</button>
@@ -95,13 +105,32 @@
                     <div class="border rounded p-2 @error('category_ids') border-danger @enderror">
                         @foreach($categories as $category)
                             <div class="form-check">
-                                <input class="form-check-input" type="checkbox" name="category_ids[]" value="{{ $category->id }}" id="category-{{ $category->id }}" @checked(in_array($category->id, $selectedCategoryIds))>
+                                <input class="form-check-input event-category-checkbox" type="checkbox" name="category_ids[]" value="{{ $category->id }}" id="category-{{ $category->id }}" data-category-name="{{ $category->name }}" @checked(in_array($category->id, $selectedCategoryIds))>
                                 <label class="form-check-label" for="category-{{ $category->id }}">{{ $category->name }}</label>
                             </div>
                         @endforeach
                     </div>
                     <small class="text-muted">Select all performer categories needed for this event.</small>
                     @error('category_ids')<div class="text-danger small">{{ $message }}</div>@enderror
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Preferred Genre / Style <span class="text-muted fw-normal">(Optional)</span></label>
+                    <div class="organizer-category-list organizer-genre-list @error('preferred_genres') organizer-category-list-error @enderror">
+                        <div class="row row-cols-2 g-2">
+                        @foreach($genreCategories as $genre => $categoryNames)
+                            <div class="col genre-option d-none" data-category-names="{{ implode('|', $categoryNames) }}">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="preferred_genres[]" value="{{ $genre }}" id="edit-genre-{{ $loop->index }}" @checked(in_array($genre, $selectedPreferredGenres))>
+                                    <label class="form-check-label" for="edit-genre-{{ $loop->index }}">{{ $genre }}</label>
+                                </div>
+                            </div>
+                        @endforeach
+                        </div>
+                    </div>
+                    <small class="text-muted" id="genreHelp">Select a performer category first. You can then tick one or more relevant styles.</small>
+                    @error('preferred_genres')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    @error('preferred_genres.*')<div class="text-danger small">{{ $message }}</div>@enderror
                 </div>
             </div>
 
@@ -161,10 +190,16 @@
                 </div>
                 <div class="col-md-6 mb-3">
                     <label class="form-label">Event Status</label>
-                    <select name="status" class="form-select @error('status') is-invalid @enderror">
-                        <option value="Open" @selected(old('status', $event->status) === 'Open')>Open</option>
-                        <option value="Cancelled" @selected(old('status', $event->status) === 'Cancelled')>Cancelled</option>
-                    </select>
+                    @if($event->status === 'Completed')
+                        <input type="hidden" name="status" value="Completed">
+                        <input type="text" class="form-control" value="Completed" disabled>
+                    @else
+                        <select name="status" class="form-select @error('status') is-invalid @enderror">
+                            <option value="Open" @selected(old('status', $event->status) === 'Open')>Open</option>
+                            <option value="Ended" @selected(old('status', $event->status) === 'Ended')>Ended</option>
+                            <option value="Cancelled" @selected(old('status', $event->status) === 'Cancelled')>Cancelled</option>
+                        </select>
+                    @endif
                     @error('status')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
             </div>
@@ -182,10 +217,14 @@
         </form>
     </div>
 </div>
+@include('organizer.partials.confirmation-modal')
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     const eventType = document.getElementById('event_type_id');
     const compensationFields = document.querySelectorAll('.compensation-field');
+    const categoryCheckboxes = document.querySelectorAll('.event-category-checkbox');
+    const genreOptions = document.querySelectorAll('.genre-option');
+    const genreHelp = document.getElementById('genreHelp');
 
     function showCompensationFields() {
         const selectedOption = eventType.options[eventType.selectedIndex];
@@ -200,8 +239,47 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
+    function showRelevantGenres() {
+        const selectedCategoryNames = [];
+
+        categoryCheckboxes.forEach(function (checkbox) {
+            if (checkbox.checked) {
+                selectedCategoryNames.push(checkbox.dataset.categoryName);
+            }
+        });
+
+        genreOptions.forEach(function (option) {
+            const categoryNames = option.dataset.categoryNames.split('|');
+            const genreCheckbox = option.querySelector('input');
+            let isRelevant = false;
+
+            categoryNames.forEach(function (categoryName) {
+                if (selectedCategoryNames.includes(categoryName)) {
+                    isRelevant = true;
+                }
+            });
+
+            option.classList.toggle('d-none', !isRelevant);
+            genreCheckbox.disabled = !isRelevant;
+
+            if (!isRelevant) {
+                genreCheckbox.checked = false;
+            }
+        });
+
+        if (selectedCategoryNames.length === 0) {
+            genreHelp.textContent = 'Select a performer category first. You can then tick one or more relevant styles.';
+        } else {
+            genreHelp.textContent = 'Tick one or more relevant styles. Categories remain required; styles only prioritize suggestions.';
+        }
+    }
+
     eventType.addEventListener('change', showCompensationFields);
+    categoryCheckboxes.forEach(function (checkbox) {
+        checkbox.addEventListener('change', showRelevantGenres);
+    });
     showCompensationFields();
+    showRelevantGenres();
 });
 </script>
 @endsection

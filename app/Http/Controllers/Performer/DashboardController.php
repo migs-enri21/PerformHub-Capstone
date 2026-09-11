@@ -84,8 +84,7 @@ class DashboardController extends Controller
             ->whereHas('categories', function ($query) use ($categoryIds) {
                 $query->whereIn('categories.id', $categoryIds);
             })
-            ->orderBy('event_date')
-            ->orderBy('start_time')
+            ->orderBy('created_at', 'desc')
             ->get();
     }
 }
