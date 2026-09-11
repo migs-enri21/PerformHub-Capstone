@@ -40,6 +40,7 @@ class ProfileController extends Controller
             'stage_name' => ['required', 'string', 'max:255'],
             'bio' => ['nullable', 'string', 'max:2000'],
             'genre' => PerformerGenres::validationRule(),
+            'specialty' => ['nullable', 'string', 'max:100'],
             'category_ids' => ['nullable', 'array'],
             'category_ids.*' => ['integer', 'exists:categories,id'],
             'rate' => ['nullable', 'numeric', 'min:0'],

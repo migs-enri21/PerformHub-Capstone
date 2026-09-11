@@ -19,6 +19,7 @@ class PerformerProfile extends Model
         'stage_name',
         'bio',
         'genre',
+        'specialty',
         'rate',
         'location',
         'region',

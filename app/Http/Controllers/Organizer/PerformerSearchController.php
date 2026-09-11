@@ -62,6 +62,7 @@ class PerformerSearchController extends Controller
 
         $this->applySearchFilter($query, $request->search);
         $this->applyCategoryFilter($query, $request->category_id);
+        $this->applySpecialtyFilter($query, $request->specialty);
         $this->applyGenreFilter($query, $request->genre);
 
         $date = $request->available_date;
@@ -83,6 +84,7 @@ class PerformerSearchController extends Controller
         $query->where(function ($performer) use ($search) {
             $performer->where('stage_name', 'like', "%{$search}%")
                 ->orWhere('genre', 'like', "%{$search}%")
+                ->orWhere('specialty', 'like', "%{$search}%")
                 ->orWhere('location', 'like', "%{$search}%");
         });
     }
@@ -102,6 +104,13 @@ class PerformerSearchController extends Controller
     {
         if ($genre) {
             $query->where('genre', $genre);
+        }
+    }
+
+    private function applySpecialtyFilter($query, ?string $specialty): void
+    {
+        if ($specialty) {
+            $query->where('specialty', 'like', "%{$specialty}%");
         }
     }
 

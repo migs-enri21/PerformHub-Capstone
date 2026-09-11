@@ -65,6 +65,10 @@
                         <label class="form-label text-muted small">Genre</label>
                         @include('partials.genre-select', ['value' => $profile->genre])
                     </div>
+                    <div class="col-md-6">
+                        <label class="form-label text-muted small">Specialty / Instrument</label>
+                        <input type="text" name="specialty" class="form-control ph-input" value="{{ old('specialty', $profile->specialty) }}" placeholder="e.g. Guitar, Piano, Vocals">
+                    </div>
                     @php
                         $selectedCategoryIds = old('category_ids', $profile->categories->pluck('id')->all());
                     @endphp

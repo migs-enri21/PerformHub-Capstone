@@ -51,6 +51,7 @@
                 @foreach($categories as $c)<option value="{{ $c->id }}" @selected(request('category_id')==$c->id)>{{ $c->name }}</option>@endforeach
             </select>
         </div>
+        <div class="col-md-2"><input type="text" name="specialty" class="form-control ph-input" placeholder="Specialty / Instrument" value="{{ request('specialty') }}"></div>
         <div class="col-md-2">@include('partials.genre-select', ['value' => request('genre'), 'placeholder' => 'All Genres'])</div>
         <div class="col-md-2"><input type="date" name="available_date" class="form-control ph-input" value="{{ request('available_date') }}"></div>
         <div class="col-md-1"><button class="btn ph-btn-primary w-100">Filter</button></div>
@@ -69,7 +70,7 @@
                     @endif
                     <div>
                         <h6 class="mb-0">{{ $p->stage_name }} @if($p->is_verified_badge)<i class="fas fa-circle-check verified-badge"></i>@endif</h6>
-                        <small class="text-muted">{{ $p->categoryNames() }} · {{ $p->genre }}</small>
+                        <small class="text-muted">{{ collect([$p->categoryNames(), $p->specialty, $p->genre])->filter()->implode(' · ') }}</small>
                     </div>
                 </div>
                 <p class="text-muted small">{{ Str::limit($p->bio, 80) }}</p>
