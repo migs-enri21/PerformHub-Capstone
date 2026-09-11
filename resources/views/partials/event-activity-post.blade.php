@@ -25,6 +25,12 @@
     if (! $photoUrl) {
         $photoUrl = 'https://ui-avatars.com/api/?name='.urlencode($name).'&background=6346ff&color=fff&size=128';
     }
+
+    $postedDate = $event->created_at->format('F j, Y');
+
+    if ($event->created_at->greaterThanOrEqualTo(now()->subWeeks(2))) {
+        $postedDate = $event->created_at->diffForHumans();
+    }
 @endphp
 
 <article class="event-feed-post mb-3">
@@ -32,7 +38,7 @@
         <img src="{{ $photoUrl }}" alt="" class="rounded-circle event-feed-avatar" width="44" height="44">
         <div>
             <strong class="event-card-organizer">{{ $name }}</strong>
-            <small class="text-muted d-block">Created a new event · {{ $event->created_at->diffForHumans() }}</small>
+            <small class="text-muted d-block">Created a new event · {{ $postedDate }}</small>
         </div>
     </div>
 

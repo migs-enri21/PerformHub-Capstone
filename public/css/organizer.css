@@ -225,6 +225,11 @@
     border-color: var(--ph-purple);
 }
 
+.organizer-genre-list {
+    max-height: 220px;
+    overflow-y: auto;
+}
+
 @media (max-width: 1199px) {
     .org-right-column { position: static; }
 }

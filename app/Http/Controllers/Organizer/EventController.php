@@ -11,6 +11,7 @@ use App\Services\SupabaseStorageService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 
@@ -43,8 +44,9 @@ class EventController extends Controller
     {
         $eventTypes = EventType::where('is_active', true)->orderBy('name')->get();
         $categories = Category::orderBy('name')->get();
+        $genreCategories = $this->getGenreCategories();
 
-        return view('organizer.events.create', compact('eventTypes', 'categories'));
+        return view('organizer.events.create', compact('eventTypes', 'categories', 'genreCategories'));
     }
 
     public function store(Request $request): RedirectResponse
@@ -121,8 +123,9 @@ class EventController extends Controller
         $event->load(['photos', 'categories']);
         $eventTypes = EventType::where('is_active', true)->orderBy('name')->get();
         $categories = Category::orderBy('name')->get();
+        $genreCategories = $this->getGenreCategories();
 
-        return view('organizer.events.edit', compact('event', 'eventTypes', 'categories'));
+        return view('organizer.events.edit', compact('event', 'eventTypes', 'categories', 'genreCategories'));
     }
 
     public function update(Request $request, Event $event): RedirectResponse
@@ -233,6 +236,8 @@ class EventController extends Controller
             'event_type_id' => ['required', 'exists:event_types,id'],
             'category_ids' => ['required', 'array', 'min:1'],
             'category_ids.*' => ['exists:categories,id'],
+            'preferred_genres' => ['nullable', 'array'],
+            'preferred_genres.*' => ['string', Rule::in(array_keys($this->getGenreCategories()))],
             'title' => ['required', 'string', 'max:255'],
             'cover_photo' => ['nullable', 'image', 'max:5120'],
             'photos' => ['nullable', 'array', 'max:3'],
@@ -269,6 +274,10 @@ class EventController extends Controller
         }
 
         $validated = $request->validate($rules);
+
+        if (! array_key_exists('preferred_genres', $validated)) {
+            $validated['preferred_genres'] = [];
+        }
 
         if ($eventType) {
             $validated['compensation_type'] = $eventType->compensation_type;
@@ -395,5 +404,24 @@ class EventController extends Controller
         if ($event->cover_photo && ! str_starts_with($event->cover_photo, 'http')) {
             $supabase->delete('organizer-files', $event->cover_photo);
         }
+    }
+
+    private function getGenreCategories(): array
+    {
+        $genreCategories = [];
+
+        foreach (config('organizer_genre_styles', []) as $categoryName => $genres) {
+            foreach ($genres as $genre) {
+                if (! isset($genreCategories[$genre])) {
+                    $genreCategories[$genre] = [];
+                }
+
+                $genreCategories[$genre][] = $categoryName;
+            }
+        }
+
+        ksort($genreCategories);
+
+        return $genreCategories;
     }
 }

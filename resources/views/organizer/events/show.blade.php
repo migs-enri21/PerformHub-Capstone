@@ -88,6 +88,16 @@
                         </span>
                     </div>
                 @endif
+                @if(! empty($event->preferred_genres))
+                    <div class="col-md-6">
+                        <strong class="event-detail-label d-block mb-1">Preferred Genres</strong>
+                        <span class="text-muted">
+                            @foreach($event->preferred_genres as $genre)
+                                {{ $genre }}@if(! $loop->last), @endif
+                            @endforeach
+                        </span>
+                    </div>
+                @endif
                 @if($event->compensation_type === 'fixed' && $event->budget)
                     <div class="col-md-4">
                         <strong class="event-detail-label d-block mb-1">Fixed Budget</strong>

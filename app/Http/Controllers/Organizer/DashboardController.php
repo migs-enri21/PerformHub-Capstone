@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Models\Booking;
 use App\Models\Event;
 use App\Models\Portfolio;
-use App\Models\User;
 use App\Services\PerformerRecommendationService;
 use App\Support\PortfolioFeed;
 use Illuminate\Support\Collection;
@@ -34,7 +33,7 @@ class DashboardController extends Controller
             'recentNotifications' => $this->getRecentNotifications(),
             'recommendationEvent' => $recommendationEvent,
             'recommendedPerformers' => $recommendedPerformers,
-            'feedPosts' => $this->getFeedPosts(),
+            'feedPosts' => $this->getFeedPosts($recommendedPerformers),
         ]);
     }
 
@@ -66,7 +65,7 @@ class DashboardController extends Controller
         return Auth::user()->notifications()->latest()->take(3)->get();
     }
 
-    private function getFeedPosts(): Collection
+    private function getFeedPosts(Collection $recommendedPerformers): Collection
     {
         $eventPosts = Event::with(['organizer.organizerProfile', 'photos'])
             ->where('organizer_id', Auth::id())
@@ -81,32 +80,32 @@ class DashboardController extends Controller
                 ];
             });
 
-        $portfolioPosts = PortfolioFeed::groupItems(
-            Portfolio::with(['performerProfile.user', 'performerProfile.categories'])
-                ->whereHas('performerProfile.user', function ($query) {
-                    $query->where('onboarding_step', '>=', User::ONBOARDING_COMPLETE)
-                        ->where('is_verified', true);
-                })
-                ->whereHas('performerProfile', function ($query) {
-                    $query->where('is_verified_badge', true);
-                })
-                ->latest()
-                ->take(50)
-                ->get()
-        )
-            ->take(10)
-            ->map(function (Collection $items) {
-                return [
-                    'type' => 'portfolio',
-                    'created_at' => $items->first()->created_at,
-                    'items' => $items,
-                    'performer' => $items->first()->performerProfile,
-                ];
-            });
+        $recommendedPerformerIds = $recommendedPerformers->pluck('id');
+        $portfolioPosts = collect();
+
+        if ($recommendedPerformerIds->isNotEmpty()) {
+            $portfolioPosts = PortfolioFeed::groupItems(
+                Portfolio::with(['performerProfile.user', 'performerProfile.categories'])
+                    ->whereIn('performer_profile_id', $recommendedPerformerIds)
+                    ->latest()
+                    ->take(50)
+                    ->get()
+            )
+                ->take(10)
+                ->map(function (Collection $items) {
+                    return [
+                        'type' => 'portfolio',
+                        'created_at' => $items->first()->created_at,
+                        'items' => $items,
+                        'performer' => $items->first()->performerProfile,
+                    ];
+                });
+        }
 
         return $eventPosts
             ->concat($portfolioPosts)
             ->sortByDesc('created_at')
+            ->take(10)
             ->values();
     }
 }

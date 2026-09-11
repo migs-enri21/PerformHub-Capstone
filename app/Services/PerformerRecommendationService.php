@@ -17,7 +17,7 @@ class PerformerRecommendationService
             return new Collection();
         }
 
-        return PerformerProfile::with(['user', 'categories', 'portfolios'])
+        $performers = PerformerProfile::with(['user', 'categories', 'portfolios'])
             ->whereHas('user', function ($query) {
                 $query->where('is_active', true)
                     ->where('is_verified', true)
@@ -28,7 +28,25 @@ class PerformerRecommendationService
                 $query->whereIn('categories.id', $categoryIds);
             })
             ->orderBy('stage_name')
-            ->limit($limit)
             ->get();
+
+        $preferredGenres = $event->preferred_genres;
+
+        if (empty($preferredGenres)) {
+            return $performers->take($limit);
+        }
+
+        $genreMatches = new Collection();
+        $otherMatches = new Collection();
+
+        foreach ($performers as $performer) {
+            if (in_array($performer->genre, $preferredGenres, true)) {
+                $genreMatches->push($performer);
+            } else {
+                $otherMatches->push($performer);
+            }
+        }
+
+        return $genreMatches->concat($otherMatches)->take($limit);
     }
 }

@@ -18,6 +18,7 @@ class Event extends Model
         'start_time',
         'end_time',
         'venue',
+        'preferred_genres',
         'budget',
         'compensation_type',
         'first_prize',
@@ -26,6 +27,10 @@ class Event extends Model
         'rate_per_hour',
         'status',
         'cover_photo',
+    ];
+
+    protected $casts = [
+        'preferred_genres' => 'array',
     ];
 
     public function organizer()
