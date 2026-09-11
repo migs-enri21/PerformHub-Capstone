@@ -3,9 +3,11 @@
 return [
 
     /*
-    | Specialty is the instrument or vocal skill — more specific than category.
-    | Category = role (Singer, Dancer). Genre = style (Rap, OPM).
-    */
+     | Specialty is the instrument or vocal skill — more specific than category.
+     | Category = role (Singer, Dancer). Genre = style (Rap, OPM).
+     | After migrate, admin manages this list in Genres & Specialties.
+     | This file is only used to seed the table.
+     */
     'options' => [
         'Vocals',
         'Rap Vocals',

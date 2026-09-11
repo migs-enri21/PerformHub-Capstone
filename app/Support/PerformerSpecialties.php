@@ -2,13 +2,14 @@
 
 namespace App\Support;
 
+use App\Models\Specialty;
 use Illuminate\Validation\Rule;
 
 class PerformerSpecialties
 {
     public static function all(): array
     {
-        return config('specialties.options', []);
+        return Specialty::activeNames();
     }
 
     public static function validationRule(?string $current = null): array

@@ -2,6 +2,10 @@
 
 return [
 
+    /*
+     | Default genre names. After migrate, admin manages this list in
+     | Genres & Specialties. This file is only used to seed the table.
+     */
     'options' => [
         'Pop',
         'Rock',

@@ -4,8 +4,10 @@ namespace Database\Seeders;
 
 use App\Models\Category;
 use App\Models\EventType;
+use App\Models\Genre;
 use App\Models\OrganizerProfile;
 use App\Models\PerformerProfile;
+use App\Models\Specialty;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Str;
@@ -94,6 +96,20 @@ class DatabaseSeeder extends Seeder
                 'description' => null,
                 'is_active' => true,
             ]);
+        }
+
+        foreach (config('genres.options', []) as $name) {
+            Genre::firstOrCreate(
+                ['name' => $name],
+                ['slug' => Genre::makeSlug($name), 'is_active' => true]
+            );
+        }
+
+        foreach (config('specialties.options', []) as $name) {
+            Specialty::firstOrCreate(
+                ['name' => $name],
+                ['slug' => Specialty::makeSlug($name), 'is_active' => true]
+            );
         }
 
         $performer = User::create([

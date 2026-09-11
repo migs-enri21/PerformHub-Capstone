@@ -3,7 +3,9 @@
 use App\Http\Controllers\Admin\CategoryController as AdminCategoryController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\EventTypeController;
+use App\Http\Controllers\Admin\GenreController as AdminGenreController;
 use App\Http\Controllers\Admin\MonitoringController;
+use App\Http\Controllers\Admin\SpecialtyController as AdminSpecialtyController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Auth\OnboardingController;
@@ -142,6 +144,22 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::put('/event-types/{eventType}', [EventTypeController::class, 'update'])->name('event-types.update');
     Route::delete('/event-types/{eventType}', [EventTypeController::class, 'destroy'])->name('event-types.destroy');
     Route::patch('/event-types/{eventType}/toggle', [EventTypeController::class, 'toggle'])->name('event-types.toggle');
+
+    Route::get('/genres', [AdminGenreController::class, 'index'])->name('genres.index');
+    Route::post('/genres', [AdminGenreController::class, 'store'])->name('genres.store');
+    Route::patch('/genres/{genre}/toggle', [AdminGenreController::class, 'toggle'])->name('genres.toggle');
+    Route::get('/genres/{genre}/edit', [AdminGenreController::class, 'edit'])->name('genres.edit');
+    Route::get('/genres/{genre}', [AdminGenreController::class, 'show'])->name('genres.show');
+    Route::put('/genres/{genre}', [AdminGenreController::class, 'update'])->name('genres.update');
+    Route::delete('/genres/{genre}', [AdminGenreController::class, 'destroy'])->name('genres.destroy');
+
+    Route::get('/specialties', [AdminSpecialtyController::class, 'index'])->name('specialties.index');
+    Route::post('/specialties', [AdminSpecialtyController::class, 'store'])->name('specialties.store');
+    Route::patch('/specialties/{specialty}/toggle', [AdminSpecialtyController::class, 'toggle'])->name('specialties.toggle');
+    Route::get('/specialties/{specialty}/edit', [AdminSpecialtyController::class, 'edit'])->name('specialties.edit');
+    Route::get('/specialties/{specialty}', [AdminSpecialtyController::class, 'show'])->name('specialties.show');
+    Route::put('/specialties/{specialty}', [AdminSpecialtyController::class, 'update'])->name('specialties.update');
+    Route::delete('/specialties/{specialty}', [AdminSpecialtyController::class, 'destroy'])->name('specialties.destroy');
 
     Route::get('/monitoring/bookings', [MonitoringController::class, 'bookings'])->name('monitoring.bookings');
     Route::get('/events', [\App\Http\Controllers\Admin\EventController::class, 'index'])->name('events.index');

@@ -2,13 +2,14 @@
 
 namespace App\Support;
 
+use App\Models\Genre;
 use Illuminate\Validation\Rule;
 
 class PerformerGenres
 {
     public static function all(): array
     {
-        return config('genres.options', []);
+        return Genre::activeNames();
     }
 
     public static function validationRule(bool $required = false): array
