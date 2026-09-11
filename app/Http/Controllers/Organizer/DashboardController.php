@@ -40,9 +40,10 @@ class DashboardController extends Controller
 
     private function getOverviewData(): array
     {
-        Event::completePastEvents();
+        Event::markPastEventsEnded();
 
         $upcomingEvents = Event::where('organizer_id', Auth::id())
+            ->where('status', 'Open')
             ->whereDate('event_date', '>=', today())
             ->orderBy('event_date')
             ->orderBy('start_time')

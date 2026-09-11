@@ -18,7 +18,7 @@ class EventController extends Controller
 {
     public function index(Request $request): View
     {
-        Event::completePastEvents();
+        Event::markPastEventsEnded();
 
         $query = Event::with('photos')->where('organizer_id', Auth::id());
 
@@ -75,7 +75,7 @@ class EventController extends Controller
 
     public function show(Event $event): View
     {
-        Event::completePastEvents();
+        Event::markPastEventsEnded();
         $event->refresh();
 
         $this->authorizeEvent($event);
@@ -97,7 +97,7 @@ class EventController extends Controller
             }
         }
 
-        if (strtolower($event->status) === 'open' && $hasConfirmedBooking) {
+        if (in_array(strtolower($event->status), ['open', 'ended']) && $hasConfirmedBooking) {
             $canCompleteEvent = true;
         }
 
@@ -128,6 +128,12 @@ class EventController extends Controller
     public function update(Request $request, Event $event): RedirectResponse
     {
         $this->authorizeEvent($event);
+
+        if ($event->status !== 'Completed' && $request->input('status') === 'Completed') {
+            return back()->withInput()->withErrors([
+                'status' => 'Use the Mark Event Completed button after confirming a booking.',
+            ]);
+        }
 
         $validated = $this->validatedEvent($request, true);
 
@@ -209,13 +215,11 @@ class EventController extends Controller
         }
 
         if ($filter === 'completed') {
-            $query->where(function ($events) use ($today) {
-                $events->where('status', 'Completed')
-                    ->orWhere(function ($events) use ($today) {
-                        $events->whereDate('event_date', '<', $today)
-                            ->where('status', '!=', 'Cancelled');
-                    });
-            });
+            $query->where('status', 'Completed');
+        }
+
+        if ($filter === 'ended') {
+            $query->where('status', 'Ended');
         }
 
         if ($filter === 'cancelled') {
@@ -362,7 +366,7 @@ class EventController extends Controller
     private function statusRules(bool $updating): array
     {
         if ($updating) {
-            return ['required', 'in:Open,Cancelled'];
+            return ['required', 'in:Open,Ended,Completed,Cancelled'];
         }
 
         return ['nullable'];

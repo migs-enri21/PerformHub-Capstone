@@ -161,10 +161,16 @@
                 </div>
                 <div class="col-md-6 mb-3">
                     <label class="form-label">Event Status</label>
-                    <select name="status" class="form-select @error('status') is-invalid @enderror">
-                        <option value="Open" @selected(old('status', $event->status) === 'Open')>Open</option>
-                        <option value="Cancelled" @selected(old('status', $event->status) === 'Cancelled')>Cancelled</option>
-                    </select>
+                    @if($event->status === 'Completed')
+                        <input type="hidden" name="status" value="Completed">
+                        <input type="text" class="form-control" value="Completed" disabled>
+                    @else
+                        <select name="status" class="form-select @error('status') is-invalid @enderror">
+                            <option value="Open" @selected(old('status', $event->status) === 'Open')>Open</option>
+                            <option value="Ended" @selected(old('status', $event->status) === 'Ended')>Ended</option>
+                            <option value="Cancelled" @selected(old('status', $event->status) === 'Cancelled')>Cancelled</option>
+                        </select>
+                    @endif
                     @error('status')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
             </div>

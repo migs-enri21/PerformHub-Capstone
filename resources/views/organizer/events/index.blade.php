@@ -25,6 +25,7 @@
     <a href="{{ route('organizer.events.index') }}" class="btn btn-sm me-2 @if(! $selectedFilter) btn-primary @else btn-outline-primary @endif">All</a>
     <a href="{{ route('organizer.events.index', ['status' => 'upcoming']) }}" class="btn btn-sm me-2 @if($selectedFilter === 'upcoming') btn-primary @else btn-outline-secondary @endif">Upcoming</a>
     <a href="{{ route('organizer.events.index', ['status' => 'ongoing']) }}" class="btn btn-sm me-2 @if($selectedFilter === 'ongoing') btn-primary @else btn-outline-secondary @endif">Ongoing</a>
+    <a href="{{ route('organizer.events.index', ['status' => 'ended']) }}" class="btn btn-sm me-2 @if($selectedFilter === 'ended') btn-primary @else btn-outline-secondary @endif">Ended</a>
     <a href="{{ route('organizer.events.index', ['status' => 'completed']) }}" class="btn btn-sm me-2 @if($selectedFilter === 'completed') btn-primary @else btn-outline-secondary @endif">Completed</a>
     <a href="{{ route('organizer.events.index', ['status' => 'cancelled']) }}" class="btn btn-sm @if($selectedFilter === 'cancelled') btn-primary @else btn-outline-secondary @endif">Cancelled</a>
 </div>
@@ -79,6 +80,8 @@
                             <span class="badge bg-success">
                         @elseif(in_array(strtolower($event->status), ['completed'], true))
                             <span class="badge bg-dark">
+                        @elseif(in_array(strtolower($event->status), ['ended'], true))
+                            <span class="badge bg-warning text-dark">
                         @elseif(in_array(strtolower($event->status), ['cancelled'], true))
                             <span class="badge bg-danger">
                         @else
