@@ -136,7 +136,9 @@ class OnboardingController extends Controller
             if ($request->hasFile('government_id')) {
                 $this->storeVerificationDocument($user, 'government_id', $request->file('government_id'));
             }
-            $this->storeVerificationDocument($user, 'business_permit', $request->file('business_permit'));
+            if ($request->hasFile('business_permit')) {
+                $this->storeVerificationDocument($user, 'business_permit', $request->file('business_permit'));
+            }
 
             if ($request->hasFile('proof_of_events')) {
                 $this->storeVerificationDocument($user, 'proof_of_events', $request->file('proof_of_events'));
