@@ -48,11 +48,15 @@
         <div class="col-md-2">
             <select name="category_id" class="form-select ph-input">
                 <option value="">All Categories</option>
-                @foreach($categories as $c)<option value="{{ $c->id }}" @selected(request('category_id')==$c->id)>{{ $c->name }}</option>@endforeach
+                @foreach($categories as $c)<option value="{{ $c->id }}" data-category-name="{{ strtolower($c->name) }}" @selected(request('category_id')==$c->id)>{{ $c->name }}</option>@endforeach
             </select>
         </div>
-        <div class="col-md-2"><input type="text" name="specialty" class="form-control ph-input" placeholder="Specialty / Instrument" value="{{ request('specialty') }}"></div>
-        <div class="col-md-2">@include('partials.genre-select', ['value' => request('genre'), 'placeholder' => 'All Genres'])</div>
+        <div class="col-md-2">
+            <select name="specialty" id="searchSpecialty" class="form-select ph-input">
+                <option value="">All Specialties / Instruments</option>
+            </select>
+        </div>
+        <div class="col-md-2">@include('partials.genre-select', ['value' => request('genre'), 'placeholder' => 'All Genres', 'id' => 'searchGenre'])</div>
         <div class="col-md-2"><input type="date" name="available_date" class="form-control ph-input" value="{{ request('available_date') }}"></div>
         <div class="col-md-1"><button class="btn ph-btn-primary w-100">Filter</button></div>
     </form>
@@ -87,3 +91,41 @@
 </div>
 {{ $performers->links() }}
 @endsection
+
+@push('scripts')
+<script>
+(function () {
+    const optionMap = @json(config('performer_options'));
+    const categorySelect = document.querySelector('select[name="category_id"]');
+    const specialtySelect = document.getElementById('searchSpecialty');
+    const genreSelect = document.getElementById('searchGenre');
+    const selectedSpecialty = @json(request('specialty'));
+    const selectedGenre = @json(request('genre'));
+
+    function key(value) { return (value || '').trim().toLowerCase(); }
+    function unique(values) { return [...new Set(values)]; }
+    function categoryOptions() {
+        return optionMap.categories[key(categorySelect.selectedOptions[0]?.dataset.categoryName)] || optionMap.fallback;
+    }
+    function fill(select, values, selected, placeholder, preserveUnknown = false) {
+        select.innerHTML = `<option value="">${placeholder}</option>`;
+        values.forEach(value => select.add(new Option(value, value, false, value === selected)));
+        if (preserveUnknown && selected && !values.includes(selected)) select.add(new Option(selected, selected, true, true));
+    }
+    function refresh(initial = false) {
+        const category = categoryOptions();
+        const specialties = unique(category.specialties || []);
+        const currentSpecialty = initial ? selectedSpecialty : specialtySelect.value;
+        const specialty = specialties.includes(currentSpecialty) ? currentSpecialty : '';
+        fill(specialtySelect, specialties, specialty, 'All Specialties / Instruments', initial);
+        const genres = optionMap.specialties[key(specialtySelect.value)] || category.genres || [];
+        const currentGenre = initial ? selectedGenre : genreSelect.value;
+        const genre = genres.includes(currentGenre) ? currentGenre : '';
+        fill(genreSelect, unique(genres), genre, 'All Genres', initial);
+    }
+    categorySelect.addEventListener('change', () => refresh());
+    specialtySelect.addEventListener('change', () => refresh());
+    refresh(true);
+})();
+</script>
+@endpush

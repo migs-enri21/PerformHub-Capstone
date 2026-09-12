@@ -3,6 +3,7 @@
     'value' => '',
     'required' => false,
     'placeholder' => 'Select genre',
+    'id' => null,
 ])
 
 @php
@@ -11,7 +12,7 @@
     $options = PerformerGenres::all();
 @endphp
 
-<select name="{{ $name }}" class="form-select ph-input" {{ $required ? 'required' : '' }}>
+<select name="{{ $name }}" class="form-select ph-input" @if($id) id="{{ $id }}" @endif {{ $required ? 'required' : '' }}>
     <option value="" @if($required) disabled @endif {{ $selected ? '' : 'selected' }}>{{ $placeholder }}</option>
     @if($selected && ! in_array($selected, $options, true))
         <option value="{{ $selected }}" selected>{{ $selected }}</option>

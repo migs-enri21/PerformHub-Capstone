@@ -71,7 +71,9 @@ class OnboardingController extends Controller
                 ], $locationData)
             );
 
-            return $this->finishOnboarding($user);
+            $user->update(['onboarding_step' => User::ONBOARDING_VERIFICATION]);
+
+            return redirect()->route('onboarding.verification');
         }
 
         $user->organizerProfile()->updateOrCreate(
@@ -103,10 +105,6 @@ class OnboardingController extends Controller
             return redirect()->route('onboarding.complete');
         }
 
-        if ($user->isPerformer()) {
-            return $this->finishOnboarding($user);
-        }
-
         $hasGovernmentId = $user->verificationDocuments->contains('document_type', 'government_id');
 
         return view('onboarding.verification', ['user' => $user, 'hasGovernmentId' => $hasGovernmentId]);
@@ -117,15 +115,20 @@ class OnboardingController extends Controller
         $user = Auth::user();
 
         $hasGovernmentId = $user->verificationDocuments()->where('document_type', 'government_id')->exists();
-        $governmentIdRule = $hasGovernmentId ? ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'] : ['required', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'];
+        $governmentIdRule = $hasGovernmentId ? ['nullable', 'array', 'max:5'] : ['required', 'array', 'min:1', 'max:5'];
+        $governmentIdFileRule = ['required', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'];
 
         if ($user->isOrganizer()) {
             $validated = $request->validate([
                 'organization_type' => ['required', 'in:company,individual,nonprofit'],
                 'government_id' => $governmentIdRule,
-                'business_permit' => ['required_unless:organization_type,individual', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:10240'],
-                'proof_of_events' => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf,zip', 'max:51200'],
-                'bir_certificate' => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'],
+                'government_id.*' => $governmentIdFileRule,
+                'business_permit' => ['required_unless:organization_type,individual', 'array', 'min:1', 'max:5'],
+                'business_permit.*' => ['required', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:10240'],
+                'proof_of_events' => ['nullable', 'array', 'max:5'],
+                'proof_of_events.*' => ['required', 'file', 'mimes:jpg,jpeg,png,pdf,zip', 'max:51200'],
+                'bir_certificate' => ['nullable', 'array', 'max:5'],
+                'bir_certificate.*' => ['required', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'],
             ]);
 
             $user->organizerProfile()->updateOrCreate(
@@ -134,24 +137,41 @@ class OnboardingController extends Controller
             );
 
             if ($request->hasFile('government_id')) {
-                $this->storeVerificationDocument($user, 'government_id', $request->file('government_id'));
+                foreach ($request->file('government_id', []) as $file) {
+                    $this->storeVerificationDocument($user, 'government_id', $file, [], false);
+                }
             }
-            $this->storeVerificationDocument($user, 'business_permit', $request->file('business_permit'));
+            foreach ($request->file('business_permit', []) as $index => $file) {
+                $this->storeVerificationDocument($user, 'business_permit', $file, [], $index === 0);
+            }
 
             if ($request->hasFile('proof_of_events')) {
-                $this->storeVerificationDocument($user, 'proof_of_events', $request->file('proof_of_events'));
+                foreach ($request->file('proof_of_events', []) as $index => $file) {
+                    $this->storeVerificationDocument($user, 'proof_of_events', $file, [], $index === 0);
+                }
             }
 
             if ($request->hasFile('bir_certificate')) {
-                $this->storeVerificationDocument($user, 'bir_certificate', $request->file('bir_certificate'));
+                foreach ($request->file('bir_certificate', []) as $index => $file) {
+                    $this->storeVerificationDocument($user, 'bir_certificate', $file, [], $index === 0);
+                }
             }
         } else {
             $request->validate([
                 'government_id' => $governmentIdRule,
+                'government_id.*' => $governmentIdFileRule,
+                'proof_of_events' => ['nullable', 'array', 'max:5'],
+                'proof_of_events.*' => ['required', 'file', 'mimes:jpg,jpeg,png,pdf,zip', 'max:51200'],
             ]);
 
             if ($request->hasFile('government_id')) {
-                $this->storeVerificationDocument($user, 'government_id', $request->file('government_id'));
+                foreach ($request->file('government_id', []) as $file) {
+                    $this->storeVerificationDocument($user, 'government_id', $file, [], false);
+                }
+            }
+
+            foreach ($request->file('proof_of_events', []) as $index => $file) {
+                $this->storeVerificationDocument($user, 'proof_of_events', $file, [], $index === 0);
             }
         }
 

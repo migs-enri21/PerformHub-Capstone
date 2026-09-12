@@ -9,12 +9,14 @@ use Illuminate\Http\UploadedFile;
 
 trait HandlesVerificationDocuments
 {
-    protected function storeVerificationDocument(User $user, string $type, UploadedFile $file, array $meta = []): void
+    protected function storeVerificationDocument(User $user, string $type, UploadedFile $file, array $meta = [], bool $replaceExisting = true): void
     {
-        $existing = $user->verificationDocuments()->where('document_type', $type)->first();
+        if ($replaceExisting) {
+            $existing = $user->verificationDocuments()->where('document_type', $type)->first();
 
-        if ($existing) {
-            $existing->delete();
+            if ($existing) {
+                $existing->delete();
+            }
         }
 
         $supabase = new SupabaseStorageService();

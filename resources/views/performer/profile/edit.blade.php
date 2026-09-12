@@ -61,14 +61,6 @@
                         <label class="form-label text-muted small">Stage Name</label>
                         <input type="text" name="stage_name" class="form-control ph-input" value="{{ old('stage_name', $profile->stage_name) }}" required>
                     </div>
-                    <div class="col-md-6">
-                        <label class="form-label text-muted small">Genre</label>
-                        @include('partials.genre-select', ['value' => $profile->genre])
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label text-muted small">Specialty / Instrument</label>
-                        <input type="text" name="specialty" class="form-control ph-input" value="{{ old('specialty', $profile->specialty) }}" placeholder="e.g. Guitar, Piano, Vocals">
-                    </div>
                     @php
                         $selectedCategoryIds = old('category_ids', $profile->categories->pluck('id')->all());
                     @endphp
@@ -76,12 +68,22 @@
                         <label class="form-label text-muted small">Categories <span class="text-muted">(select all that apply — e.g. Singer and Dancer)</span></label>
                         <div class="category-checkbox-grid">
                             @foreach($categories as $cat)
-                                <label class="category-checkbox-option">
+                                <label class="category-checkbox-option" data-category-name="{{ strtolower($cat->name) }}">
                                     <input type="checkbox" name="category_ids[]" value="{{ $cat->id }}" @checked(in_array($cat->id, $selectedCategoryIds))>
                                     <span>{{ $cat->name }}</span>
                                 </label>
                             @endforeach
                         </div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label text-muted small">Specialty / Instrument</label>
+                        <select name="specialty" id="performerSpecialty" class="form-select ph-input">
+                            <option value="">Select specialty or instrument</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label text-muted small">Genre</label>
+                        @include('partials.genre-select', ['value' => $profile->genre, 'id' => 'performerGenre'])
                     </div>
                     <div class="col-md-6">
                         <label class="form-label text-muted small">Rate (₱)</label>
@@ -143,6 +145,73 @@
 
 @push('scripts')
 <script>
+(function () {
+    const optionMap = @json(config('performer_options'));
+    const specialtySelect = document.getElementById('performerSpecialty');
+    const genreSelect = document.getElementById('performerGenre');
+    const categoryInputs = document.querySelectorAll('input[name="category_ids[]"]');
+    const savedSpecialty = @json(old('specialty', $profile->specialty));
+    const savedGenre = @json(old('genre', $profile->genre));
+
+    function key(value) {
+        return (value || '').trim().toLowerCase();
+    }
+
+    function unique(values) {
+        return [...new Set(values)];
+    }
+
+    function selectedCategories() {
+        return [...categoryInputs]
+            .filter(input => input.checked)
+            .map(input => optionMap.categories[key(input.closest('[data-category-name]')?.dataset.categoryName)]);
+    }
+
+    function specialtiesForCategories() {
+        const categories = selectedCategories();
+        return unique((categories.length ? categories : [optionMap.fallback])
+            .flatMap(category => category.specialties || []));
+    }
+
+    function genresForSpecialty(specialty) {
+        const specialtyGenres = optionMap.specialties[key(specialty)];
+        if (specialtyGenres) return specialtyGenres;
+
+        return unique(selectedCategories().flatMap(category => category.genres || []));
+    }
+
+    function fill(select, values, selected, placeholder, preserveUnknown = false) {
+        select.innerHTML = `<option value="">${placeholder}</option>`;
+        values.forEach(value => {
+            const option = new Option(value, value, false, value === selected);
+            select.add(option);
+        });
+
+        if (preserveUnknown && selected && !values.includes(selected)) {
+            select.add(new Option(selected, selected, true, true));
+        }
+    }
+
+    function refreshSpecialties(initial = false) {
+        const specialties = specialtiesForCategories();
+        const current = initial ? savedSpecialty : specialtySelect.value;
+        const selected = specialties.includes(current) ? current : '';
+        fill(specialtySelect, specialties, selected, 'Select specialty or instrument', initial);
+        refreshGenres(initial);
+    }
+
+    function refreshGenres(initial = false) {
+        const genres = genresForSpecialty(specialtySelect.value);
+        const current = initial ? savedGenre : genreSelect.value;
+        const selected = genres.includes(current) ? current : '';
+        fill(genreSelect, genres, selected, 'Select genre', initial);
+    }
+
+    categoryInputs.forEach(input => input.addEventListener('change', () => refreshSpecialties()));
+    specialtySelect.addEventListener('change', () => refreshGenres());
+    refreshSpecialties(true);
+})();
+
 (function () {
     const wrap = document.getElementById('bannerReposition');
     const input = document.getElementById('bannerPositionYInput');
