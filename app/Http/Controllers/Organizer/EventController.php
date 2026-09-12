@@ -8,9 +8,12 @@ use App\Models\Event;
 use App\Models\EventType;
 use App\Models\Booking;
 use App\Services\SupabaseStorageService;
+use App\Support\OptionList;
+use App\Support\PerformerGenres;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 
@@ -18,7 +21,7 @@ class EventController extends Controller
 {
     public function index(Request $request): View
     {
-        Event::completePastEvents();
+        Event::markPastEventsEnded();
 
         $query = Event::with('photos')->where('organizer_id', Auth::id());
 
@@ -43,8 +46,9 @@ class EventController extends Controller
     {
         $eventTypes = EventType::where('is_active', true)->orderBy('name')->get();
         $categories = Category::orderBy('name')->get();
+        $genreCategories = $this->getGenreCategories();
 
-        return view('organizer.events.create', compact('eventTypes', 'categories'));
+        return view('organizer.events.create', compact('eventTypes', 'categories', 'genreCategories'));
     }
 
     public function store(Request $request): RedirectResponse
@@ -75,7 +79,7 @@ class EventController extends Controller
 
     public function show(Event $event): View
     {
-        Event::completePastEvents();
+        Event::markPastEventsEnded();
         $event->refresh();
 
         $this->authorizeEvent($event);
@@ -92,12 +96,12 @@ class EventController extends Controller
                 $hasConfirmedBooking = true;
             }
 
-            if ($booking->status === 'accepted' || $booking->status === 'completed') {
+            if ($booking->status === 'completed') {
                 $reservedBudget += (float) $booking->budget;
             }
         }
 
-        if (strtolower($event->status) === 'open' && $hasConfirmedBooking) {
+        if (in_array(strtolower($event->status), ['open', 'ended']) && $hasConfirmedBooking) {
             $canCompleteEvent = true;
         }
 
@@ -121,15 +125,22 @@ class EventController extends Controller
         $event->load(['photos', 'categories']);
         $eventTypes = EventType::where('is_active', true)->orderBy('name')->get();
         $categories = Category::orderBy('name')->get();
+        $genreCategories = $this->getGenreCategories();
 
-        return view('organizer.events.edit', compact('event', 'eventTypes', 'categories'));
+        return view('organizer.events.edit', compact('event', 'eventTypes', 'categories', 'genreCategories'));
     }
 
     public function update(Request $request, Event $event): RedirectResponse
     {
         $this->authorizeEvent($event);
 
-        $validated = $this->validatedEvent($request, true);
+        if ($event->status !== 'Completed' && $request->input('status') === 'Completed') {
+            return back()->withInput()->withErrors([
+                'status' => 'Use the Mark Event Completed button after confirming a booking.',
+            ]);
+        }
+
+        $validated = $this->validatedEvent($request, true, $event);
 
         $newMediaCount = $this->mediaCount($request);
 
@@ -209,13 +220,11 @@ class EventController extends Controller
         }
 
         if ($filter === 'completed') {
-            $query->where(function ($events) use ($today) {
-                $events->where('status', 'Completed')
-                    ->orWhere(function ($events) use ($today) {
-                        $events->whereDate('event_date', '<', $today)
-                            ->where('status', '!=', 'Cancelled');
-                    });
-            });
+            $query->where('status', 'Completed');
+        }
+
+        if ($filter === 'ended') {
+            $query->where('status', 'Ended');
         }
 
         if ($filter === 'cancelled') {
@@ -223,12 +232,23 @@ class EventController extends Controller
         }
     }
 
-    private function validatedEvent(Request $request, bool $updating = false): array
+    private function validatedEvent(Request $request, bool $updating = false, ?Event $event = null): array
     {
+        $allowedGenres = array_keys($this->getGenreCategories());
+
+        if ($event) {
+            $allowedGenres = array_values(array_unique([
+                ...$allowedGenres,
+                ...OptionList::wrap($event->preferred_genres),
+            ]));
+        }
+
         $rules = [
             'event_type_id' => ['required', 'exists:event_types,id'],
             'category_ids' => ['required', 'array', 'min:1'],
             'category_ids.*' => ['exists:categories,id'],
+            'preferred_genres' => ['nullable', 'array'],
+            'preferred_genres.*' => ['string', Rule::in($allowedGenres)],
             'title' => ['required', 'string', 'max:255'],
             'cover_photo' => ['nullable', 'image', 'max:5120'],
             'photos' => ['nullable', 'array', 'max:3'],
@@ -265,6 +285,10 @@ class EventController extends Controller
         }
 
         $validated = $request->validate($rules);
+
+        if (! array_key_exists('preferred_genres', $validated)) {
+            $validated['preferred_genres'] = [];
+        }
 
         if ($eventType) {
             $validated['compensation_type'] = $eventType->compensation_type;
@@ -362,7 +386,7 @@ class EventController extends Controller
     private function statusRules(bool $updating): array
     {
         if ($updating) {
-            return ['required', 'in:Open,Cancelled'];
+            return ['required', 'in:Open,Ended,Completed,Cancelled'];
         }
 
         return ['nullable'];
@@ -391,5 +415,27 @@ class EventController extends Controller
         if ($event->cover_photo && ! str_starts_with($event->cover_photo, 'http')) {
             $supabase->delete('organizer-files', $event->cover_photo);
         }
+    }
+
+    private function getGenreCategories(): array
+    {
+        $mapped = [];
+
+        foreach (config('organizer_genre_styles', []) as $categoryName => $genres) {
+            foreach ($genres as $genre) {
+                $mapped[$genre][] = $categoryName;
+            }
+        }
+
+        $allCategoryNames = Category::query()->orderBy('name')->pluck('name')->all();
+        $genreCategories = [];
+
+        foreach (PerformerGenres::all() as $genre) {
+            $genreCategories[$genre] = $mapped[$genre] ?? $allCategoryNames;
+        }
+
+        ksort($genreCategories);
+
+        return $genreCategories;
     }
 }

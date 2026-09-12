@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Models\Concerns\HasPhilippineLocation;
 use App\Services\SupabaseStorageService;
+use App\Support\OptionList;
 use App\Support\SocialMedia;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -50,6 +51,8 @@ class PerformerProfile extends Model
     {
         return [
             'rate' => 'decimal:2',
+            'genre' => 'array',
+            'specialty' => 'array',
             'banner_position_y' => 'integer',
             'is_verified_badge' => 'boolean',
             'google_calendar_connected' => 'boolean',
@@ -196,11 +199,38 @@ class PerformerProfile extends Model
         return $stats;
     }
 
+    /**
+     * @return array<int, string>
+     */
+    public function genreList(): array
+    {
+        return OptionList::wrap($this->genre);
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    public function specialtyList(): array
+    {
+        return OptionList::wrap($this->specialty);
+    }
+
+    public function genreLabel(): string
+    {
+        return implode(' · ', $this->genreList());
+    }
+
+    public function specialtyLabel(): string
+    {
+        return implode(' · ', $this->specialtyList());
+    }
+
     public function displayTags(): array
     {
         return array_values(array_filter(array_unique([
             ...$this->categories->pluck('name')->all(),
-            $this->genre,
+            ...$this->specialtyList(),
+            ...$this->genreList(),
         ])));
     }
 

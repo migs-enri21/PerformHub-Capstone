@@ -185,23 +185,24 @@
     color: var(--ph-text-muted);
 }
 
-/* Multi-select category grid (profile edit) */
+/* Multi-select category pills (profile edit) */
 .category-checkbox-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    display: flex;
+    flex-wrap: wrap;
     gap: 0.5rem;
 }
 
 .category-checkbox-option {
-    display: flex;
+    display: inline-flex;
     align-items: center;
-    gap: 0.5rem;
-    padding: 0.5rem 0.75rem;
+    gap: 0.45rem;
+    padding: 0.45rem 0.9rem;
     border: 1px solid var(--ph-border);
-    border-radius: 8px;
-    background: var(--ph-bg-input);
+    border-radius: 999px;
+    background: var(--ph-bg-card);
     cursor: pointer;
     transition: border-color 0.15s ease, background 0.15s ease;
+    margin: 0;
 }
 
 .category-checkbox-option:hover {

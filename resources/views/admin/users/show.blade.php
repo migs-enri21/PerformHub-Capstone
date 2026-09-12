@@ -45,7 +45,7 @@
                     <dd class="col-sm-8">{{ $user->performerProfile->stage_name }}</dd>
 
                     <dt class="col-sm-4 text-muted">Genre</dt>
-                    <dd class="col-sm-8">{{ $user->performerProfile->genre ?? '—' }}</dd>
+                    <dd class="col-sm-8">{{ $user->performerProfile->genreLabel() !== '' ? $user->performerProfile->genreLabel() : '—' }}</dd>
 
                     <dt class="col-sm-4 text-muted">Location</dt>
                     <dd class="col-sm-8">{{ $user->performerProfile->shortLocation() }}</dd>

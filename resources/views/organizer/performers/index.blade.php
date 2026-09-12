@@ -51,12 +51,17 @@
                 @foreach($categories as $c)<option value="{{ $c->id }}" data-category-name="{{ strtolower($c->name) }}" @selected(request('category_id')==$c->id)>{{ $c->name }}</option>@endforeach
             </select>
         </div>
+<<<<<<< HEAD
         <div class="col-md-2">
             <select name="specialty" id="searchSpecialty" class="form-select ph-input">
                 <option value="">All Specialties / Instruments</option>
             </select>
         </div>
         <div class="col-md-2">@include('partials.genre-select', ['value' => request('genre'), 'placeholder' => 'All Genres', 'id' => 'searchGenre'])</div>
+=======
+        <div class="col-md-2">@include('partials.specialty-select', ['value' => request('specialty'), 'placeholder' => 'All Specialties'])</div>
+        <div class="col-md-2">@include('partials.genre-select', ['value' => request('genre'), 'placeholder' => 'All Genres'])</div>
+>>>>>>> aa1360cfacd5a024188ed2d7830473856d778044
         <div class="col-md-2"><input type="date" name="available_date" class="form-control ph-input" value="{{ request('available_date') }}"></div>
         <div class="col-md-1"><button class="btn ph-btn-primary w-100">Filter</button></div>
     </form>
@@ -74,7 +79,7 @@
                     @endif
                     <div>
                         <h6 class="mb-0">{{ $p->stage_name }} @if($p->is_verified_badge)<i class="fas fa-circle-check verified-badge"></i>@endif</h6>
-                        <small class="text-muted">{{ collect([$p->categoryNames(), $p->specialty, $p->genre])->filter()->implode(' · ') }}</small>
+                        <small class="text-muted">{{ collect([$p->categoryNames(), $p->specialtyLabel(), $p->genreLabel()])->filter()->implode(' · ') }}</small>
                     </div>
                 </div>
                 <p class="text-muted small">{{ Str::limit($p->bio, 80) }}</p>

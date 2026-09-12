@@ -23,7 +23,7 @@
         </div>
         <div class="d-flex gap-2">
             @if($canCompleteEvent)
-                <form method="POST" action="{{ route('organizer.events.complete', $event) }}" onsubmit="return confirm('Mark this event as completed? This action means the event has finished.');">
+                <form method="POST" action="{{ route('organizer.events.complete', $event) }}" class="organizer-confirm-form" data-confirm-title="Mark Event Completed" data-confirm-message="Mark this event as completed? This means the event has finished." data-confirm-button="Mark Completed">
                     @csrf
                     @method('PATCH')
                     <button type="submit" class="btn btn-success btn-sm">Mark Event Completed</button>
@@ -88,13 +88,23 @@
                         </span>
                     </div>
                 @endif
+                @if(! empty($event->preferred_genres))
+                    <div class="col-md-6">
+                        <strong class="event-detail-label d-block mb-1">Preferred Genres</strong>
+                        <span class="text-muted">
+                            @foreach($event->preferred_genres as $genre)
+                                {{ $genre }}@if(! $loop->last), @endif
+                            @endforeach
+                        </span>
+                    </div>
+                @endif
                 @if($event->compensation_type === 'fixed' && $event->budget)
                     <div class="col-md-4">
                         <strong class="event-detail-label d-block mb-1">Fixed Budget</strong>
                         <span class="text-muted">PHP {{ number_format((float) $event->budget, 0) }}</span>
                     </div>
                     <div class="col-md-4">
-                        <strong class="event-detail-label d-block mb-1">Reserved for Performers</strong>
+                        <strong class="event-detail-label d-block mb-1">Allocated to Confirmed Bookings</strong>
                         <span class="text-muted">PHP {{ number_format($reservedBudget, 0) }}</span>
                     </div>
                     <div class="col-md-4">
@@ -214,7 +224,7 @@
                         <a href="{{ route('organizer.bookings.create', ['performer' => $application->performer->performerProfile, 'event' => $event->id, 'from_application' => 1]) }}" class="btn ph-btn-primary btn-sm">
                             Accept Application
                         </a>
-                        <form method="POST" action="{{ route('organizer.events.applications.decline', [$event, $application]) }}" onsubmit="return confirm('Decline this applicant?');">
+                        <form method="POST" action="{{ route('organizer.events.applications.decline', [$event, $application]) }}" class="organizer-confirm-form" data-confirm-title="Decline Applicant" data-confirm-message="Decline this applicant?" data-confirm-button="Decline Applicant">
                             @csrf
                             <button type="submit" class="btn btn-outline-danger btn-sm">Decline</button>
                         </form>
@@ -229,4 +239,5 @@
         <div class="alert alert-secondary">No performers have applied yet.</div>
     @endforelse
 </div>
+@include('organizer.partials.confirmation-modal')
 @endsection

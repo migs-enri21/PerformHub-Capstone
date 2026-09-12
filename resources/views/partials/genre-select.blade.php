@@ -3,6 +3,7 @@
     'value' => '',
     'required' => false,
     'placeholder' => 'Select genre',
+<<<<<<< HEAD
     'id' => null,
 ])
 
@@ -21,3 +22,16 @@
         <option value="{{ $genre }}" @selected($selected === $genre)>{{ $genre }}</option>
     @endforeach
 </select>
+=======
+    'multiple' => false,
+])
+
+@include('partials.ph-select', [
+    'name' => $name,
+    'value' => $value,
+    'required' => $required,
+    'placeholder' => $placeholder,
+    'multiple' => $multiple,
+    'options' => \App\Support\PerformerGenres::all(),
+])
+>>>>>>> aa1360cfacd5a024188ed2d7830473856d778044

@@ -144,6 +144,89 @@ a:hover { color: var(--ph-purple-hover); }
     color: var(--ph-text);
 }
 
+.ph-select {
+    position: relative;
+}
+
+.ph-select-native {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+    width: 100%;
+    height: 0;
+    border: 0;
+    padding: 0;
+    margin: 0;
+}
+
+.ph-select-toggle {
+    width: 100%;
+    text-align: left;
+}
+
+.ph-select-label {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    padding-right: 0.25rem;
+}
+
+.ph-select-label.is-placeholder {
+    color: var(--ph-text-muted);
+}
+
+.ph-select--multiple .ph-select-menu [role="option"]::before {
+    content: '';
+    display: inline-block;
+    width: 0.9rem;
+    height: 0.9rem;
+    margin-right: 0.5rem;
+    border: 1px solid var(--ph-border);
+    border-radius: 4px;
+    vertical-align: -0.1rem;
+    background: var(--ph-bg-input);
+}
+
+.ph-select--multiple .ph-select-menu [role="option"].is-selected::before {
+    border-color: var(--ph-purple);
+    background: var(--ph-purple);
+    box-shadow: inset 0 0 0 2px var(--ph-bg-card);
+}
+
+.ph-select.is-open .ph-select-toggle {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%238b93a7' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 11 6-6 6 6'/%3e%3c/svg%3e");
+}
+
+.ph-select-menu {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    right: 0;
+    z-index: 30;
+    max-height: 240px;
+    overflow-y: auto;
+    margin: 0;
+    padding: 0.35rem 0;
+    list-style: none;
+    background: var(--ph-bg-card);
+    border: 1px solid var(--ph-border);
+    border-radius: 10px;
+    box-shadow: 0 10px 28px rgba(15, 18, 28, 0.18);
+}
+
+.ph-select-menu [role="option"] {
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    color: var(--ph-text);
+}
+
+.ph-select-menu [role="option"]:hover,
+.ph-select-menu [role="option"].is-selected {
+    background: rgba(99, 70, 255, 0.12);
+    color: var(--ph-purple);
+}
+
 /* --- Modals & file inputs --- */
 /* Dark-theme Bootstrap modals site-wide (default Bootstrap modals are white) */
 .modal-content {

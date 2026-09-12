@@ -4,8 +4,10 @@ namespace Database\Seeders;
 
 use App\Models\Category;
 use App\Models\EventType;
+use App\Models\Genre;
 use App\Models\OrganizerProfile;
 use App\Models\PerformerProfile;
+use App\Models\Specialty;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Str;
@@ -30,6 +32,7 @@ class DatabaseSeeder extends Seeder
             ['name' => 'Musicians', 'icon' => 'fa-music', 'description' => 'Bands, solo artists, and instrumentalists'],
             ['name' => 'Dancers', 'icon' => 'fa-person-running', 'description' => 'Contemporary, hip-hop, and cultural dance'],
             ['name' => 'Singers', 'icon' => 'fa-microphone', 'description' => 'Vocal performers and choirs'],
+            ['name' => 'Host', 'icon' => 'fa-microphone-lines', 'description' => 'Emcees and event hosts'],
             ['name' => 'Magicians', 'icon' => 'fa-hat-wizard', 'description' => 'Illusionists and close-up magic'],
             ['name' => 'Comedians', 'icon' => 'fa-face-laugh', 'description' => 'Stand-up and emcees'],
             ['name' => 'DJs', 'icon' => 'fa-compact-disc', 'description' => 'Club and event DJs'],
@@ -95,6 +98,20 @@ class DatabaseSeeder extends Seeder
             ]);
         }
 
+        foreach (config('genres.options', []) as $name) {
+            Genre::firstOrCreate(
+                ['name' => $name],
+                ['slug' => Genre::makeSlug($name), 'is_active' => true]
+            );
+        }
+
+        foreach (config('specialties.options', []) as $name) {
+            Specialty::firstOrCreate(
+                ['name' => $name],
+                ['slug' => Specialty::makeSlug($name), 'is_active' => true]
+            );
+        }
+
         $performer = User::create([
             'first_name' => 'Juan',
             'last_name' => 'Dela Cruz',
@@ -112,7 +129,8 @@ class DatabaseSeeder extends Seeder
             'user_id' => $performer->id,
             'stage_name' => 'JDC Live',
             'bio' => 'Professional acoustic performer specializing in weddings and corporate events.',
-            'genre' => 'Acoustic Pop',
+            'genre' => ['Acoustic Pop'],
+            'specialty' => ['Acoustic Guitar', 'Vocals'],
             'rate' => 15000,
             'location' => 'Ermita, Manila, Metro Manila (NCR)',
             'region' => 'Metro Manila (NCR)',

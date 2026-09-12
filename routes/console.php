@@ -29,10 +29,10 @@ Artisan::command('users:list', function () {
     );
 })->purpose('List all users');
 
-Artisan::command('events:complete-past', function () {
-    $updated = Event::completePastEvents();
+Artisan::command('events:mark-ended', function () {
+    $updated = Event::markPastEventsEnded();
 
-    $this->info($updated . ' past event(s) marked as completed.');
-})->purpose('Mark past open events as completed');
+    $this->info($updated . ' past event(s) marked as ended.');
+})->purpose('Mark past open events as ended');
 
-Schedule::command('events:complete-past')->dailyAt('00:05');
+Schedule::command('events:mark-ended')->dailyAt('00:05');

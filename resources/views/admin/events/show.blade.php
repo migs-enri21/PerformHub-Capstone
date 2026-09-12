@@ -8,7 +8,7 @@
 
 @section('content')
 <div class="mb-3">
-    <a href="{{ route('admin.events.index') }}" class="btn btn-outline-secondary">← Back to Events</a>
+    <a href="{{ route('admin.monitoring.bookings') }}" class="btn btn-outline-secondary">← Back to Bookings</a>
 </div>
 
 <div class="row g-4">

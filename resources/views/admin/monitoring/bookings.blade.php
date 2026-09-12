@@ -80,7 +80,7 @@
                     <td><span class="badge {{ $b->statusBadgeClass() }}">{{ $b->statusLabel() }}</span></td>
                     <td>{{ $b->created_at->format('M d, Y h:i A') }}</td>
                     <td>
-                        <a href="{{ route('admin.events.show', $b) }}" class="btn btn-sm btn-outline-info">View</a>
+                        <a href="{{ route('admin.events.show', $b) }}" class="btn btn-sm btn-outline-info">View booking details</a>
                     </td>
                 </tr>
             @empty

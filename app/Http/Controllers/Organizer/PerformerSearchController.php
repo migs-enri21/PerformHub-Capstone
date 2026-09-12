@@ -103,14 +103,14 @@ class PerformerSearchController extends Controller
     private function applyGenreFilter($query, ?string $genre): void
     {
         if ($genre) {
-            $query->where('genre', $genre);
+            $query->whereJsonContains('genre', $genre);
         }
     }
 
     private function applySpecialtyFilter($query, ?string $specialty): void
     {
         if ($specialty) {
-            $query->where('specialty', 'like', "%{$specialty}%");
+            $query->whereJsonContains('specialty', $specialty);
         }
     }
 
