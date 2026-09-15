@@ -64,13 +64,14 @@ class AuthController extends Controller
             'phone' => ['required', 'string', 'max:30'],
             'role' => ['required', 'in:performer,organizer'],
             'terms_accepted' => ['accepted'],
-            'government_id' => ['required', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'],
+            'government_id' => ['required', 'array', 'min:1', 'max:5'],
+            'government_id.*' => ['required', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'],
         ], PhilippineLocations::locationFieldsRules()), [
             'email.unique' => 'An account with this email already exists.',
             'terms_accepted.accepted' => 'You must agree to the Terms & Agreement before continuing.',
             'password.confirmed' => 'Password and confirm password do not match.',
             'password.min' => 'Password must be at least 8 characters.',
-            'government_id.required' => 'Please upload a valid government ID.',
+            'government_id.required' => 'Please upload at least one valid government ID file.',
         ]);
 
         $locationData = PhilippineLocations::profileLocationAttributes($validated);
@@ -84,9 +85,7 @@ class AuthController extends Controller
             'role' => $validated['role'],
             'is_verified' => false,
             'is_active' => true,
-            'onboarding_step' => $validated['role'] === 'performer'
-                ? User::ONBOARDING_COMPLETE
-                : User::ONBOARDING_VERIFICATION,
+            'onboarding_step' => User::ONBOARDING_VERIFICATION,
         ]);
 
         if ($user->isPerformer()) {
@@ -102,7 +101,9 @@ class AuthController extends Controller
             ], $locationData));
         }
 
-        $this->storeVerificationDocument($user, 'government_id', $request->file('government_id'));
+        foreach ($request->file('government_id') as $file) {
+            $this->storeVerificationDocument($user, 'government_id', $file, [], false);
+        }
 
         Auth::login($user);
 
@@ -121,8 +122,8 @@ class AuthController extends Controller
                 ->with('success', 'Account created. Upload your organization documents to finish sign-up.');
         }
 
-        return redirect($user->dashboardRoute())
-            ->with('success', 'Welcome to PerformHub! Your identity is under review.');
+        return redirect()->route('onboarding.verification')
+            ->with('success', 'Account created. You can add proof of previous events before finishing sign-up.');
     }
 
     public function logout(Request $request): RedirectResponse

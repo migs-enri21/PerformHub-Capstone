@@ -204,8 +204,9 @@
                         'name' => 'government_id',
                         'title' => 'Government-Issued ID',
                         'required' => true,
+                        'multiple' => true,
                         'desc' => 'Valid Philippine ID for identity verification.',
-                        'formats' => '.jpg .png .pdf — max 5 MB',
+                        'formats' => '.jpg .png .pdf — up to 5 files, max 5 MB each',
                         'icon' => 'fa-id-card',
                     ])
                     @error('government_id')<div class="text-danger small mb-2">{{ $message }}</div>@enderror

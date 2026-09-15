@@ -66,33 +66,36 @@
             'name' => 'business_permit',
             'title' => 'Business / Organization Permit',
             'required' => $businessPermitRequired,
+                'multiple' => true,
             'desc' => 'DTI Certificate, SEC Registration, Mayor\'s Permit, or equivalent.',
-            'formats' => '.jpg .png .pdf — max 10 MB',
+                'formats' => '.jpg .png .pdf — up to 5 files, max 10 MB each',
             'icon' => 'fa-file-alt',
         ])
         @include('onboarding.partials.upload-field', [
             'name' => 'proof_of_events',
             'title' => 'Proof of Previous Events',
             'required' => false,
+            'multiple' => true,
             'desc' => 'Event photos, contracts, or letters confirming past event experience.',
-            'formats' => '.jpg .png .pdf .zip — max 50 MB',
+            'formats' => '.jpg .png .pdf .zip — up to 5 files, max 50 MB each',
             'icon' => 'fa-camera',
         ])
         @include('onboarding.partials.upload-field', [
             'name' => 'bir_certificate',
             'title' => 'BIR Certificate of Registration',
             'required' => false,
+            'multiple' => true,
             'desc' => 'If your organization issues official receipts.',
-            'formats' => '.jpg .png .pdf — max 5 MB',
+            'formats' => '.jpg .png .pdf — up to 5 files, max 5 MB each',
             'icon' => 'fa-certificate',
         ])
     @else
+        <p class="text-muted small mb-3">Upload Documents <span class="text-muted">(Optional items can be skipped)</span></p>
         @if($hasGovernmentId)
             <div class="mb-3 p-3 rounded" style="background-color: rgba(34,197,94,.1); border: 1px solid rgba(34,197,94,.3);">
                 <i class="fas fa-check-circle text-success me-2"></i>
                 <span class="small">Government ID already submitted during registration.</span>
             </div>
-            <p class="text-muted small mb-0">You're all set — continue below to finish sign-up. You can upload photos and videos to your Portfolio anytime from your dashboard.</p>
         @else
             @include('onboarding.partials.upload-field', [
                 'name' => 'government_id',
@@ -103,6 +106,15 @@
                 'icon' => 'fa-id-card',
             ])
         @endif
+        @include('onboarding.partials.upload-field', [
+            'name' => 'proof_of_events',
+            'title' => 'Proof of Previous Events',
+            'required' => false,
+            'multiple' => true,
+            'desc' => 'Event photos, contracts, or letters confirming your previous performance experience.',
+            'formats' => '.jpg .png .pdf .zip — up to 5 files, max 50 MB each',
+            'icon' => 'fa-camera',
+        ])
     @endif
 
     <div class="d-flex gap-2">

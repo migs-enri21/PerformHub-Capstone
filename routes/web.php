@@ -163,7 +163,6 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
 
     Route::get('/monitoring/bookings', [MonitoringController::class, 'bookings'])->name('monitoring.bookings');
     Route::get('/events', [\App\Http\Controllers\Admin\EventController::class, 'index'])->name('events.index');
-    Route::post('/events', [\App\Http\Controllers\Admin\EventController::class, 'store'])->name('events.store');
     Route::get('/events/{booking}', [\App\Http\Controllers\Admin\EventController::class, 'show'])->name('events.show');
 });
 
