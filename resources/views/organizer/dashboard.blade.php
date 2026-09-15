@@ -70,8 +70,11 @@
                             @else
                                 <small class="text-muted d-block">Performer</small>
                             @endif
-                            @if($performer->genre)
-                                <small class="text-muted d-block">Genre: {{ $performer->genre }}</small>
+                            @php
+                                $genreLabel = $performer->genreLabel();
+                            @endphp
+                            @if($genreLabel)
+                                <small class="text-muted d-block">Genre: {{ $genreLabel }}</small>
                             @endif
                             @if($performer->portfolios->count())
                                 <small class="text-primary">{{ $performer->portfolios->count() }} portfolio {{ Str::plural('item', $performer->portfolios->count()) }}</small>

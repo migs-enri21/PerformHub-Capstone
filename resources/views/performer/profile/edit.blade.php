@@ -78,15 +78,6 @@
                     </div>
                     <div class="col-md-6">
                         <label class="form-label text-muted small">Specialty / Instrument</label>
-<<<<<<< HEAD
-                        <select name="specialty" id="performerSpecialty" class="form-select ph-input">
-                            <option value="">Select specialty or instrument</option>
-                        </select>
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label text-muted small">Genre</label>
-                        @include('partials.genre-select', ['value' => $profile->genre, 'id' => 'performerGenre'])
-=======
                         <p class="text-muted small mb-2">Open the list and pick more than one if needed (Bass and Guitar).</p>
                         @include('partials.specialty-select', [
                             'value' => $profile->specialtyList(),
@@ -100,7 +91,6 @@
                             'value' => $profile->genreList(),
                             'multiple' => true,
                         ])
->>>>>>> aa1360cfacd5a024188ed2d7830473856d778044
                     </div>
                     <div class="col-md-6">
                         <label class="form-label text-muted small">Rate (₱)</label>

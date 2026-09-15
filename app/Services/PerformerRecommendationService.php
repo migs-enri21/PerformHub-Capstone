@@ -40,7 +40,16 @@ class PerformerRecommendationService
         $otherMatches = new Collection();
 
         foreach ($performers as $performer) {
-            if (in_array($performer->genre, $preferredGenres, true)) {
+            $hasPreferredGenre = false;
+
+            foreach ($performer->genreList() as $genre) {
+                if (in_array($genre, $preferredGenres, true)) {
+                    $hasPreferredGenre = true;
+                    break;
+                }
+            }
+
+            if ($hasPreferredGenre) {
                 $genreMatches->push($performer);
             } else {
                 $otherMatches->push($performer);
