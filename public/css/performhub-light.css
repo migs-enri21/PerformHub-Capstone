@@ -124,6 +124,17 @@ body {
     color: #5933cb;
 }
 
+/* Portfolio category chips were using dark-theme lavender (#c4b5fd) — too faded on white */
+.portfolio-type-badge {
+    background: #eee8ff;
+    color: #5933cb;
+}
+
+.portfolio-your-post-badge {
+    background: #eee8ff !important;
+    color: #5933cb !important;
+}
+
 .table-dark {
     --bs-table-bg: #ffffff;
     --bs-table-color: var(--ph-text);
