@@ -1,6 +1,7 @@
 @props([
     'items',
     'editable' => false,
+    'categories' => null,
 ])
 
 @php
@@ -20,10 +21,12 @@
 
     $eventName = $items->first()->event_name;
     $caption = $items->first()->caption;
+    $performanceTypes = $items->first()->performanceTypeNames();
     $imageCaption = $eventName ?: ($caption ?? '');
     $hasMore = $count > 4;
     $modalId = 'portfolio-gallery-'.$items->first()->id;
     $editModalId = 'portfolio-edit-'.$items->first()->id;
+    $categories = $categories ?? ($editable ? \App\Models\Category::where('is_active', true)->orderBy('name')->get() : collect());
 @endphp
 
 <article class="portfolio-feed-card">
@@ -38,9 +41,9 @@
         @foreach($visible as $index => $item)
             <div class="portfolio-collage-tile">
                 @if($item->type === 'photo')
-                    <img src="{{ $item->fileUrl() }}" alt="{{ $imageCaption }}">
+                    <img src="{{ $item->fileUrl() }}" alt="{{ $imageCaption }}" loading="lazy" decoding="async">
                 @else
-                    <video src="{{ $item->fileUrl() }}" muted playsinline preload="metadata"></video>
+                    <video src="{{ $item->fileUrl() }}" muted playsinline preload="none"></video>
                     <span class="portfolio-collage-badge"><i class="fas fa-play me-1"></i>Video</span>
                 @endif
                 @if($hasMore && $index === 3)
@@ -62,13 +65,20 @@
                         @foreach($items as $item)
                             <div class="portfolio-lightbox-item">
                                 @if($item->type === 'photo')
-                                    <img src="{{ $item->fileUrl() }}" alt="{{ $imageCaption }}">
+                                    <img data-src="{{ $item->fileUrl() }}" alt="{{ $imageCaption }}" loading="lazy" decoding="async">
                                 @else
-                                    <video src="{{ $item->fileUrl() }}" controls playsinline></video>
+                                    <video data-src="{{ $item->fileUrl() }}" controls playsinline preload="none"></video>
                                 @endif
                             </div>
                         @endforeach
                     </div>
+                    @if($performanceTypes)
+                        <div class="portfolio-type-badges mb-2">
+                            @foreach($performanceTypes as $typeName)
+                                <span class="portfolio-type-badge">{{ $typeName }}</span>
+                            @endforeach
+                        </div>
+                    @endif
                     @if($caption)
                         <p class="mt-3 mb-0">{{ $caption }}</p>
                     @endif
@@ -77,8 +87,15 @@
         </div>
     </div>
 
-    @if($eventName || $caption || $editable)
+    @if($eventName || $caption || $editable || $performanceTypes)
         <div class="portfolio-feed-footer px-3 py-3">
+            @if($performanceTypes)
+                <div class="portfolio-type-badges @if($eventName || $caption) mb-2 @endif">
+                    @foreach($performanceTypes as $typeName)
+                        <span class="portfolio-type-badge">{{ $typeName }}</span>
+                    @endforeach
+                </div>
+            @endif
             @if($eventName)
                 <h6 class="portfolio-feed-event-name mb-1">{{ $eventName }}</h6>
             @endif
@@ -86,7 +103,7 @@
                 <p class="mb-0 small">{{ $caption }}</p>
             @endif
             @if($editable)
-                <div @if($eventName || $caption) class="mt-2" @endif>
+                <div @if($eventName || $caption || $performanceTypes) class="mt-2" @endif>
                     <button type="button" class="btn btn-sm ph-btn-outline" data-bs-toggle="modal" data-bs-target="#{{ $editModalId }}">
                         <i class="fas fa-pen me-1"></i> Edit
                     </button>
@@ -108,6 +125,12 @@
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
+                            @include('partials.portfolio-category-select', [
+                                'categories' => $categories,
+                                'selectedCategoryIds' => $items->first()->categoryIdList(),
+                                'inputIdPrefix' => 'portfolio-edit-cat-'.$items->first()->id,
+                            ])
+
                             <label class="form-label text-muted small" for="portfolioEditEventName-{{ $items->first()->id }}">Event Name <span class="text-muted">(optional)</span></label>
                             <input
                                 type="text"
@@ -128,9 +151,9 @@
                                 @foreach($items as $item)
                                     <div class="portfolio-edit-tile" data-item-id="{{ $item->id }}">
                                         @if($item->type === 'photo')
-                                            <img src="{{ $item->fileUrl() }}" alt="">
+                                            <img data-src="{{ $item->fileUrl() }}" alt="" loading="lazy" decoding="async">
                                         @else
-                                            <video src="{{ $item->fileUrl() }}" muted playsinline></video>
+                                            <video data-src="{{ $item->fileUrl() }}" muted playsinline preload="none"></video>
                                         @endif
                                         <button type="button" class="portfolio-edit-tile-remove" aria-label="Remove this item">
                                             <i class="fas fa-times"></i>
@@ -162,6 +185,16 @@
 @once
     @push('scripts')
         <script>
+        document.addEventListener('show.bs.modal', (e) => {
+            e.target.querySelectorAll('[data-src]').forEach((el) => {
+                el.src = el.dataset.src;
+                el.removeAttribute('data-src');
+                if (el.tagName === 'VIDEO') {
+                    el.load();
+                }
+            });
+        });
+
         document.addEventListener('hidden.bs.modal', (e) => {
             e.target.querySelectorAll('video').forEach(video => video.pause());
         });

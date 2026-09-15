@@ -45,7 +45,7 @@
                     {{ $performer->stage_name }}
                 </a>
                 @if($isOwn)
-                    <span class="badge rounded-pill" style="background: rgba(99, 70, 255, 0.2); color: #c4b5fd;">Your post</span>
+                    <span class="badge rounded-pill portfolio-your-post-badge">Your post</span>
                 @endif
             </div>
             <small class="text-muted d-block">

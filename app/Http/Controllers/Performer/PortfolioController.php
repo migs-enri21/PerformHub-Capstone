@@ -3,11 +3,13 @@
 namespace App\Http\Controllers\Performer;
 
 use App\Http\Controllers\Controller;
+use App\Models\Category;
 use App\Models\Portfolio;
 use App\Services\SupabaseStorageService;
 use App\Support\PortfolioFeed;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
@@ -17,12 +19,13 @@ class PortfolioController extends Controller
     public function index(): View
     {
         $profile = Auth::user()->performerProfile()->with('categories')->firstOrFail();
+        $categories = Category::where('is_active', true)->orderBy('name')->get();
 
         $portfolios = $profile->portfolios()->latest()->get();
 
         $portfolioGroups = PortfolioFeed::groupItems($portfolios);
 
-        return view('performer.portfolio.index', compact('portfolioGroups', 'profile'));
+        return view('performer.portfolio.index', compact('portfolioGroups', 'profile', 'categories'));
     }
 
     public function store(Request $request): RedirectResponse
@@ -30,6 +33,8 @@ class PortfolioController extends Controller
         $profile = Auth::user()->performerProfile;
 
         $validated = $request->validate([
+            'category_ids' => ['required', 'array', 'min:1'],
+            'category_ids.*' => ['integer', 'exists:categories,id'],
             'files' => ['required', 'array', 'min:1'],
             'files.*' => [
                 'file',
@@ -39,25 +44,21 @@ class PortfolioController extends Controller
             'event_name' => ['nullable', 'string', 'max:150'],
             'caption' => ['nullable', 'string', 'max:2000'],
         ], [
+            'category_ids.required' => 'Choose whether this sample shows you singing, dancing, or another role.',
+            'category_ids.min' => 'Choose whether this sample shows you singing, dancing, or another role.',
             'files.*.max' => 'Each photo or video must be 500 MB or smaller.',
             'files.*.mimetypes' => 'One of your files is not a supported photo or video format.',
         ]);
 
         $eventName = $validated['event_name'] ?? null;
         $caption = $validated['caption'] ?? null;
+        $categoryIds = array_values(array_unique(array_map('intval', $validated['category_ids'])));
         $uploaded = 0;
         $supabase = new SupabaseStorageService();
         $batchKey = Str::uuid()->toString();
 
-        foreach ($request->file('files', []) as $file) {
-            if (str_starts_with((string) $file->getMimeType(), 'video/')) {
-                $type = 'video';
-                $supabaseType = 'portfolio_video';
-            } else {
-                $type = 'photo';
-                $supabaseType = 'portfolio_image';
-            }
-
+        foreach ($this->uploadedFiles($request) as $file) {
+            [$type, $supabaseType] = $this->fileTypes($file);
             $path = $supabase->upload($file, 'performer-files', $supabaseType, Auth::id());
 
             $profile->portfolios()->create([
@@ -66,6 +67,7 @@ class PortfolioController extends Controller
                 'file_path' => $path,
                 'event_name' => $eventName,
                 'caption' => $caption,
+                'category_ids' => $categoryIds,
             ]);
 
             $uploaded++;
@@ -91,15 +93,20 @@ class PortfolioController extends Controller
             'item_ids.*' => ['integer'],
             'remove_ids' => ['nullable', 'array'],
             'remove_ids.*' => ['integer'],
+            'category_ids' => ['required', 'array', 'min:1'],
+            'category_ids.*' => ['integer', 'exists:categories,id'],
             'event_name' => ['nullable', 'string', 'max:150'],
             'caption' => ['nullable', 'string', 'max:2000'],
             'files' => ['nullable', 'array'],
             'files.*' => [
+                'nullable',
                 'file',
                 'max:512000', // 500 MB per file (kilobytes) — Supabase project's storage size ceiling
                 'mimetypes:image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm,video/quicktime,video/x-msvideo',
             ],
         ], [
+            'category_ids.required' => 'Choose whether this sample shows you singing, dancing, or another role.',
+            'category_ids.min' => 'Choose whether this sample shows you singing, dancing, or another role.',
             'files.*.max' => 'Each photo or video must be 500 MB or smaller.',
             'files.*.mimetypes' => 'One of your files is not a supported photo or video format.',
         ]);
@@ -111,7 +118,11 @@ class PortfolioController extends Controller
         $removeIds = collect($validated['remove_ids'] ?? []);
         $eventName = $validated['event_name'] ?? null;
         $caption = $validated['caption'] ?? null;
-        $supabase = new SupabaseStorageService();
+        $categoryIds = array_values(array_unique(array_map('intval', $validated['category_ids'])));
+        $newFiles = $this->uploadedFiles($request);
+        $supabase = ($removeIds->isNotEmpty() || $newFiles !== [])
+            ? new SupabaseStorageService()
+            : null;
 
         // Self-heal legacy posts (grouped only by timestamp) onto a real shared batch_key.
         $batchKey = $items->first()->batch_key ?? Str::uuid()->toString();
@@ -125,19 +136,17 @@ class PortfolioController extends Controller
                 continue;
             }
 
-            $item->update(['event_name' => $eventName, 'caption' => $caption, 'batch_key' => $batchKey]);
+            $item->update([
+                'event_name' => $eventName,
+                'caption' => $caption,
+                'category_ids' => $categoryIds,
+                'batch_key' => $batchKey,
+            ]);
             $remaining++;
         }
 
-        foreach ($request->file('files', []) as $file) {
-            if (str_starts_with((string) $file->getMimeType(), 'video/')) {
-                $type = 'video';
-                $supabaseType = 'portfolio_video';
-            } else {
-                $type = 'photo';
-                $supabaseType = 'portfolio_image';
-            }
-
+        foreach ($newFiles as $file) {
+            [$type, $supabaseType] = $this->fileTypes($file);
             $path = $supabase->upload($file, 'performer-files', $supabaseType, Auth::id());
 
             $profile->portfolios()->create([
@@ -146,6 +155,7 @@ class PortfolioController extends Controller
                 'file_path' => $path,
                 'event_name' => $eventName,
                 'caption' => $caption,
+                'category_ids' => $categoryIds,
             ]);
 
             $remaining++;
@@ -174,5 +184,34 @@ class PortfolioController extends Controller
         $item->delete();
 
         return back()->with('success', 'Portfolio item removed.');
+    }
+
+    /**
+     * @return array<int, UploadedFile>
+     */
+    private function uploadedFiles(Request $request): array
+    {
+        $files = $request->file('files', []);
+
+        if (! is_array($files)) {
+            $files = $files ? [$files] : [];
+        }
+
+        return array_values(array_filter(
+            $files,
+            fn ($file) => $file instanceof UploadedFile && $file->isValid()
+        ));
+    }
+
+    /**
+     * @return array{0: string, 1: string}
+     */
+    private function fileTypes(UploadedFile $file): array
+    {
+        if (str_starts_with((string) $file->getMimeType(), 'video/')) {
+            return ['video', 'portfolio_video'];
+        }
+
+        return ['photo', 'portfolio_image'];
     }
 }

@@ -39,6 +39,7 @@
                 @include('partials.portfolio-collage', [
                     'items' => $group,
                     'editable' => true,
+                    'categories' => $categories,
                 ])
             @empty
                 <div class="portfolio-feed-empty text-muted">No work samples yet. Click "Add Work Sample" to upload your first photo or video.</div>
@@ -57,6 +58,11 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
+                    @include('partials.portfolio-category-select', [
+                        'categories' => $categories,
+                        'inputIdPrefix' => 'portfolio-upload-cat',
+                    ])
+
                     <div class="portfolio-sketch-field">
                         <label class="portfolio-sketch-label" for="portfolioEventName">Event Name <span class="text-muted fw-normal">(optional)</span></label>
                         <input
@@ -131,6 +137,7 @@
     const clearBtn = document.getElementById('portfolioClearFiles');
     const submitBtn = document.getElementById('portfolioSubmitBtn');
     const addMore = document.getElementById('portfolioAddMore');
+    const form = document.getElementById('portfolioUploadForm');
 
     if (!input || !collage) {
         return;
@@ -138,6 +145,14 @@
 
     let selectedFiles = [];
     let objectUrls = [];
+
+    function hasPerformanceType() {
+        return form.querySelectorAll('input[name="category_ids[]"]:checked').length > 0;
+    }
+
+    function syncSubmitState() {
+        submitBtn.disabled = selectedFiles.length === 0 || !hasPerformanceType();
+    }
 
     function revokeUrls() {
         objectUrls.forEach(url => URL.revokeObjectURL(url));
@@ -148,7 +163,7 @@
         const dataTransfer = new DataTransfer();
         selectedFiles.forEach(file => dataTransfer.items.add(file));
         input.files = dataTransfer.files;
-        submitBtn.disabled = selectedFiles.length === 0;
+        syncSubmitState();
     }
 
     function collageLayoutClass(count) {
@@ -256,10 +271,31 @@
         renderPreview();
     });
 
+    form.querySelectorAll('input[name="category_ids[]"]').forEach((checkbox) => {
+        checkbox.addEventListener('change', syncSubmitState);
+    });
+
     clearBtn?.addEventListener('click', () => {
         selectedFiles = [];
         renderPreview();
     });
+
+    form.addEventListener('submit', (event) => {
+        if (!hasPerformanceType()) {
+            event.preventDefault();
+            syncSubmitState();
+        }
+    });
 })();
 </script>
+@if($errors->any())
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const modal = document.getElementById('addWorkSampleModal');
+    if (modal && window.bootstrap) {
+        window.bootstrap.Modal.getOrCreateInstance(modal).show();
+    }
+});
+</script>
+@endif
 @endpush
