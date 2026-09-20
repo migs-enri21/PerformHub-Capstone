@@ -29,6 +29,16 @@
             </div>
         </div>
         <div class="col-12">
+            <label class="form-label">Category <span class="text-danger">*</span></label>
+            <select name="category_id" class="form-select ph-input @error('category_id') is-invalid @enderror" required>
+                <option value="">Select category</option>
+                @foreach($categories as $category)
+                    <option value="{{ $category->id }}" @selected(old('category_id', $genre->category_id) == $category->id)>{{ $category->name }}</option>
+                @endforeach
+            </select>
+            @error('category_id') <span class="text-danger small">{{ $message }}</span> @enderror
+        </div>
+        <div class="col-12">
             <label class="form-label">Description</label>
             <textarea name="description" rows="4" class="form-control ph-input @error('description') is-invalid @enderror">{{ old('description', $genre->description) }}</textarea>
             @error('description') <span class="text-danger small">{{ $message }}</span> @enderror

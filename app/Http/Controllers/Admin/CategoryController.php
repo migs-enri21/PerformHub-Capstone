@@ -48,13 +48,18 @@ class CategoryController extends Controller
             'icon' => ['nullable', 'string', 'max:50'],
         ]);
 
-        Category::create([
+            $category = Category::create([
             ...$validated,
             'slug' => Str::slug($validated['name']),
             'is_active' => true,
         ]);
 
-        return back()->with('success', 'Category created.');
+            return back()
+                ->with('success', 'Category created.')
+                ->with('created_category', [
+                    'id' => $category->id,
+                    'name' => $category->name,
+                ]);
     }
 
     public function edit(Category $category): View

@@ -12,6 +12,7 @@
     <form method="GET" class="row g-2">
         <div class="col-md-3"><select name="role" class="form-select ph-input"><option value="">All Roles</option><option value="performer" @selected(request('role')=='performer')>Performer</option><option value="organizer" @selected(request('role')=='organizer')>Organizer</option></select></div>
         <div class="col-md-3"><select name="status" class="form-select ph-input"><option value="">All Status</option><option value="active" @selected(request('status')=='active')>Active</option><option value="inactive" @selected(request('status')=='inactive')>Inactive</option></select></div>
+        <div class="col-md-3"><select name="verification" class="form-select ph-input"><option value="">All Verification Status</option><option value="pending" @selected(request('verification')=='pending')>Pending Verification</option></select></div>
         <div class="col-md-2"><button class="btn ph-btn-primary">Filter</button></div>
     </form>
 </div>

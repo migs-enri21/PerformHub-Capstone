@@ -19,6 +19,10 @@
         <p class="fw-bold">{{ $genre->name }}</p>
     </div>
     <div class="mb-3">
+        <label class="form-label text-muted">Category</label>
+        <p>{{ $genre->category?->name ?? 'Not assigned' }}</p>
+    </div>
+    <div class="mb-3">
         <label class="form-label text-muted">Status</label>
         <p><span class="badge {{ $genre->is_active ? 'bg-success' : 'bg-secondary' }}">{{ $genre->is_active ? 'Active' : 'Inactive' }}</span></p>
     </div>

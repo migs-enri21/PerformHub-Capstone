@@ -24,13 +24,12 @@
 
     @if($user->isOrganizer())
         <label class="form-label text-muted small mb-2">Organization Type <span class="text-danger">*</span></label>
-        <div class="row g-2 mb-4">
+        <div class="row g-2 mb-4 justify-content-center">
             @foreach([
-                'company' => ['icon' => 'fa-building', 'label' => 'Company / Corp.'],
-                'individual' => ['icon' => 'fa-user', 'label' => 'Individual / Solo'],
-                'nonprofit' => ['icon' => 'fa-globe', 'label' => 'Non-Profit / NGO'],
+                'freelancer' => ['icon' => 'fa-user', 'label' => 'Freelancer'],
+                'agency' => ['icon' => 'fa-building', 'label' => 'Agency'],
             ] as $type => $item)
-                <div class="col-4">
+                <div class="col-6 col-md-4">
                     <label class="org-type-card {{ old('organization_type', $user->organizerProfile?->organization_type) === $type ? 'active' : '' }}">
                         <input type="radio" name="organization_type" value="{{ $type }}" class="d-none"
                             {{ old('organization_type', $user->organizerProfile?->organization_type) === $type ? 'checked' : '' }} required>
@@ -44,7 +43,7 @@
         <p class="text-muted small mb-3">Upload Documents <span class="text-muted">(Required items marked)</span></p>
 
         @php
-            $businessPermitRequired = old('organization_type', $user->organizerProfile?->organization_type) !== 'individual';
+            $agencySelected = old('organization_type', $user->organizerProfile?->organization_type) === 'agency';
         @endphp
 
         @if($hasGovernmentId)
@@ -64,13 +63,24 @@
         @endif
         @include('onboarding.partials.upload-field', [
             'name' => 'business_permit',
-            'title' => 'Business / Organization Permit',
-            'required' => $businessPermitRequired,
+            'title' => 'Business Documents',
+            'required' => true,
                 'multiple' => true,
             'desc' => 'DTI Certificate, SEC Registration, Mayor\'s Permit, or equivalent.',
                 'formats' => '.jpg .png .pdf — up to 5 files, max 10 MB each',
             'icon' => 'fa-file-alt',
         ])
+        <div class="agency-only-document">
+            @include('onboarding.partials.upload-field', [
+                'name' => 'proof_of_employment',
+                'title' => 'Proof of Employment',
+                'required' => $agencySelected,
+                'multiple' => true,
+                'desc' => 'Employment certificate, contract, or agency authorization.',
+                'formats' => '.jpg .png .pdf — up to 5 files, max 10 MB each',
+                'icon' => 'fa-briefcase',
+            ])
+        </div>
         @include('onboarding.partials.upload-field', [
             'name' => 'proof_of_events',
             'title' => 'Proof of Previous Events',
@@ -79,15 +89,6 @@
             'desc' => 'Event photos, contracts, or letters confirming past event experience.',
             'formats' => '.jpg .png .pdf .zip — up to 5 files, max 50 MB each',
             'icon' => 'fa-camera',
-        ])
-        @include('onboarding.partials.upload-field', [
-            'name' => 'bir_certificate',
-            'title' => 'BIR Certificate of Registration',
-            'required' => false,
-            'multiple' => true,
-            'desc' => 'If your organization issues official receipts.',
-            'formats' => '.jpg .png .pdf — up to 5 files, max 5 MB each',
-            'icon' => 'fa-certificate',
         ])
     @else
         <p class="text-muted small mb-3">Upload Documents <span class="text-muted">(Optional items can be skipped)</span></p>
@@ -130,30 +131,31 @@
 <script>
 function updateDocumentRequirements() {
     const selectedType = document.querySelector('.org-type-card input[type=radio]:checked')?.value;
-    const businessPermitField = document.querySelector('.upload-field[data-field-name="business_permit"]');
+    const isAgency = selectedType === 'agency';
+    const employmentWrapper = document.querySelector('.agency-only-document');
 
-    if (!businessPermitField) {
-        return;
+    if (employmentWrapper) {
+        employmentWrapper.classList.toggle('d-none', !isAgency);
     }
 
-    const badge = businessPermitField.querySelector('.upload-field-label .badge');
-    const input = businessPermitField.querySelector('input.upload-input');
+    ['business_permit', 'proof_of_employment'].forEach(fieldName => {
+        const field = document.querySelector(`.upload-field[data-field-name="${fieldName}"]`);
 
-    if (selectedType === 'individual') {
-        input.removeAttribute('required');
-        if (badge) {
-            badge.textContent = 'Optional';
-            badge.classList.remove('bg-danger');
-            badge.classList.add('bg-secondary');
+        if (!field) {
+            return;
         }
-    } else {
-        input.required = true;
+
+        const badge = field.querySelector('.upload-field-label .badge');
+        const input = field.querySelector('input.upload-input');
+        const required = fieldName === 'business_permit' || isAgency;
+
+        input.required = required;
         if (badge) {
-            badge.textContent = 'Required';
-            badge.classList.remove('bg-secondary');
-            badge.classList.add('bg-danger');
+            badge.textContent = required ? 'Required' : 'Optional';
+            badge.classList.toggle('bg-danger', required);
+            badge.classList.toggle('bg-secondary', !required);
         }
-    }
+    });
 }
 
 document.querySelectorAll('.org-type-card').forEach(card => {

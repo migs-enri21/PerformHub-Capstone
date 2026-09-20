@@ -22,10 +22,13 @@ class UserController extends Controller
             $query->where('is_active', $request->status === 'active');
         }
 
+        if ($request->verification === 'pending') {
+            $query->where('is_verified', false);
+        }
+
         $users = $query
             ->with(['performerProfile', 'organizerProfile'])
-            ->orderBy('first_name')
-            ->orderBy('last_name')
+            ->latest('created_at')
             ->paginate(15);
 
         return view('admin.users.index', compact('users'));
@@ -35,7 +38,7 @@ class UserController extends Controller
     {
         abort_unless(in_array($user->role, ['performer', 'organizer']), 404);
 
-        $user->load(['performerProfile', 'organizerProfile', 'verificationDocuments']);
+        $user->load(['performerProfile.categories', 'organizerProfile', 'verificationDocuments']);
 
         return view('admin.users.show', compact('user'));
     }
@@ -51,6 +54,38 @@ class UserController extends Controller
         }
 
         return back()->with('success', 'Account verified successfully.');
+    }
+
+    public function checkProfile(User $user): RedirectResponse
+    {
+        abort_unless(in_array($user->role, ['performer', 'organizer']), 400);
+
+        $profile = $user->isPerformer() ? $user->performerProfile()->with('categories')->first() : $user->organizerProfile;
+        $hasLocation = filled($profile?->region) && filled($profile?->city) && filled($profile?->barangay);
+        $profileIsComplete = filled($user->first_name)
+            && filled($user->last_name)
+            && filled($user->phone)
+            && $hasLocation
+            && ($user->isPerformer()
+                ? filled($profile?->stage_name) && $profile->categories->isNotEmpty()
+                : filled($profile?->organization_name) && filled($profile?->organization_type));
+
+        if (! $profileIsComplete) {
+            return back()->with('warning', 'Profile details are incomplete. The user must finish the required profile fields first.');
+        }
+
+        $user->update(['onboarding_step' => User::ONBOARDING_VERIFICATION]);
+
+        return back()->with('success', 'Profile checked successfully. Profile Details is now complete.');
+    }
+
+    public function uncheckProfile(User $user): RedirectResponse
+    {
+        abort_unless(in_array($user->role, ['performer', 'organizer']), 400);
+
+        $user->update(['onboarding_step' => User::ONBOARDING_PROFILE]);
+
+        return back()->with('success', 'Profile check removed. The user must complete Profile Details again.');
     }
 
     public function toggleActive(User $user): RedirectResponse

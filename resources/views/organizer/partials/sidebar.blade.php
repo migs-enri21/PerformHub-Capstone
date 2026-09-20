@@ -17,6 +17,7 @@
 
 <nav class="nav flex-column">
     <a class="nav-link @if(request()->routeIs('organizer.dashboard')) active @endif" href="{{ route('organizer.dashboard') }}"><i class="fas fa-home me-2"></i> Dashboard</a>
+    <a class="nav-link @if(request()->routeIs('organizer.profile.edit')) active @endif" href="{{ route('organizer.profile.edit') }}"><i class="fas fa-user-pen me-2"></i> Edit Profile</a>
     <a class="nav-link @if(request()->routeIs('organizer.events.*')) active @endif" href="{{ route('organizer.events.index') }}"><i class="fas fa-plus me-2"></i> Events</a>
     <a class="nav-link @if(request()->routeIs('organizer.calendar.*')) active @endif" href="{{ route('organizer.calendar.index') }}"><i class="fas fa-calendar-alt me-2"></i> Calendar</a>
     <a class="nav-link @if(request()->routeIs('organizer.performers.*')) active @endif" href="{{ route('organizer.performers.index') }}"><i class="fas fa-search me-2"></i> Find Performers</a>

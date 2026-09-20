@@ -168,12 +168,55 @@
                     <div class="row g-2 mb-2">
                         <div class="col-md-6">
                             <label class="form-label text-muted small mb-1">Password</label>
-                            <input type="password" name="password" class="form-control ph-input @error('password') is-invalid @enderror" required autocomplete="new-password">
+                            <div class="input-group">
+                                <input type="password" name="password" id="registerPassword" class="form-control ph-input @error('password') is-invalid @enderror" required autocomplete="new-password">
+                                <button type="button" class="btn btn-outline-secondary" data-password-toggle="registerPassword" aria-label="Show password" aria-pressed="false" title="Show password">
+                                    <i class="fas fa-eye" aria-hidden="true"></i>
+                                </button>
+                            </div>
                             @error('password')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
                         </div>
                         <div class="col-md-6">
                             <label class="form-label text-muted small mb-1">Confirm Password</label>
-                            <input type="password" name="password_confirmation" class="form-control ph-input @error('password') is-invalid @enderror" required autocomplete="new-password">
+                            <div class="input-group">
+                                <input type="password" name="password_confirmation" id="registerPasswordConfirmation" class="form-control ph-input @error('password') is-invalid @enderror" required autocomplete="new-password">
+                                <button type="button" class="btn btn-outline-secondary" data-password-toggle="registerPasswordConfirmation" aria-label="Show password" aria-pressed="false" title="Show password">
+                                    <i class="fas fa-eye" aria-hidden="true"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="performerOptions" class="mb-2 {{ old('role', $role) === 'performer' ? '' : 'd-none' }}">
+                        <div class="mb-3">
+                            <label class="form-label text-muted small mb-1">Categories <span class="text-danger">*</span></label>
+                            <div class="row row-cols-2 g-2">
+                                @foreach($categories as $category)
+                                    <div class="col">
+                                        <div class="form-check">
+                                            <input type="checkbox" name="category_ids[]" value="{{ $category->id }}" class="form-check-input performer-category" id="register-category-{{ $category->id }}" data-category-id="{{ $category->id }}" @checked(in_array($category->id, old('category_ids', [])))>
+                                            <label class="form-check-label small" for="register-category-{{ $category->id }}">{{ $category->name }}</label>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                            @error('category_ids')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
+                        </div>
+
+                        <div>
+                            <label class="form-label text-muted small mb-1">Genres <span class="text-muted fw-normal">(Optional)</span></label>
+                            <div class="row row-cols-2 g-2" id="registrationGenres">
+                                @foreach($genres as $genre)
+                                    <div class="col registration-genre d-none" data-category-id="{{ $genre->category_id }}">
+                                        <div class="form-check">
+                                            <input type="checkbox" name="genre_ids[]" value="{{ $genre->id }}" class="form-check-input genre-checkbox" id="register-genre-{{ $genre->id }}" @checked(in_array($genre->id, old('genre_ids', [])))>
+                                            <label class="form-check-label small" for="register-genre-{{ $genre->id }}">{{ $genre->name }}</label>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                            <small class="text-muted" id="registrationGenreHelp">Select a category first. You may choose genres if available.</small>
+                            @error('genre_ids')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
                         </div>
                     </div>
 
@@ -232,8 +275,38 @@ document.querySelectorAll('.role-card').forEach(card => {
         document.querySelectorAll('.role-card').forEach(c => c.classList.remove('active'));
         card.classList.add('active');
         document.getElementById('roleInput').value = card.dataset.role;
+        updatePerformerOptions(card.dataset.role === 'performer');
     });
 });
+
+const performerOptions = document.getElementById('performerOptions');
+const performerCategories = document.querySelectorAll('.performer-category');
+const registrationGenres = document.querySelectorAll('.registration-genre');
+const genreCheckboxes = document.querySelectorAll('.genre-checkbox');
+
+function updatePerformerOptions(isPerformer) {
+    performerOptions.classList.toggle('d-none', !isPerformer);
+    performerCategories.forEach(category => category.required = false);
+    genreCheckboxes.forEach(genre => genre.required = false);
+    updateRegistrationGenres();
+}
+
+function updateRegistrationGenres() {
+    const selectedCategories = Array.from(performerCategories)
+        .filter(category => category.checked)
+        .map(category => category.dataset.categoryId);
+
+    registrationGenres.forEach(option => {
+        const isRelevant = selectedCategories.includes(option.dataset.categoryId);
+        option.classList.toggle('d-none', !isRelevant);
+        const checkbox = option.querySelector('input');
+        checkbox.disabled = !isRelevant;
+        if (!isRelevant) checkbox.checked = false;
+    });
+}
+
+performerCategories.forEach(category => category.addEventListener('change', updateRegistrationGenres));
+updatePerformerOptions(document.getElementById('roleInput').value === 'performer');
 
 const termsCheckbox = document.getElementById('termsAccepted');
 const continueButton = document.getElementById('continueRegistration');

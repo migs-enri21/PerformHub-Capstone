@@ -19,9 +19,7 @@
 
         @include('onboarding.partials.stepper', [
             'current' => $current ?? 1,
-            'steps' => auth()->user()?->isPerformer()
-                ? [1 => 'Profile', 2 => 'Done']
-                : [1 => 'Profile', 2 => 'Verification', 3 => 'Done'],
+            'steps' => [1 => 'Profile', 2 => 'Verification', 3 => 'Done'],
         ])
 
         @yield('onboarding-content')

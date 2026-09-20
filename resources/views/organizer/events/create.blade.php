@@ -45,7 +45,12 @@
                 </div>
 
                 <div class="col-md-6">
-                    <label class="form-label">Event Type</label>
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <label class="form-label mb-0">Event Type</label>
+                        <button type="button" class="btn btn-link btn-sm p-0" data-bs-toggle="modal" data-bs-target="#featureRequestModal" data-request-type="event_type">
+                            Request missing event type
+                        </button>
+                    </div>
                     <select class="form-select ph-input" name="event_type_id" id="event_type_id" required>
                         <option value="">Select Event Type</option>
                         @foreach($eventTypes as $eventType)
@@ -63,7 +68,12 @@
                 </div>
 
                 <div class="col-12">
-                    <label class="form-label">Required Performer Categories</label>
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <label class="form-label mb-0">Required Performer Categories</label>
+                        <button type="button" class="btn btn-link btn-sm p-0" data-bs-toggle="modal" data-bs-target="#featureRequestModal" data-request-type="category">
+                            Request missing category
+                        </button>
+                    </div>
                     <div class="organizer-category-list @error('category_ids') organizer-category-list-error @enderror">
                         <div class="row row-cols-2 row-cols-md-3 g-2">
                             @foreach($categories as $category)
@@ -164,6 +174,30 @@
     </div>
 </div>
 
+<div class="modal fade" id="featureRequestModal" tabindex="-1" aria-labelledby="featureRequestModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <form method="POST" action="{{ route('organizer.feature-requests.store') }}" class="modal-content">
+            @csrf
+            <input type="hidden" name="type" id="featureRequestType" value="category">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold" id="featureRequestModalLabel">Request an option</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted small">Tell the admin what is missing. It will appear here after approval.</p>
+                <label class="form-label" for="featureRequestName">Name</label>
+                <input type="text" name="name" id="featureRequestName" class="form-control ph-input mb-3" placeholder="Option name" required>
+                <label class="form-label" for="featureRequestDescription">Description <span class="text-muted fw-normal">(Optional)</span></label>
+                <textarea name="description" id="featureRequestDescription" class="form-control ph-input" rows="3" placeholder="What is it used for?"></textarea>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="submit" class="btn ph-btn-primary">Send Request</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     const eventType = document.getElementById('event_type_id');
@@ -173,6 +207,20 @@ document.addEventListener('DOMContentLoaded', function () {
     const categoryCheckboxes = document.querySelectorAll('.event-category-checkbox');
     const genreOptions = document.querySelectorAll('.genre-option');
     const genreHelp = document.getElementById('genreHelp');
+    const featureRequestModal = document.getElementById('featureRequestModal');
+    const featureRequestType = document.getElementById('featureRequestType');
+    const featureRequestName = document.getElementById('featureRequestName');
+    const featureRequestModalLabel = document.getElementById('featureRequestModalLabel');
+
+    featureRequestModal.addEventListener('show.bs.modal', function (event) {
+        const trigger = event.relatedTarget;
+        const type = trigger?.dataset.requestType || 'category';
+        const isEventType = type === 'event_type';
+
+        featureRequestType.value = type;
+        featureRequestModalLabel.textContent = isEventType ? 'Request an event type' : 'Request a category';
+        featureRequestName.placeholder = isEventType ? 'Event type name' : 'Category name';
+    });
 
     if (fixedBudgetField) {
         compensationBox.prepend(fixedBudgetField);

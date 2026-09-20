@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Concerns\HandlesVerificationDocuments;
 use App\Http\Controllers\Controller;
 use App\Models\OrganizerProfile;
+use App\Models\Category;
+use App\Models\Genre;
 use App\Models\PerformerProfile;
 use App\Models\User;
 use App\Models\Notification;
@@ -12,7 +14,10 @@ use App\Support\PhilippineLocations;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Password as PasswordBroker;
 use Illuminate\Validation\Rules\Password;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class AuthController extends Controller
@@ -47,11 +52,70 @@ class AuthController extends Controller
         return back()->withErrors(['email' => 'Invalid credentials.'])->onlyInput('email');
     }
 
+    public function showForgotPassword(): View
+    {
+        return view('auth.forgot-password');
+    }
+
+    public function sendResetLink(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'email' => ['required', 'email'],
+        ]);
+
+        $status = PasswordBroker::sendResetLink($validated);
+
+        if ($status !== PasswordBroker::RESET_LINK_SENT) {
+            return back()->withInput()->withErrors(['email' => __($status)]);
+        }
+
+        return back()->with('status', __($status));
+    }
+
+    public function showResetPassword(string $token): View
+    {
+        return view('auth.reset-password', [
+            'token' => $token,
+            'email' => request('email'),
+        ]);
+    }
+
+    public function resetPassword(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'token' => ['required'],
+            'email' => ['required', 'email'],
+            'password' => ['required', 'confirmed', Password::min(8)],
+        ]);
+
+        $status = PasswordBroker::reset(
+            $validated,
+            function (User $user, string $password): void {
+                $user->forceFill([
+                    'password' => Hash::make($password),
+                    'remember_token' => null,
+                ])->save();
+            }
+        );
+
+        if ($status !== PasswordBroker::PASSWORD_RESET) {
+            return back()->withInput($request->only('email'))->withErrors(['email' => __($status)]);
+        }
+
+        return redirect()->route('login')->with('status', __($status));
+    }
+
     public function showRegister(Request $request): View
     {
         $role = $request->query('role', 'performer');
+        $categories = Category::where('is_active', true)->orderBy('name')->get();
+        $genres = Genre::with('category')
+            ->where('is_active', true)
+            ->whereNotNull('category_id')
+            ->orderBy('name')
+            ->get();
 
-        return view('auth.register', compact('role'));
+        return view('auth.register', compact('role', 'categories', 'genres'));
     }
 
     public function register(Request $request): RedirectResponse
@@ -66,6 +130,10 @@ class AuthController extends Controller
             'terms_accepted' => ['accepted'],
             'government_id' => ['required', 'array', 'min:1', 'max:5'],
             'government_id.*' => ['required', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'],
+            'category_ids' => ['required_if:role,performer', 'array', 'min:1'],
+            'category_ids.*' => ['integer', Rule::exists('categories', 'id')->where('is_active', true)],
+            'genre_ids' => ['nullable', 'array'],
+            'genre_ids.*' => ['integer', Rule::exists('genres', 'id')->where('is_active', true)],
         ], PhilippineLocations::locationFieldsRules()), [
             'email.unique' => 'An account with this email already exists.',
             'terms_accepted.accepted' => 'You must agree to the Terms & Agreement before continuing.',
@@ -73,6 +141,24 @@ class AuthController extends Controller
             'password.min' => 'Password must be at least 8 characters.',
             'government_id.required' => 'Please upload at least one valid government ID file.',
         ]);
+
+        if ($validated['role'] === User::ROLE_PERFORMER) {
+            $categoryIds = array_values(array_unique($validated['category_ids']));
+            $genreIds = array_values(array_unique($validated['genre_ids'] ?? []));
+
+            if ($genreIds !== []) {
+                $validGenreCount = Genre::whereIn('id', $genreIds)
+                    ->where('is_active', true)
+                    ->whereIn('category_id', $categoryIds)
+                    ->count();
+
+                if ($validGenreCount !== count($genreIds)) {
+                    return back()->withInput()->withErrors([
+                        'genre_ids' => 'Choose genres that belong to one of your selected categories.',
+                    ]);
+                }
+            }
+        }
 
         $locationData = PhilippineLocations::profileLocationAttributes($validated);
 
@@ -85,14 +171,16 @@ class AuthController extends Controller
             'role' => $validated['role'],
             'is_verified' => false,
             'is_active' => true,
-            'onboarding_step' => User::ONBOARDING_VERIFICATION,
+            'onboarding_step' => User::ONBOARDING_PROFILE,
         ]);
 
         if ($user->isPerformer()) {
-            PerformerProfile::create(array_merge([
+            $performerProfile = PerformerProfile::create(array_merge([
                 'user_id' => $user->id,
                 'stage_name' => $user->fullName(),
+                'genre' => Genre::whereIn('id', $validated['genre_ids'] ?? [])->pluck('name')->values()->all(),
             ], $locationData));
+            $performerProfile->categories()->attach(array_values(array_unique($validated['category_ids'])));
         } else {
             OrganizerProfile::create(array_merge([
                 'user_id' => $user->id,
@@ -118,12 +206,12 @@ class AuthController extends Controller
         }
 
         if ($user->isOrganizer()) {
-            return redirect()->route('onboarding.verification')
-                ->with('success', 'Account created. Upload your organization documents to finish sign-up.');
+            return redirect()->route('onboarding.profile')
+                ->with('success', 'Account created. Complete your profile details to continue.');
         }
 
-        return redirect()->route('onboarding.verification')
-            ->with('success', 'Account created. You can add proof of previous events before finishing sign-up.');
+        return redirect()->route('onboarding.profile')
+            ->with('success', 'Account created. Complete your profile details to continue.');
     }
 
     public function logout(Request $request): RedirectResponse

@@ -10,18 +10,18 @@
 <h2 class="fw-bold mb-4">Admin Dashboard</h2>
 <div class="row g-4 mb-4">
     @foreach([
-        ['label'=>'Total Users','value'=>$stats['users']],
-        ['label'=>'Performers','value'=>$stats['performers']],
-        ['label'=>'Organizers','value'=>$stats['organizers']],
-        ['label'=>'Bookings','value'=>$stats['bookings']],
-        ['label'=>'Pending Verifications','value'=>$stats['pending_verifications']],
-        ['label'=>'Unread Alerts','value'=>$stats['unread_notifications']],
+        ['label'=>'Total Users','value'=>$stats['users'],'url'=>route('admin.users.index')],
+        ['label'=>'Performers','value'=>$stats['performers'],'url'=>route('admin.users.index', ['role'=>'performer'])],
+        ['label'=>'Organizers','value'=>$stats['organizers'],'url'=>route('admin.users.index', ['role'=>'organizer'])],
+        ['label'=>'Bookings','value'=>$stats['bookings'],'url'=>route('admin.monitoring.bookings')],
+        ['label'=>'Pending Verifications','value'=>$stats['pending_verifications'],'url'=>route('admin.users.index', ['verification'=>'pending'])],
+        ['label'=>'Unread Alerts','value'=>$stats['unread_notifications'],'url'=>route('notifications.index')],
     ] as $stat)
         <div class="col-md-4 col-lg-2">
-            <div class="ph-card p-3 stat-card text-center">
+            <a href="{{ $stat['url'] }}" class="ph-card p-3 stat-card text-center text-decoration-none d-block">
                 <h4 class="fw-bold mb-0">{{ $stat['value'] }}</h4>
                 <small class="text-muted">{{ $stat['label'] }}</small>
-            </div>
+            </a>
         </div>
     @endforeach
 </div>

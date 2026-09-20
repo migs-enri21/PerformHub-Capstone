@@ -16,6 +16,7 @@
     <a class="nav-link {{ request()->routeIs('admin.categories.*', 'admin.event-types.*') ? 'active' : '' }}" href="{{ route('admin.categories.index') }}"><i class="fas fa-tags me-2"></i> Categories</a>
     <a class="nav-link {{ request()->routeIs('admin.genres.*', 'admin.specialties.*') ? 'active' : '' }}" href="{{ route('admin.genres.index') }}"><i class="fas fa-music me-2"></i> Genres & Specialties</a>
     <a class="nav-link {{ request()->routeIs('admin.monitoring.bookings') ? 'active' : '' }}" href="{{ route('admin.monitoring.bookings') }}"><i class="fas fa-ticket me-2"></i> Bookings</a>
+    <a class="nav-link {{ request()->routeIs('admin.feature-requests.*') ? 'active' : '' }}" href="{{ route('admin.feature-requests.index') }}"><i class="fas fa-lightbulb me-2"></i> Feature Requests</a>
 {{--<a class="nav-link {{ request()->routeIs('admin.users.all') ? 'active' : '' }}" href="{{ route('admin.users.all') }}"><i class="fas fa-user-friends me-2"></i> All Users</a>--}}
 </nav>
 

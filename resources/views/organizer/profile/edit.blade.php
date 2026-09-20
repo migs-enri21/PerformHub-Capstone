@@ -72,9 +72,8 @@
                     <div class="col-md-6">
                         <label class="form-label text-muted small">Organization Type</label>
                         <select name="organization_type" class="form-select ph-input" required>
-                            <option value="company" @if(old('organization_type', $profile->organization_type) == 'company') selected @endif>Company or Organization</option>
-                            <option value="individual" @if(old('organization_type', $profile->organization_type) == 'individual') selected @endif>Individual Organizer</option>
-                            <option value="nonprofit" @if(old('organization_type', $profile->organization_type) == 'nonprofit') selected @endif>Non-profit Organization</option>
+                            <option value="agency" @if(old('organization_type', $profile->organization_type) == 'agency') selected @endif>Agency</option>
+                            <option value="freelancer" @if(old('organization_type', $profile->organization_type) == 'freelancer') selected @endif>Freelancer</option>
                         </select>
                     </div>
                     <div class="col-md-6">

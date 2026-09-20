@@ -5,6 +5,9 @@
             <thead>
                 <tr>
                     <th>Name</th>
+                    @if($showCategory ?? false)
+                        <th>Category</th>
+                    @endif
                     <th>Description</th>
                     <th>Status</th>
                     <th class="text-end">Actions</th>
@@ -14,6 +17,9 @@
                 @forelse($items as $item)
                     <tr>
                         <td class="align-middle"><strong>{{ $item->name }}</strong></td>
+                        @if($showCategory ?? false)
+                            <td class="align-middle">{{ $item->category?->name ?? '—' }}</td>
+                        @endif
                         <td class="align-middle"><p class="mb-0 text-truncate" style="max-width: 350px;">{{ $item->description ?? '—' }}</p></td>
                         <td class="align-middle"><span class="badge {{ $item->is_active ? 'bg-success' : 'bg-secondary' }}">{{ $item->is_active ? 'Active' : 'Inactive' }}</span></td>
                         <td class="align-middle text-end">
@@ -31,7 +37,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="4" class="text-center text-muted py-5">
+                        <td colspan="{{ ($showCategory ?? false) ? 5 : 4 }}" class="text-center text-muted py-5">
                             <i class="fas fa-inbox fa-2x mb-3 d-block"></i>
                             {{ $empty }}
                         </td>

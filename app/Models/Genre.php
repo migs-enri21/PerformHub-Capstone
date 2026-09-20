@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Models\Concerns\ManagesAdminListOptions;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Genre extends Model
 {
@@ -11,6 +12,7 @@ class Genre extends Model
 
     protected $fillable = [
         'name',
+        'category_id',
         'slug',
         'description',
         'is_active',
@@ -21,5 +23,10 @@ class Genre extends Model
         return [
             'is_active' => 'boolean',
         ];
+    }
+
+    public function category(): BelongsTo
+    {
+        return $this->belongsTo(Category::class);
     }
 }

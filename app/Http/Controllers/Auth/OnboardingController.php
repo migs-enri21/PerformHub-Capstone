@@ -31,7 +31,7 @@ class OnboardingController extends Controller
     {
         $user = Auth::user();
 
-        if ($user->hasCompletedOnboarding() && $user->is_verified) {
+        if ($user->hasCompletedOnboarding()) {
             return redirect($user->dashboardRoute());
         }
 
@@ -114,17 +114,24 @@ class OnboardingController extends Controller
     {
         $user = Auth::user();
 
+        if ($user->onboarding_step < User::ONBOARDING_VERIFICATION) {
+            return redirect()->route('onboarding.profile')
+                ->with('warning', 'Complete your profile details before verification.');
+        }
+
         $hasGovernmentId = $user->verificationDocuments()->where('document_type', 'government_id')->exists();
         $governmentIdRule = $hasGovernmentId ? ['nullable', 'array', 'max:5'] : ['required', 'array', 'min:1', 'max:5'];
         $governmentIdFileRule = ['required', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'];
 
         if ($user->isOrganizer()) {
             $validated = $request->validate([
-                'organization_type' => ['required', 'in:company,individual,nonprofit'],
+                'organization_type' => ['required', 'in:freelancer,agency'],
                 'government_id' => $governmentIdRule,
                 'government_id.*' => $governmentIdFileRule,
-                'business_permit' => ['required_unless:organization_type,individual', 'array', 'min:1', 'max:5'],
+                'business_permit' => ['required', 'array', 'min:1', 'max:5'],
                 'business_permit.*' => ['required', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:10240'],
+                'proof_of_employment' => ['required_if:organization_type,agency', 'array', 'min:1', 'max:5'],
+                'proof_of_employment.*' => ['required', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:10240'],
                 'proof_of_events' => ['nullable', 'array', 'max:5'],
                 'proof_of_events.*' => ['required', 'file', 'mimes:jpg,jpeg,png,pdf,zip', 'max:51200'],
                 'bir_certificate' => ['nullable', 'array', 'max:5'],
@@ -143,6 +150,10 @@ class OnboardingController extends Controller
             }
             foreach ($request->file('business_permit', []) as $index => $file) {
                 $this->storeVerificationDocument($user, 'business_permit', $file, [], $index === 0);
+            }
+
+            foreach ($request->file('proof_of_employment', []) as $index => $file) {
+                $this->storeVerificationDocument($user, 'proof_of_employment', $file, [], $index === 0);
             }
 
             if ($request->hasFile('proof_of_events')) {

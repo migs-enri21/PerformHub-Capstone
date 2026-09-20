@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\CategoryController as AdminCategoryController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\EventTypeController;
+use App\Http\Controllers\Admin\FeatureRequestController as AdminFeatureRequestController;
 use App\Http\Controllers\Admin\GenreController as AdminGenreController;
 use App\Http\Controllers\Admin\MonitoringController;
 use App\Http\Controllers\Admin\SpecialtyController as AdminSpecialtyController;
@@ -18,6 +19,7 @@ use App\Http\Controllers\Organizer\PerformerSearchController;
 use App\Http\Controllers\Organizer\ProfileController as OrganizerProfileController;
 use App\Http\Controllers\Organizer\EventController as OrganizerEventController;
 use App\Http\Controllers\Organizer\EventApplicationController as OrganizerEventApplicationController;
+use App\Http\Controllers\Organizer\FeatureRequestController as OrganizerFeatureRequestController;
 use App\Http\Controllers\Organizer\GoogleCalendarController as OrganizerGoogleCalendarController;
 use App\Http\Controllers\Organizer\CalendarController;
 use App\Http\Controllers\Performer\AvailabilityController;
@@ -36,6 +38,10 @@ Route::view('/terms', 'terms')->name('terms');
 Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
     Route::post('/login', [AuthController::class, 'login']);
+    Route::get('/forgot-password', [AuthController::class, 'showForgotPassword'])->name('password.request');
+    Route::post('/forgot-password', [AuthController::class, 'sendResetLink'])->name('password.email');
+    Route::get('/reset-password/{token}', [AuthController::class, 'showResetPassword'])->name('password.reset');
+    Route::post('/reset-password', [AuthController::class, 'resetPassword'])->name('password.update');
     Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
     Route::post('/register', [AuthController::class, 'register']);
 });
@@ -95,6 +101,7 @@ Route::middleware(['auth', 'role:organizer'])->prefix('organizer')->name('organi
     Route::get('/performers/{performer}', [PerformerSearchController::class, 'show'])->name('performers.show');
     Route::get('/bookings/{booking}', [OrganizerBookingController::class, 'show'])->name('bookings.show');
     Route::get('/events', [OrganizerEventController::class, 'index'])->name('events.index');
+    Route::post('/feature-requests', [OrganizerFeatureRequestController::class, 'store'])->name('feature-requests.store');
     Route::get('/events/create', [OrganizerEventController::class, 'create'])->name('events.create');
     Route::post('/events', [OrganizerEventController::class, 'store'])->name('events.store');
     Route::get('/events/{event}', [OrganizerEventController::class, 'show'])->name('events.show');
@@ -127,6 +134,8 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::get('/users', [AdminUserController::class, 'index'])->name('users.index');
     Route::get('/users/all', [AdminUserController::class, 'all'])->name('users.all');
     Route::get('/users/{user}', [AdminUserController::class, 'show'])->name('users.show');
+    Route::post('/users/{user}/check-profile', [AdminUserController::class, 'checkProfile'])->name('users.check-profile');
+    Route::post('/users/{user}/uncheck-profile', [AdminUserController::class, 'uncheckProfile'])->name('users.uncheck-profile');
     Route::post('/users/{user}/verify', [AdminUserController::class, 'verify'])->name('users.verify');
     Route::post('/users/{user}/toggle', [AdminUserController::class, 'toggleActive'])->name('users.toggle');
     Route::get('/categories', [AdminCategoryController::class, 'index'])->name('categories.index');
@@ -162,6 +171,9 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::delete('/specialties/{specialty}', [AdminSpecialtyController::class, 'destroy'])->name('specialties.destroy');
 
     Route::get('/monitoring/bookings', [MonitoringController::class, 'bookings'])->name('monitoring.bookings');
+    Route::get('/feature-requests', [AdminFeatureRequestController::class, 'index'])->name('feature-requests.index');
+    Route::post('/feature-requests/{featureRequest}/approve', [AdminFeatureRequestController::class, 'approve'])->name('feature-requests.approve');
+    Route::post('/feature-requests/{featureRequest}/reject', [AdminFeatureRequestController::class, 'reject'])->name('feature-requests.reject');
     Route::get('/events', [\App\Http\Controllers\Admin\EventController::class, 'index'])->name('events.index');
     Route::get('/events/{booking}', [\App\Http\Controllers\Admin\EventController::class, 'show'])->name('events.show');
 });

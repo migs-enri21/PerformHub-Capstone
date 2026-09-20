@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Category;
 use App\Models\Genre;
 use App\Models\Specialty;
 use App\Support\StoredOptionNames;
@@ -18,21 +19,24 @@ class GenreController extends Controller
         $search = request('search');
         $status = request('status');
 
-        $genres = $this->filtered(Genre::query(), $search, $status)
+        $genres = $this->filtered(Genre::query()->with('category'), $search, $status)
             ->orderBy('name')
             ->paginate(15);
+
+        $categories = Category::where('is_active', true)->orderBy('name')->get();
 
         $specialties = $this->filtered(Specialty::query(), $search, $status)
             ->orderBy('name')
             ->paginate(15, ['*'], 'specialties_page');
 
-        return view('admin.genres.index', compact('genres', 'specialties', 'search', 'status'));
+        return view('admin.genres.index', compact('genres', 'specialties', 'categories', 'search', 'status'));
     }
 
     public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:100', 'unique:genres,name'],
+            'category_id' => ['required', 'integer', Rule::exists('categories', 'id')->where('is_active', true)],
             'description' => ['nullable', 'string', 'max:500'],
         ]);
 
@@ -47,7 +51,9 @@ class GenreController extends Controller
 
     public function edit(Genre $genre): View
     {
-        return view('admin.genres.edit', compact('genre'));
+        $categories = Category::where('is_active', true)->orderBy('name')->get();
+
+        return view('admin.genres.edit', compact('genre', 'categories'));
     }
 
     public function show(Genre $genre): View
@@ -64,6 +70,7 @@ class GenreController extends Controller
                 'max:100',
                 Rule::unique('genres', 'name')->ignore($genre->id),
             ],
+            'category_id' => ['required', 'integer', Rule::exists('categories', 'id')->where('is_active', true)],
             'description' => ['nullable', 'string', 'max:500'],
             'is_active' => ['boolean'],
         ]);

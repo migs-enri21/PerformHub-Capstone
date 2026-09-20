@@ -34,25 +34,14 @@
 </div>
 
 <div class="row g-4 mb-4">
-    <div class="col-lg-6">
+    <div class="col-12">
         <div class="ph-card p-4 h-100">
             <h5 class="fw-bold mb-3">Create Category</h5>
-            <form method="POST" action="{{ route('admin.categories.store') }}" class="row g-3">
+            <form method="POST" action="{{ route('admin.categories.store') }}" class="row g-3 align-items-end">
                 @csrf
-                <div class="col-12"><input type="text" name="name" class="form-control ph-input" placeholder="Category name" required></div>
-                <div class="col-12"><input type="text" name="description" class="form-control ph-input" placeholder="Description"></div>
-                <div class="col-12"><button class="btn ph-btn-primary w-100">Add Category</button></div>
-            </form>
-        </div>
-    </div>
-    <div class="col-lg-6">
-        <div class="ph-card p-4 h-100">
-            <h5 class="fw-bold mb-3">Create Event Type</h5>
-            <form method="POST" action="{{ route('admin.event-types.store') }}" class="row g-3">
-                @csrf
-                <div class="col-12"><input type="text" name="name" class="form-control ph-input" placeholder="Event type name" required></div>
-                <div class="col-12"><input type="text" name="description" class="form-control ph-input" placeholder="Description"></div>
-                <div class="col-12"><button class="btn ph-btn-primary w-100">Add Event Type</button></div>
+                <div class="col-md-5"><input type="text" name="name" class="form-control ph-input" placeholder="Category name" required></div>
+                <div class="col-md-5"><input type="text" name="description" class="form-control ph-input" placeholder="Description"></div>
+                <div class="col-md-2"><button class="btn ph-btn-primary w-100">Add Category</button></div>
             </form>
         </div>
     </div>
@@ -107,6 +96,16 @@
     </div>
 </div>
 
+<div class="ph-card p-4 mb-4">
+    <h5 class="fw-bold mb-3">Create Event Type</h5>
+    <form method="POST" action="{{ route('admin.event-types.store') }}" class="row g-3 align-items-end">
+        @csrf
+        <div class="col-md-5"><input type="text" name="name" class="form-control ph-input" placeholder="Event type name" required></div>
+        <div class="col-md-5"><input type="text" name="description" class="form-control ph-input" placeholder="Description"></div>
+        <div class="col-md-2"><button class="btn ph-btn-primary w-100">Add Event Type</button></div>
+    </form>
+</div>
+
 <div class="ph-card p-4">
     <h5 class="fw-bold mb-3">Event Types</h5>
     <div class="table-responsive">
@@ -151,4 +150,70 @@
     </div>
 </div>
 
+
+@if(session('created_category'))
+    @php($createdCategory = session('created_category'))
+    <div class="modal fade" id="createGenreModal" tabindex="-1" aria-labelledby="createGenreModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-sm">
+            <form method="POST" action="{{ route('admin.genres.store') }}" class="modal-content">
+                @csrf
+                <input type="hidden" name="category_id" value="{{ $createdCategory['id'] }}">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold" id="createGenreModalLabel">Add a genre</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="small text-muted mb-3">
+                        Add a genre under <strong>{{ $createdCategory['name'] }}</strong>.
+                        <button type="button" class="btn btn-link btn-sm p-0 ms-1 text-muted" data-bs-toggle="tooltip" data-bs-placement="top" title="This category is already selected for the new genre.">
+                            <i class="fas fa-circle-info" aria-hidden="true"></i>
+                            <span class="visually-hidden">Why is this category selected?</span>
+                        </button>
+                    </p>
+                    <input type="text" name="name" class="form-control ph-input mb-2" placeholder="Genre name" required autocomplete="off">
+                    <input type="text" name="description" class="form-control ph-input" placeholder="Description">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Skip</button>
+                    <button type="submit" class="btn ph-btn-primary">Add Genre</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    @push('scripts')
+    <script>
+        const createGenreModalElement = document.getElementById('createGenreModal');
+
+        if (createGenreModalElement && window.bootstrap) {
+            const createGenreModal = new bootstrap.Modal(createGenreModalElement);
+            const tooltipTrigger = createGenreModalElement.querySelector('[data-bs-toggle="tooltip"]');
+            const genreForm = createGenreModalElement.querySelector('form');
+            let modalWasTouched = false;
+
+            if (tooltipTrigger) {
+                new bootstrap.Tooltip(tooltipTrigger);
+            }
+
+            genreForm.addEventListener('focusin', () => {
+                modalWasTouched = true;
+            });
+            genreForm.addEventListener('input', () => {
+                modalWasTouched = true;
+            });
+            genreForm.addEventListener('submit', () => {
+                modalWasTouched = true;
+            });
+
+            createGenreModal.show();
+
+            setTimeout(() => {
+                if (!modalWasTouched) {
+                    createGenreModal.hide();
+                }
+            }, 6000);
+        }
+    </script>
+    @endpush
+@endif
 @endsection

@@ -32,29 +32,26 @@
     </form>
 </div>
 
-<div class="row g-4 mb-4">
-    <div class="col-lg-6">
-        <div class="ph-card p-4 h-100">
-            <h5 class="fw-bold mb-3">Create Genre</h5>
-            <form method="POST" action="{{ route('admin.genres.store') }}" class="row g-3">
-                @csrf
-                <div class="col-12"><input type="text" name="name" class="form-control ph-input" placeholder="Genre name" required></div>
-                <div class="col-12"><input type="text" name="description" class="form-control ph-input" placeholder="Description"></div>
-                <div class="col-12"><button class="btn ph-btn-primary w-100">Add Genre</button></div>
-            </form>
-        </div>
+<div class="mb-4">
+    <div class="ph-card p-4 mb-4">
+        <h5 class="fw-bold mb-3">Create Genre</h5>
+        <form method="POST" action="{{ route('admin.genres.store') }}" class="row g-3 align-items-end">
+            @csrf
+            <div class="col-md-3"><input type="text" name="name" class="form-control ph-input" placeholder="Genre name" required></div>
+            <div class="col-md-3">
+                <select name="category_id" class="form-select ph-input" required>
+                    <option value="">Select category</option>
+                    @foreach($categories as $category)
+                        <option value="{{ $category->id }}" @selected(old('category_id') == $category->id)>{{ $category->name }}</option>
+                    @endforeach
+                </select>
+                @error('category_id')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
+            </div>
+            <div class="col-md-4"><input type="text" name="description" class="form-control ph-input" placeholder="Description"></div>
+            <div class="col-md-2"><button class="btn ph-btn-primary w-100">Add Genre</button></div>
+        </form>
     </div>
-    <div class="col-lg-6">
-        <div class="ph-card p-4 h-100">
-            <h5 class="fw-bold mb-3">Create Specialty</h5>
-            <form method="POST" action="{{ route('admin.specialties.store') }}" class="row g-3">
-                @csrf
-                <div class="col-12"><input type="text" name="name" class="form-control ph-input" placeholder="Specialty name" required></div>
-                <div class="col-12"><input type="text" name="description" class="form-control ph-input" placeholder="Description"></div>
-                <div class="col-12"><button class="btn ph-btn-primary w-100">Add Specialty</button></div>
-            </form>
-        </div>
-    </div>
+
 </div>
 
 @include('admin.partials.named-option-table', [
@@ -63,8 +60,19 @@
     'prefix' => 'genres',
     'itemLabel' => 'genre',
     'empty' => 'No genres found',
+    'showCategory' => true,
     'extraClass' => 'mb-4',
 ])
+
+<div class="ph-card p-4 mb-4">
+    <h5 class="fw-bold mb-3">Create Specialty</h5>
+    <form method="POST" action="{{ route('admin.specialties.store') }}" class="row g-3 align-items-end">
+        @csrf
+        <div class="col-md-5"><input type="text" name="name" class="form-control ph-input" placeholder="Specialty name" required></div>
+        <div class="col-md-5"><input type="text" name="description" class="form-control ph-input" placeholder="Description"></div>
+        <div class="col-md-2"><button class="btn ph-btn-primary w-100">Add Specialty</button></div>
+    </form>
+</div>
 
 @include('admin.partials.named-option-table', [
     'heading' => 'Specialties',

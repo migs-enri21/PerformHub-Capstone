@@ -59,7 +59,7 @@ class ProfileController extends Controller
             'first_name' => ['required', 'string', 'max:100'],
             'last_name' => ['required', 'string', 'max:100'],
             'organization_name' => ['required', 'string', 'max:255'],
-            'organization_type' => ['required', 'in:company,individual,nonprofit'],
+            'organization_type' => ['required', 'in:freelancer,agency'],
             'bio' => ['nullable', 'string', 'max:2000'],
             'phone' => ['nullable', 'string', 'max:30'],
             'website' => ['nullable', 'url', 'max:255'],

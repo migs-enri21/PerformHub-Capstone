@@ -42,8 +42,16 @@
                 </div>
 
                 <div class="mb-4">
-                    <label class="form-label text-muted small">Password</label>
-                    <input type="password" name="password" class="form-control ph-input" placeholder="••••••••" required>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <label class="form-label text-muted small">Password</label>
+                        <a href="{{ route('password.request') }}" class="small mb-2">Forgot password?</a>
+                    </div>
+                    <div class="input-group">
+                        <input type="password" name="password" id="loginPassword" class="form-control ph-input" placeholder="••••••••" required>
+                        <button type="button" class="btn btn-outline-secondary" data-password-toggle="loginPassword" aria-label="Show password" aria-pressed="false" title="Show password">
+                            <i class="fas fa-eye" aria-hidden="true"></i>
+                        </button>
+                    </div>
                 </div>
 
                 <button type="submit" class="btn ph-btn-primary w-100 mb-3">
