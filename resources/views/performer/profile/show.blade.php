@@ -22,11 +22,11 @@
     <div class="col-md-6">
         <div class="ph-card p-4 h-100">
             <h5 class="fw-semibold mb-3">Booking Rate</h5>
-            @if($profile->rate)
-                <p class="fw-semibold mb-0 fs-5">₱{{ number_format($profile->rate, 2) }} <span class="text-muted small fw-normal">/ event</span></p>
-            @else
+            @forelse($profile->rateLines() as $line)
+                <span class="profile-rate-pill me-2 mb-2">{{ $line }}</span>
+            @empty
                 <p class="text-muted mb-0">No rate set yet. <a href="{{ route('performer.profile.edit') }}">Add your rate</a>.</p>
-            @endif
+            @endforelse
         </div>
     </div>
     <div class="col-md-6">

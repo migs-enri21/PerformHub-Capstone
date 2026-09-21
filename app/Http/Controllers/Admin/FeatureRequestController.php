@@ -6,7 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Models\EventType;
 use App\Models\FeatureRequest;
+use App\Models\Genre;
 use App\Models\Notification;
+use App\Models\Specialty;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -17,7 +19,7 @@ class FeatureRequestController extends Controller
 {
     public function index(): View
     {
-        $requests = FeatureRequest::with('requester')
+        $requests = FeatureRequest::with(['requester', 'category'])
             ->latest()
             ->paginate(20);
 
@@ -39,6 +41,26 @@ class FeatureRequestController extends Controller
                 Category::create([
                     'name' => $optionName,
                     'slug' => $this->uniqueSlug(Category::class, $optionName),
+                    'description' => $featureRequest->description,
+                    'is_active' => true,
+                ]);
+            } elseif ($featureRequest->type === FeatureRequest::TYPE_GENRE) {
+                abort_if(Genre::whereRaw('LOWER(name) = ?', [strtolower($optionName)])->exists(), 422, 'This genre already exists.');
+                abort_if(! $featureRequest->category_id, 422, 'This genre request has no category.');
+
+                Genre::create([
+                    'name' => $optionName,
+                    'category_id' => $featureRequest->category_id,
+                    'slug' => Genre::makeSlug($optionName),
+                    'description' => $featureRequest->description,
+                    'is_active' => true,
+                ]);
+            } elseif ($featureRequest->type === FeatureRequest::TYPE_SPECIALTY) {
+                abort_if(Specialty::whereRaw('LOWER(name) = ?', [strtolower($optionName)])->exists(), 422, 'This specialty already exists.');
+
+                Specialty::create([
+                    'name' => $optionName,
+                    'slug' => Specialty::makeSlug($optionName),
                     'description' => $featureRequest->description,
                     'is_active' => true,
                 ]);
@@ -66,12 +88,10 @@ class FeatureRequestController extends Controller
             'feature.approved',
             "{$featureRequest->typeLabel()} Request Approved",
             "Your requested {$featureRequest->typeLabel()} '{$optionName}' is now available.",
-            $featureRequest->type === FeatureRequest::TYPE_CATEGORY
-                ? route('organizer.events.create')
-                : route('organizer.events.create')
+            $this->reviewerNotificationUrl($featureRequest)
         );
 
-        return back()->with('success', "{$featureRequest->typeLabel()} created and the organizer was notified.");
+        return back()->with('success', "{$featureRequest->typeLabel()} created and the requester was notified.");
     }
 
     public function reject(FeatureRequest $featureRequest): RedirectResponse
@@ -91,10 +111,17 @@ class FeatureRequestController extends Controller
             'feature.rejected',
             "{$featureRequest->typeLabel()} Request Declined",
             "Your requested {$featureRequest->typeLabel()} '{$featureRequest->name}' was not approved.",
-            route('organizer.events.create')
+            $this->reviewerNotificationUrl($featureRequest)
         );
 
-        return back()->with('success', 'Request declined and the organizer was notified.');
+        return back()->with('success', 'Request declined and the requester was notified.');
+    }
+
+    private function reviewerNotificationUrl(FeatureRequest $featureRequest): string
+    {
+        return in_array($featureRequest->type, [FeatureRequest::TYPE_GENRE, FeatureRequest::TYPE_SPECIALTY], true)
+            ? route('performer.profile.edit')
+            : route('organizer.events.create');
     }
 
     private function uniqueSlug(string $model, string $name): string

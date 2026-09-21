@@ -18,7 +18,6 @@
 <nav class="nav flex-column">
     <a class="nav-link {{ request()->routeIs('performer.dashboard') ? 'active' : '' }}" href="{{ route('performer.dashboard') }}"><i class="fas fa-home me-2"></i> Dashboard</a>
     <a class="nav-link {{ request()->routeIs('performer.profile.*') ? 'active' : '' }}" href="{{ route('performer.profile.show') }}"><i class="fas fa-user me-2"></i> Profile</a>
-    <a class="nav-link {{ request()->routeIs('performer.profile.edit') ? 'active' : '' }}" href="{{ route('performer.profile.edit') }}"><i class="fas fa-user-pen me-2"></i> Edit Profile</a>
     <a class="nav-link {{ request()->routeIs('performer.portfolio.*') ? 'active' : '' }}" href="{{ route('performer.portfolio.index') }}"><i class="fas fa-images me-2"></i> Portfolio</a>
     @if(auth()->user()->hasLimitedAccess())
         <a class="nav-link" href="{{ route('performer.bookings.index') }}"><i class="fas fa-ticket me-2"></i> Bookings</a>

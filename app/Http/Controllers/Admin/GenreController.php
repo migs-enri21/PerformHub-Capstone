@@ -58,6 +58,8 @@ class GenreController extends Controller
 
     public function show(Genre $genre): View
     {
+        $genre->load('category');
+
         return view('admin.genres.show', compact('genre'));
     }
 

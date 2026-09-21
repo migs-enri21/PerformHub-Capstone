@@ -126,7 +126,9 @@
                             </div>
                         </div>
                         <p class="text-muted small">{{ Str::limit($performer->bio, 100) ?: 'Talented performer available for bookings.' }}</p>
-                        @if($performer->rate)<p class="mb-0 fw-semibold text-primary">₱{{ number_format($performer->rate, 2) }}/event</p>@endif
+                        @foreach($performer->rateLines() as $line)
+                            <p class="mb-0 fw-semibold text-primary">{{ $line }}</p>
+                        @endforeach
                     </div>
                 </div>
             @empty

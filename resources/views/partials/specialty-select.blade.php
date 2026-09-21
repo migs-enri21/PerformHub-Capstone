@@ -4,6 +4,9 @@
     'required' => false,
     'placeholder' => 'Select specialty / instrument',
     'multiple' => false,
+    'groups' => null,
+    'guidedKind' => null,
+    'emptyMessage' => 'Select a category first',
 ])
 
 @include('partials.ph-select', [
@@ -12,5 +15,8 @@
     'required' => $required,
     'placeholder' => $placeholder,
     'multiple' => $multiple,
-    'options' => \App\Support\PerformerSpecialties::all(),
+    'groups' => $groups,
+    'guidedKind' => $guidedKind,
+    'emptyMessage' => $emptyMessage,
+    'options' => $groups === null ? \App\Support\PerformerSpecialties::all() : [],
 ])

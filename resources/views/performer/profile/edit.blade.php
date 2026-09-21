@@ -17,6 +17,7 @@
     @csrf @method('PUT')
     <div class="row g-4">
         <div class="col-lg-4">
+            <div class="profile-edit-aside">
             <div class="ph-card p-4 profile-photo-card" id="photo">
                 @include('partials.profile-photo-upload', [
                     'currentUrl' => $profile->profilePhotoUrl(),
@@ -39,38 +40,47 @@
                     <span class="banner-reposition-hint d-none"><i class="fas fa-arrows-up-down me-1"></i>Drag to reposition</span>
                 </div>
                 <input type="hidden" name="banner_position_y" id="bannerPositionYInput" value="{{ $bannerPositionY }}">
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                <label class="form-label text-muted small mb-0" for="banner_photo_input">Drag the picture to your preference, or upload a new one (JPG, PNG, WEBP · max 5 MB)</label>
-                <button type="button" class="btn ph-btn-outline btn-sm flex-shrink-0 text-nowrap" id="bannerResetPosition">Reset to Center</button>
+                <div class="d-flex justify-content-between align-items-center gap-2 mb-2">
+                <label class="form-label text-muted small mb-0" for="banner_photo_input">Drag to reposition · max 5 MB</label>
+                <button type="button" class="btn ph-btn-outline btn-sm flex-shrink-0" id="bannerResetPosition">Reset</button>
                 </div>
                 <input type="file" name="banner_photo" id="banner_photo_input" class="form-control ph-input" accept="image/jpeg,image/png,image/webp,image/gif">
+            </div>
             </div>
         </div>
         <div class="col-lg-8">
             <div class="ph-card p-4">
                 <div class="row g-3">
-                    <div class="col-md-6">
+                    <div class="col-md-4">
                         <label class="form-label text-muted small">First Name</label>
                         <input type="text" name="first_name" class="form-control ph-input" value="{{ old('first_name', auth()->user()->first_name) }}" required>
                     </div>
-                    <div class="col-md-6">
+                    <div class="col-md-4">
                         <label class="form-label text-muted small">Last Name</label>
                         <input type="text" name="last_name" class="form-control ph-input" value="{{ old('last_name', auth()->user()->last_name) }}" required>
                     </div>
-                    <div class="col-md-6">
+                    <div class="col-md-4">
                         <label class="form-label text-muted small">Stage Name</label>
                         <input type="text" name="stage_name" class="form-control ph-input" value="{{ old('stage_name', $profile->stage_name) }}" required>
                     </div>
                     @php
-                        $selectedCategoryIds = old('category_ids', $profile->categories->pluck('id')->all());
+                        $selectedCategoryIds = collect(old('category_ids', $profile->categories->pluck('id')->all()))
+                            ->map(fn ($id) => (string) $id)
+                            ->all();
+                        $genreGroups = \App\Support\PerformerOptionGuide::groupsForIds($optionCatalog, $selectedCategoryIds, 'genres');
+                        $hourRate = old('rate_per_hour', $profile->rate_per_hour);
+                        $dayRate = old('rate_per_day', $profile->rate_per_day);
+                        $hourRate = $hourRate === null || $hourRate === '' ? '' : (int) round((float) $hourRate);
+                        $dayRate = $dayRate === null || $dayRate === '' ? '' : (int) round((float) $dayRate);
                     @endphp
                     <div class="col-12">
-                        <label class="form-label text-muted small">Categories</label>
-                        <p class="text-muted small mb-2">Check every role you do. A singer who also dances should select both Singer and Dancer.</p>
-                        <div class="category-checkbox-grid">
+                        <div class="profile-edit-divider"></div>
+                        <label class="form-label text-muted small mb-1">Categories</label>
+                        <p class="text-muted small mb-2">Select every role you perform.</p>
+                        <div class="category-checkbox-grid" id="profileCategoryGrid">
                             @foreach($categories as $cat)
                                 <label class="category-checkbox-option" data-category-name="{{ strtolower($cat->name) }}">
-                                    <input type="checkbox" name="category_ids[]" value="{{ $cat->id }}" @checked(in_array($cat->id, $selectedCategoryIds))>
+                                    <input type="checkbox" name="category_ids[]" value="{{ $cat->id }}" @checked(in_array((string) $cat->id, $selectedCategoryIds, true))>
                                     <span>{{ $cat->name }}</span>
                                 </label>
                             @endforeach
@@ -78,7 +88,7 @@
                     </div>
                     <div class="col-md-6">
                         <label class="form-label text-muted small">Specialty / Instrument</label>
-                        <p class="text-muted small mb-2">Open the list and pick more than one if needed (Bass and Guitar).</p>
+                        <p class="profile-field-copy text-muted small">You can pick more than one.</p>
                         @include('partials.specialty-select', [
                             'value' => $profile->specialtyList(),
                             'multiple' => true,
@@ -86,15 +96,28 @@
                     </div>
                     <div class="col-md-6">
                         <label class="form-label text-muted small">Genre</label>
-                        <p class="text-muted small mb-2">Open the list and pick more than one if needed (R&amp;B and Other).</p>
+                        <p class="profile-field-copy text-muted small">Matches the roles you checked.</p>
                         @include('partials.genre-select', [
                             'value' => $profile->genreList(),
                             'multiple' => true,
+                            'groups' => $genreGroups,
+                            'guidedKind' => 'genres',
+                            'emptyMessage' => 'No genres for the selected categories yet',
                         ])
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label text-muted small">Rate (₱)</label>
-                        <input type="number" step="0.01" name="rate" class="form-control ph-input" value="{{ old('rate', $profile->rate) }}">
+                        <label class="form-label text-muted small">Rate per hour</label>
+                        <div class="input-group profile-rate-group">
+                            <span class="input-group-text">₱</span>
+                            <input type="number" step="1" min="0" name="rate_per_hour" class="form-control ph-input" value="{{ $hourRate }}" placeholder="0">
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label text-muted small">Rate per day</label>
+                        <div class="input-group profile-rate-group">
+                            <span class="input-group-text">₱</span>
+                            <input type="number" step="1" min="0" name="rate_per_day" class="form-control ph-input" value="{{ $dayRate }}" placeholder="0">
+                        </div>
                     </div>
                     <div class="col-12">
                         <label class="form-label text-muted small">Location</label>
@@ -111,9 +134,9 @@
                 </div>
             </div>
 
-            <div class="ph-card p-4 mt-4">
+            <div class="ph-card p-4 mt-3">
                 <h5 class="fw-semibold mb-1">Social Media</h5>
-                <p class="text-muted small mb-3">Add profile links and follower counts. Enter the full number (e.g. <strong>19000</strong> shows as 19K on your profile).</p>
+                <p class="text-muted small mb-3">Paste the profile URL and follower count (e.g. <strong>19000</strong> = 19K).</p>
                 <div class="row g-3">
                     @php
                         $socialFields = [
@@ -134,7 +157,7 @@
                                     </div>
                                     <div class="col-md-4">
                                         <div class="input-group">
-                                            <input type="number" min="0" name="{{ $meta['count'] }}" class="form-control ph-input" value="{{ old($meta['count'], $profile->{$meta['count']}) }}" placeholder="{{ $meta['metric'] }}">
+                                            <input type="number" min="0" name="{{ $meta['count'] }}" class="form-control ph-input" value="{{ old($meta['count'], $profile->{$meta['count']}) }}" placeholder="0">
                                             <span class="input-group-text social-metric-suffix">{{ $meta['metric'] }}</span>
                                         </div>
                                     </div>
@@ -150,73 +173,75 @@
     </div>
 </form>
 
+<div class="modal fade" id="optionRequestModal" tabindex="-1" aria-labelledby="optionRequestModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <form method="POST" action="{{ route('performer.feature-requests.store') }}" class="modal-content">
+            @csrf
+            <input type="hidden" name="type" id="optionRequestType" value="specialty">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold" id="optionRequestModalLabel">Request a specialty</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted small">Admin will review this. It shows in the list after approval.</p>
+                <div id="optionRequestCategoryWrap" class="mb-3 d-none">
+                    <label class="form-label" for="optionRequestCategory">Category</label>
+                    <select name="category_id" id="optionRequestCategory" class="form-select ph-input">
+                        <option value="">Select category</option>
+                        @foreach($categories as $cat)
+                            <option value="{{ $cat->id }}">{{ $cat->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <label class="form-label" for="optionRequestName">Name</label>
+                <input type="text" name="name" id="optionRequestName" class="form-control ph-input mb-3" placeholder="e.g. Ukulele" required>
+                <label class="form-label" for="optionRequestDescription">Note <span class="text-muted fw-normal">(optional)</span></label>
+                <textarea name="description" id="optionRequestDescription" class="form-control ph-input" rows="3" placeholder="Why do you need this?"></textarea>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="submit" class="btn ph-btn-primary">Send Request</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 @push('scripts')
 <script>
 (function () {
-    const optionMap = @json(config('performer_options'));
-    const specialtySelect = document.getElementById('performerSpecialty');
-    const genreSelect = document.getElementById('performerGenre');
-    const categoryInputs = document.querySelectorAll('input[name="category_ids[]"]');
-    const savedSpecialty = @json(old('specialty', $profile->specialty));
-    const savedGenre = @json(old('genre', $profile->genre));
+    const optionCatalog = @json($optionCatalog);
+    const categoryInputs = document.querySelectorAll('#profileCategoryGrid input[name="category_ids[]"]');
 
-    function key(value) {
-        return (value || '').trim().toLowerCase();
+    function selectedCategoryIds() {
+        return Array.from(categoryInputs)
+            .filter((input) => input.checked)
+            .map((input) => String(input.value));
     }
 
-    function unique(values) {
-        return [...new Set(values)];
+    function groupsFor(kind) {
+        return selectedCategoryIds()
+            .map((id) => optionCatalog[id])
+            .filter(Boolean)
+            .map((entry) => ({
+                label: entry.name,
+                options: entry[kind] || [],
+            }))
+            .filter((group) => group.options.length);
     }
 
-    function selectedCategories() {
-        return [...categoryInputs]
-            .filter(input => input.checked)
-            .map(input => optionMap.categories[key(input.closest('[data-category-name]')?.dataset.categoryName)]);
-    }
-
-    function specialtiesForCategories() {
-        const categories = selectedCategories();
-        return unique((categories.length ? categories : [optionMap.fallback])
-            .flatMap(category => category.specialties || []));
-    }
-
-    function genresForSpecialty(specialty) {
-        const specialtyGenres = optionMap.specialties[key(specialty)];
-        if (specialtyGenres) return specialtyGenres;
-
-        return unique(selectedCategories().flatMap(category => category.genres || []));
-    }
-
-    function fill(select, values, selected, placeholder, preserveUnknown = false) {
-        select.innerHTML = `<option value="">${placeholder}</option>`;
-        values.forEach(value => {
-            const option = new Option(value, value, false, value === selected);
-            select.add(option);
-        });
-
-        if (preserveUnknown && selected && !values.includes(selected)) {
-            select.add(new Option(selected, selected, true, true));
+    function refreshGuidedSelects() {
+        if (!window.PhSelect) {
+            return;
         }
+
+        document.querySelectorAll('[data-guided-kind]').forEach((wrap) => {
+            window.PhSelect.setGroups(wrap, groupsFor(wrap.dataset.guidedKind));
+        });
     }
 
-    function refreshSpecialties(initial = false) {
-        const specialties = specialtiesForCategories();
-        const current = initial ? savedSpecialty : specialtySelect.value;
-        const selected = specialties.includes(current) ? current : '';
-        fill(specialtySelect, specialties, selected, 'Select specialty or instrument', initial);
-        refreshGenres(initial);
-    }
-
-    function refreshGenres(initial = false) {
-        const genres = genresForSpecialty(specialtySelect.value);
-        const current = initial ? savedGenre : genreSelect.value;
-        const selected = genres.includes(current) ? current : '';
-        fill(genreSelect, genres, selected, 'Select genre', initial);
-    }
-
-    categoryInputs.forEach(input => input.addEventListener('change', () => refreshSpecialties()));
-    specialtySelect.addEventListener('change', () => refreshGenres());
-    refreshSpecialties(true);
+    categoryInputs.forEach((input) => {
+        input.addEventListener('change', refreshGuidedSelects);
+    });
 })();
 
 (function () {

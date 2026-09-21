@@ -42,21 +42,100 @@
 
 /* Profile content padding */
 .performer-profile-body {
-    padding: 0 1.5rem 1.5rem;
+    padding: 1.25rem 1.5rem 1.5rem;
+}
+
+.performer-profile-layout {
+    display: grid;
+    grid-template-columns: 200px minmax(0, 1fr);
+    column-gap: 1.5rem;
+    align-items: start;
+}
+
+.performer-profile-facts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem 1.15rem;
+    color: var(--ph-text-muted);
+    font-size: 0.9rem;
+}
+
+.performer-profile-facts i {
+    width: 1rem;
+    text-align: center;
+    margin-right: 0.35rem;
+    opacity: 0.75;
+}
+
+.performer-profile-category {
+    color: var(--ph-purple);
+    font-weight: 600;
+}
+
+.performer-profile-category i {
+    opacity: 1;
+}
+
+.performer-profile-detail {
+    color: var(--ph-text-muted);
+    font-size: 0.9rem;
+    margin-top: 0.35rem;
+}
+
+.performer-profile-detail i {
+    width: 1rem;
+    text-align: center;
+    margin-right: 0.35rem;
+    opacity: 0.75;
+}
+
+.performer-profile-layout-photo {
+    grid-column: 1;
+    grid-row: 1;
+}
+
+.performer-profile-layout-main {
+    grid-column: 2;
+    grid-row: 1;
+    min-width: 0;
+    padding-top: 0;
+}
+
+.performer-profile-layout-category {
+    grid-column: 1;
+    grid-row: 2;
+}
+
+.performer-profile-layout-meta {
+    grid-column: 1 / -1;
+    grid-row: 3;
+}
+
+.performer-profile-meta-item {
+    display: inline-block;
+    white-space: nowrap;
+}
+
+@media (max-width: 576px) {
+    .performer-profile-layout {
+        grid-template-columns: 120px minmax(0, 1fr);
+        column-gap: 1rem;
+    }
 }
 
 /* Avatar photo wrapper */
 .performer-profile-avatar-wrap {
     position: relative;
-    margin-top: -7rem;
+    margin-top: 0;
     width: 200px;
     height: 200px;
+    z-index: 1;
 }
 
 /* Smaller avatar overlap on small screens */
 @media (max-width: 576px) {
     .performer-profile-avatar-wrap {
-        margin-top: -3.5rem;
+        margin-top: 0;
         width: 120px;
         height: 120px;
     }
@@ -193,16 +272,29 @@
 }
 
 .category-checkbox-option {
+    position: relative;
     display: inline-flex;
     align-items: center;
-    gap: 0.45rem;
-    padding: 0.45rem 0.9rem;
+    justify-content: center;
+    gap: 0;
+    padding: 0.5rem 1rem;
     border: 1px solid var(--ph-border);
     border-radius: 999px;
     background: var(--ph-bg-card);
     cursor: pointer;
-    transition: border-color 0.15s ease, background 0.15s ease;
+    transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
     margin: 0;
+    font-weight: 600;
+    font-size: 0.9rem;
+    line-height: 1.2;
+}
+
+.category-checkbox-option input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+    width: 1px;
+    height: 1px;
 }
 
 .category-checkbox-option:hover {
@@ -211,7 +303,39 @@
 
 .category-checkbox-option:has(input:checked) {
     border-color: var(--ph-purple);
-    background: rgba(99, 70, 255, 0.15);
+    background: rgba(99, 70, 255, 0.14);
+    color: var(--ph-purple);
+}
+
+.profile-edit-divider {
+    height: 1px;
+    background: var(--ph-border);
+    margin: 0.35rem 0 1rem;
+}
+
+@media (min-width: 992px) {
+    .profile-edit-aside {
+        position: sticky;
+        top: 5.25rem;
+    }
+}
+
+.profile-field-copy {
+    min-height: 2.4em;
+    margin-bottom: 0.45rem;
+}
+
+.profile-rate-group .input-group-text {
+    background: var(--ph-bg-card);
+    border-color: var(--ph-border);
+    color: var(--ph-text-muted);
+    font-weight: 600;
+    border-radius: 10px 0 0 10px;
+}
+
+.profile-rate-group .ph-input {
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
 }
 
 /* Draggable banner reposition control */

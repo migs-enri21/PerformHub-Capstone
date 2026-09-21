@@ -112,6 +112,8 @@ class DatabaseSeeder extends Seeder
             );
         }
 
+        $this->call(GenreCategorySeeder::class);
+
         $performer = User::create([
             'first_name' => 'Juan',
             'last_name' => 'Dela Cruz',

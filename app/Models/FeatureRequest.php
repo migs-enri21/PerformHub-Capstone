@@ -11,6 +11,10 @@ class FeatureRequest extends Model
 
     public const TYPE_EVENT_TYPE = 'event_type';
 
+    public const TYPE_GENRE = 'genre';
+
+    public const TYPE_SPECIALTY = 'specialty';
+
     public const STATUS_PENDING = 'pending';
 
     public const STATUS_APPROVED = 'approved';
@@ -22,6 +26,7 @@ class FeatureRequest extends Model
         'type',
         'name',
         'description',
+        'category_id',
         'status',
         'reviewed_by',
         'reviewed_at',
@@ -46,6 +51,17 @@ class FeatureRequest extends Model
 
     public function typeLabel(): string
     {
-        return $this->type === self::TYPE_CATEGORY ? 'Category' : 'Event Type';
+        return match ($this->type) {
+            self::TYPE_CATEGORY => 'Category',
+            self::TYPE_EVENT_TYPE => 'Event Type',
+            self::TYPE_GENRE => 'Genre',
+            self::TYPE_SPECIALTY => 'Specialty',
+            default => ucfirst(str_replace('_', ' ', (string) $this->type)),
+        };
+    }
+
+    public function category(): BelongsTo
+    {
+        return $this->belongsTo(Category::class);
     }
 }

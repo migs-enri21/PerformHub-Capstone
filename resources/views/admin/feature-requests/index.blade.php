@@ -10,7 +10,7 @@
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
         <h2 class="fw-bold mb-1">Feature Requests</h2>
-        <p class="text-muted mb-0">Review organizer requests for missing categories and event types.</p>
+        <p class="text-muted mb-0">Review requests for missing categories, event types, genres, and specialties.</p>
     </div>
     <a href="{{ route('admin.dashboard') }}" class="btn btn-outline-secondary">Back to Dashboard</a>
 </div>
@@ -32,7 +32,12 @@
                 @forelse($requests as $featureRequest)
                     <tr>
                         <td class="align-middle fw-semibold">{{ $featureRequest->name }}</td>
-                        <td class="align-middle">{{ $featureRequest->typeLabel() }}</td>
+                        <td class="align-middle">
+                            {{ $featureRequest->typeLabel() }}
+                            @if($featureRequest->category)
+                                <div class="small text-muted">{{ $featureRequest->category->name }}</div>
+                            @endif
+                        </td>
                         <td class="align-middle">{{ $featureRequest->requester->fullName() }}</td>
                         <td class="align-middle">{{ $featureRequest->description ?: '—' }}</td>
                         <td class="align-middle">

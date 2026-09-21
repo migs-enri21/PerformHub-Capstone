@@ -46,9 +46,11 @@ class DashboardController extends Controller
             ->where('status', 'pending')
             ->whereNotNull('event_id')
             ->get()
-            ->mapWithKeys(fn (Booking $booking) => [
+            ->mapWithKeys(function (Booking $booking) {
+            return [
                 $booking->event_id => route('performer.bookings.show', $booking),
-            ])
+            ];
+        })
             ->all();
 
         $nextBooking = Booking::where('performer_id', $user->id)

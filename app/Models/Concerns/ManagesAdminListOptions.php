@@ -11,11 +11,35 @@ trait ManagesAdminListOptions
      */
     public static function activeNames(): array
     {
-        return static::query()
-            ->where('is_active', true)
-            ->orderBy('name')
-            ->pluck('name')
-            ->all();
+        return self::withOtherLast(
+            static::query()
+                ->where('is_active', true)
+                ->orderBy('name')
+                ->pluck('name')
+                ->all()
+        );
+    }
+
+    /**
+     * Keep A–Z order, but always pin "Other" at the end of dropdowns.
+     *
+     * @param  array<int, string>  $names
+     * @return array<int, string>
+     */
+    public static function withOtherLast(array $names): array
+    {
+        $other = [];
+        $rest = [];
+
+        foreach ($names as $name) {
+            if (is_string($name) && strcasecmp($name, 'Other') === 0) {
+                $other[] = $name;
+            } else {
+                $rest[] = $name;
+            }
+        }
+
+        return [...$rest, ...$other];
     }
 
     public static function makeSlug(string $name, ?int $ignoreId = null): string

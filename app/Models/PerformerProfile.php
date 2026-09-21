@@ -22,6 +22,8 @@ class PerformerProfile extends Model
         'genre',
         'specialty',
         'rate',
+        'rate_per_hour',
+        'rate_per_day',
         'location',
         'region',
         'city',
@@ -51,6 +53,8 @@ class PerformerProfile extends Model
     {
         return [
             'rate' => 'decimal:2',
+            'rate_per_hour' => 'decimal:2',
+            'rate_per_day' => 'decimal:2',
             'genre' => 'array',
             'specialty' => 'array',
             'banner_position_y' => 'integer',
@@ -220,6 +224,21 @@ class PerformerProfile extends Model
         return implode(' · ', $this->genreList());
     }
 
+    public function rateLines(): array
+    {
+    $lines = [];
+
+    if ($this->rate_per_hour !== null) {
+        $lines[] = '₱'.number_format((float) $this->rate_per_hour, 0).' / hour';
+    }
+
+    if ($this->rate_per_day !== null) {
+        $lines[] = '₱'.number_format((float) $this->rate_per_day, 0).' / day';
+    }
+
+    return $lines;
+    }
+
     public function specialtyLabel(): string
     {
         return implode(' · ', $this->specialtyList());
@@ -227,11 +246,7 @@ class PerformerProfile extends Model
 
     public function displayTags(): array
     {
-        return array_values(array_filter(array_unique([
-            ...$this->categories->pluck('name')->all(),
-            ...$this->specialtyList(),
-            ...$this->genreList(),
-        ])));
+            return $this->categories->pluck('name')->all();
     }
 
     public function categoryNames(): string

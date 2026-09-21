@@ -5,13 +5,14 @@ namespace App\Http\Controllers\Performer;
 use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Services\SupabaseStorageService;
-use App\Support\PerformerGenres;
+use App\Support\PerformerOptionGuide;
 use App\Support\PerformerSpecialties;
 use App\Support\PhilippineLocations;
 use App\Support\SocialMedia;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class ProfileController extends Controller
@@ -26,14 +27,20 @@ class ProfileController extends Controller
     public function edit(): View
     {
         $profile = Auth::user()->performerProfile()->with('categories')->firstOrFail();
-        $categories = Category::where('is_active', true)->get();
+        $categories = Category::where('is_active', true)->orderBy('name')->get();
+        $optionCatalog = PerformerOptionGuide::catalog($categories);
 
-        return view('performer.profile.edit', compact('profile', 'categories'));
+        return view('performer.profile.edit', compact('profile', 'categories', 'optionCatalog'));
     }
 
     public function update(Request $request): RedirectResponse
     {
         $profile = Auth::user()->performerProfile()->firstOrFail();
+
+        $selectedCategories = Category::query()
+            ->where('is_active', true)
+            ->whereIn('id', $request->input('category_ids', []))
+            ->get();
 
         $validated = $request->validate(array_merge([
             'first_name' => ['required', 'string', 'max:100'],
@@ -41,12 +48,13 @@ class ProfileController extends Controller
             'stage_name' => ['required', 'string', 'max:255'],
             'bio' => ['nullable', 'string', 'max:2000'],
             'genre' => ['nullable', 'array', 'max:8'],
-            'genre.*' => PerformerGenres::listItemRule($profile->genreList()),
+            'genre.*' => ['string', 'max:100', Rule::in(PerformerOptionGuide::allowedNames($selectedCategories, $profile->genreList()))],
             'specialty' => ['nullable', 'array', 'max:8'],
             'specialty.*' => PerformerSpecialties::listItemRule($profile->specialtyList()),
             'category_ids' => ['nullable', 'array'],
             'category_ids.*' => ['integer', 'exists:categories,id'],
-            'rate' => ['nullable', 'numeric', 'min:0'],
+            'rate_per_hour' => ['nullable', 'numeric', 'min:0'],
+            'rate_per_day' => ['nullable', 'numeric', 'min:0'],
             'social_facebook' => ['nullable', 'url', 'max:255'],
             'social_facebook_followers' => ['nullable', 'integer', 'min:0'],
             'social_instagram' => ['nullable', 'url', 'max:255'],

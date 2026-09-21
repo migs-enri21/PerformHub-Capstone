@@ -13,8 +13,6 @@
         ? "background-image: url('".$performer->bannerPhotoUrl()."'); background-position: center ".($performer->banner_position_y ?? 50)."%;"
         : '';
     $rating = 0; // reviews/ratings not implemented yet
-    $subtitle = collect([$performer->categoryNames(), $performer->shortLocation()])->filter()->implode(' · ');
-    $tags = $performer->displayTags();
 @endphp
 
 <div class="performer-profile-card ph-card mb-4">
@@ -27,25 +25,27 @@
     </div>
 
     <div class="performer-profile-body">
-        <div class="d-flex flex-column flex-md-row gap-3 gap-md-4">
-            <div class="performer-profile-avatar-wrap flex-shrink-0">
-                <img
-                    src="{{ $photoUrl }}"
-                    alt=""
-                    class="performer-profile-avatar rounded-circle"
-                    width="200"
-                    height="200"
-                    onerror="this.onerror=null;this.src='https://ui-avatars.com/api/?name={{ urlencode($performer->stage_name) }}&background=6346ff&color=fff&size=256';"
-                >
-                @if($editable)
-                    <a href="{{ route('performer.profile.edit') }}#photo" class="performer-profile-avatar-edit" aria-label="Edit profile photo">
-                        <i class="fas fa-camera"></i>
-                    </a>
-                @endif
+        <div class="performer-profile-layout">
+            <div class="performer-profile-layout-photo">
+                <div class="performer-profile-avatar-wrap">
+                    <img
+                        src="{{ $photoUrl }}"
+                        alt=""
+                        class="performer-profile-avatar rounded-circle"
+                        width="200"
+                        height="200"
+                        onerror="this.onerror=null;this.src='https://ui-avatars.com/api/?name={{ urlencode($performer->stage_name) }}&background=6346ff&color=fff&size=256';"
+                    >
+                    @if($editable)
+                        <a href="{{ route('performer.profile.edit') }}#photo" class="performer-profile-avatar-edit" aria-label="Edit profile photo">
+                            <i class="fas fa-camera"></i>
+                        </a>
+                    @endif
+                </div>
             </div>
 
-            <div class="flex-grow-1 min-w-0">
-                <div class="d-flex flex-column flex-lg-row align-items-lg-start justify-content-lg-between gap-3 mb-2">
+            <div class="performer-profile-layout-main">
+                <div class="d-flex flex-column flex-lg-row align-items-start justify-content-lg-between gap-3">
                     <div>
                         <div class="d-flex align-items-center gap-2 flex-wrap mb-1">
                             <h2 class="fw-bold mb-0 performer-profile-name">{{ $performer->stage_name }}</h2>
@@ -55,17 +55,29 @@
                                 </span>
                             @endif
                         </div>
-                        @if($subtitle)
-                            <p class="text-muted mb-0 performer-profile-subtitle">{{ $subtitle }}</p>
+                        <div class="performer-profile-facts">
+                            @foreach($performer->categories as $category)
+                                <span class="performer-profile-category"><i class="fas fa-microphone"></i> {{ $category->name }}</span>
+                            @endforeach
+                            @if($performer->shortLocation())
+                                <span><i class="fas fa-location-dot"></i> {{ $performer->shortLocation() }}</span>
+                            @endif
+                        </div>
+                        @if($performer->specialtyLabel())
+                            <p class="performer-profile-detail mb-1">
+                                <i class="fas fa-guitar"></i> {{ $performer->specialtyLabel() }}
+                            </p>
+                        @endif
+                        @if($performer->genreLabel())
+                            <p class="performer-profile-detail mb-0">
+                                <i class="fas fa-music"></i> {{ $performer->genreLabel() }}
+                            </p>
                         @endif
                         @if($bookingUrl || $onboardingRoute || $bookingMessage)
                             <div class="profile-booking-bar d-flex flex-wrap align-items-center gap-2 mt-3">
-                                @if($performer->rate)
-                                    <span class="profile-rate-pill">
-                                        ₱{{ number_format($performer->rate, 2) }}
-                                        <span class="profile-rate-suffix">/ event</span>
-                                    </span>
-                                @endif
+                                @foreach($performer->rateLines() as $line)
+                                    <span class="profile-rate-pill">{{ $line }}</span>
+                                @endforeach
                                 @if($onboardingRoute)
                                     <a href="{{ $onboardingRoute }}" class="btn ph-btn-primary btn-sm">
                                         <i class="fas fa-lock me-1"></i> Pending Verification
@@ -89,7 +101,7 @@
                     </div>
                 </div>
 
-                <p class="performer-profile-bio mb-0">
+                <p class="performer-profile-bio mb-0 mt-3">
                     @if($performer->bio)
                         {{ $performer->bio }}
                     @else
@@ -98,13 +110,5 @@
                 </p>
             </div>
         </div>
-
-        @if(count($tags))
-            <div class="performer-profile-tags mt-4">
-                @foreach($tags as $tag)
-                    <span class="profile-tag">{{ $tag }}</span>
-                @endforeach
-            </div>
-        @endif
     </div>
 </div>

@@ -30,6 +30,7 @@ use App\Http\Controllers\Performer\GoogleCalendarController;
 use App\Http\Controllers\Performer\OrganizerProfileController as PerformerOrganizerProfileController;
 use App\Http\Controllers\Performer\PortfolioController;
 use App\Http\Controllers\Performer\ProfileController as PerformerProfileController;
+use App\Http\Controllers\Performer\FeatureRequestController as PerformerFeatureRequestController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
@@ -68,6 +69,7 @@ Route::middleware(['auth', 'role:performer'])->prefix('performer')->name('perfor
     Route::get('/organizers/{organizer}', [PerformerOrganizerProfileController::class, 'show'])->name('organizers.show');
     Route::get('/profile/edit', [PerformerProfileController::class, 'edit'])->name('profile.edit');
     Route::put('/profile', [PerformerProfileController::class, 'update'])->name('profile.update');
+    Route::post('/feature-requests', [PerformerFeatureRequestController::class, 'store'])->name('feature-requests.store');
     Route::get('/portfolio', [PortfolioController::class, 'index'])->name('portfolio.index');
     Route::post('/portfolio', [PortfolioController::class, 'store'])->name('portfolio.store');
     Route::post('/portfolio/update', [PortfolioController::class, 'update'])->name('portfolio.update');
