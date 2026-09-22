@@ -192,12 +192,12 @@ class BookingController extends Controller
         return $request->validate([
             'event_name' => ['required', 'string', 'max:255'],
             'event_date' => ['required', 'date', 'after_or_equal:today'],
-            'event_time' => ['nullable', 'date_format:H:i'],
-            'end_time' => ['nullable', 'date_format:H:i'],
-            'venue' => ['nullable', 'string', 'max:255'],
+            'event_time' => ['required', 'date_format:H:i'],
+            'end_time' => ['required', 'date_format:H:i'],
+            'venue' => ['required', 'string', 'max:255'],
             'requirements' => ['nullable', 'string', 'max:2000'],
             'notes' => ['nullable', 'string', 'max:1000'],
-            'budget' => ['nullable', 'numeric', 'min:0'],
+            'budget' => ['required', 'numeric', 'min:0'],
             'event_id' => [
                 'required',
                 Rule::exists('events', 'id')->where(function ($query) {

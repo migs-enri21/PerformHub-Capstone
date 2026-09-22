@@ -66,13 +66,12 @@
                     type="file"
                     name="photos[]"
                     class="form-control @error('photos') is-invalid @enderror @error('photos.*') is-invalid @enderror"
-                    accept="image/*"
                     multiple
                 >
                 <small class="text-muted d-block mb-2">Photos can be JPG, PNG, or WEBP, up to 5 MB each.</small>
 
                 <label class="form-label mt-2">Add Videos</label>
-                <input type="file" name="videos[]" class="form-control @error('videos') is-invalid @enderror @error('videos.*') is-invalid @enderror" accept="video/mp4,video/webm" multiple>
+                <input type="file" name="videos[]" class="form-control @error('videos') is-invalid @enderror @error('videos.*') is-invalid @enderror" multiple>
                 <small class="text-muted">Videos can be MP4 or WEBM, up to 25 MB each. An event can have up to 3 photos and videos combined.</small>
                 @error('photos')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
                 @error('photos.*')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
@@ -82,14 +81,14 @@
 
             <div class="mb-3">
                 <label class="form-label">Event Name</label>
-                <input type="text" class="form-control @error('title') is-invalid @enderror" name="title" value="{{ old('title', $event->title) }}" required>
+                <input type="text" class="form-control @error('title') is-invalid @enderror" name="title" value="{{ old('title', $event->title) }}">
                 @error('title')<div class="invalid-feedback">{{ $message }}</div>@enderror
             </div>
 
             <div class="row">
                 <div class="col-md-6 mb-3">
                     <label class="form-label">Event Type</label>
-                    <select class="form-select @error('event_type_id') is-invalid @enderror" name="event_type_id" id="event_type_id" required>
+                    <select class="form-select @error('event_type_id') is-invalid @enderror" name="event_type_id" id="event_type_id">
                         <option value="">Select Event Type</option>
                         @foreach($eventTypes as $eventType)
                             <option value="{{ $eventType->id }}" data-compensation-type="{{ $eventType->compensation_type }}" @selected((string) old('event_type_id', $event->event_type_id) === (string) $eventType->id)>
@@ -105,7 +104,7 @@
                     <div class="border rounded p-2 @error('category_ids') border-danger @enderror">
                         @foreach($categories as $category)
                             <div class="form-check">
-                                <input class="form-check-input event-category-checkbox" type="checkbox" name="category_ids[]" value="{{ $category->id }}" id="category-{{ $category->id }}" data-category-name="{{ $category->name }}" @checked(in_array($category->id, $selectedCategoryIds))>
+                                <input class="form-check-input event-category-checkbox" type="checkbox" name="category_ids[]" value="{{ $category->id }}" id="category-{{ $category->id }}" @checked(in_array($category->id, $selectedCategoryIds))>
                                 <label class="form-check-label" for="category-{{ $category->id }}">{{ $category->name }}</label>
                             </div>
                         @endforeach
@@ -118,8 +117,8 @@
                     <label class="form-label">Preferred Genre / Style <span class="text-muted fw-normal">(Optional)</span></label>
                     <div class="organizer-category-list organizer-genre-list @error('preferred_genres') organizer-category-list-error @enderror">
                         <div class="row row-cols-2 g-2">
-                        @foreach($genreCategories as $genre => $categoryNames)
-                            <div class="col genre-option d-none" data-category-names="{{ implode('|', $categoryNames) }}">
+                        @foreach($genreCategories as $genre => $categoryIds)
+                            <div class="col genre-option d-none" data-category-ids="{{ implode('|', $categoryIds) }}">
                                 <div class="form-check">
                                     <input class="form-check-input" type="checkbox" name="preferred_genres[]" value="{{ $genre }}" id="edit-genre-{{ $loop->index }}" @checked(in_array($genre, $selectedPreferredGenres))>
                                     <label class="form-check-label" for="edit-genre-{{ $loop->index }}">{{ $genre }}</label>
@@ -137,7 +136,7 @@
             <div class="row">
                 <div class="col-md-4 mb-3">
                     <label class="form-label">Event Date</label>
-                    <input type="date" class="form-control @error('event_date') is-invalid @enderror" name="event_date" value="{{ old('event_date', \Illuminate\Support\Carbon::parse($event->event_date)->format('Y-m-d')) }}" required>
+                    <input type="date" class="form-control @error('event_date') is-invalid @enderror" name="event_date" value="{{ old('event_date', \Illuminate\Support\Carbon::parse($event->event_date)->format('Y-m-d')) }}">
                     @error('event_date')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
                 <div class="col-md-4 mb-3">
@@ -148,7 +147,7 @@
                             $startTime = \Illuminate\Support\Carbon::parse($event->start_time)->format('H:i');
                         }
                     @endphp
-                    <input type="time" class="form-control @error('start_time') is-invalid @enderror" name="start_time" value="{{ $startTime }}" required>
+                    <input type="time" class="form-control @error('start_time') is-invalid @enderror" name="start_time" value="{{ $startTime }}">
                     @error('start_time')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
                 <div class="col-md-4 mb-3">
@@ -159,33 +158,33 @@
                             $endTime = \Illuminate\Support\Carbon::parse($event->end_time)->format('H:i');
                         }
                     @endphp
-                    <input type="time" class="form-control @error('end_time') is-invalid @enderror" name="end_time" value="{{ $endTime }}" required>
+                    <input type="time" class="form-control @error('end_time') is-invalid @enderror" name="end_time" value="{{ $endTime }}">
                     @error('end_time')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
             </div>
 
             <div class="mb-3">
                 <label class="form-label">Venue / Location</label>
-                <input type="text" class="form-control @error('venue') is-invalid @enderror" name="venue" value="{{ old('venue', $event->venue) }}" required>
+                <input type="text" class="form-control @error('venue') is-invalid @enderror" name="venue" value="{{ old('venue', $event->venue) }}">
                 @error('venue')<div class="invalid-feedback">{{ $message }}</div>@enderror
             </div>
 
             <div class="row" id="compensationFields">
                 <div class="col-md-6 mb-3 compensation-field d-none" data-compensation-type="fixed">
                     <label class="form-label">Fixed Budget (&#8369;)</label>
-                    <input type="number" class="form-control @error('budget') is-invalid @enderror" name="budget" value="{{ old('budget', $event->budget) }}" min="0" step="0.01">
+                    <input type="number" class="form-control @error('budget') is-invalid @enderror" name="budget" value="{{ old('budget', $event->budget) }}" step="0.01">
                     @error('budget')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
                 <div class="col-md-6 mb-3 compensation-field d-none" data-compensation-type="hourly">
                     <label class="form-label">Rate per Hour (&#8369;)</label>
-                    <input type="number" class="form-control @error('rate_per_hour') is-invalid @enderror" name="rate_per_hour" value="{{ old('rate_per_hour', $event->rate_per_hour) }}" min="0" step="0.01">
+                    <input type="number" class="form-control @error('rate_per_hour') is-invalid @enderror" name="rate_per_hour" value="{{ old('rate_per_hour', $event->rate_per_hour) }}" step="0.01">
                     @error('rate_per_hour')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
                 <div class="col-12 mb-3 compensation-field d-none" data-compensation-type="contest">
                     <div class="row">
-                        <div class="col-md-4 mb-3"><label class="form-label">First Prize (&#8369;)</label><input type="number" class="form-control" name="first_prize" value="{{ old('first_prize', $event->first_prize) }}" min="0" step="0.01"></div>
-                        <div class="col-md-4 mb-3"><label class="form-label">Second Prize (&#8369;)</label><input type="number" class="form-control" name="second_prize" value="{{ old('second_prize', $event->second_prize) }}" min="0" step="0.01"></div>
-                        <div class="col-md-4 mb-3"><label class="form-label">Third Prize (&#8369;)</label><input type="number" class="form-control" name="third_prize" value="{{ old('third_prize', $event->third_prize) }}" min="0" step="0.01"></div>
+                        <div class="col-md-4 mb-3"><label class="form-label">First Prize (&#8369;)</label><input type="number" class="form-control" name="first_prize" value="{{ old('first_prize', $event->first_prize) }}" step="0.01"></div>
+                        <div class="col-md-4 mb-3"><label class="form-label">Second Prize (&#8369;)</label><input type="number" class="form-control" name="second_prize" value="{{ old('second_prize', $event->second_prize) }}" step="0.01"></div>
+                        <div class="col-md-4 mb-3"><label class="form-label">Third Prize (&#8369;)</label><input type="number" class="form-control" name="third_prize" value="{{ old('third_prize', $event->third_prize) }}" step="0.01"></div>
                     </div>
                 </div>
                 <div class="col-md-6 mb-3">
@@ -240,21 +239,21 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function showRelevantGenres() {
-        const selectedCategoryNames = [];
+        const selectedCategoryIds = [];
 
         categoryCheckboxes.forEach(function (checkbox) {
             if (checkbox.checked) {
-                selectedCategoryNames.push(checkbox.dataset.categoryName);
+                selectedCategoryIds.push(checkbox.value);
             }
         });
 
         genreOptions.forEach(function (option) {
-            const categoryNames = option.dataset.categoryNames.split('|');
+            const categoryIds = option.dataset.categoryIds.split('|');
             const genreCheckbox = option.querySelector('input');
             let isRelevant = false;
 
-            categoryNames.forEach(function (categoryName) {
-                if (selectedCategoryNames.includes(categoryName)) {
+            categoryIds.forEach(function (categoryId) {
+                if (selectedCategoryIds.includes(categoryId)) {
                     isRelevant = true;
                 }
             });
@@ -267,7 +266,7 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
 
-        if (selectedCategoryNames.length === 0) {
+        if (selectedCategoryIds.length === 0) {
             genreHelp.textContent = 'Select a performer category first. You can then tick one or more relevant styles.';
         } else {
             genreHelp.textContent = 'Tick one or more relevant styles. Categories remain required; styles only prioritize suggestions.';

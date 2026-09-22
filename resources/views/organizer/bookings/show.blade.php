@@ -67,11 +67,12 @@
                 <form method="POST" action="{{ route('organizer.bookings.contract', $booking) }}" enctype="multipart/form-data" class="border-top pt-3">
                     @csrf
                     @if($booking->hasContract())
-                        <input type="file" name="contract" class="form-control ph-input mb-2" accept=".pdf,.jpg,.jpeg,.png">
+                        <input type="file" name="contract" class="form-control ph-input mb-2">
                     @else
-                        <input type="file" name="contract" class="form-control ph-input mb-2" accept=".pdf,.jpg,.jpeg,.png" required>
+                        <input type="file" name="contract" class="form-control ph-input mb-2">
                     @endif
                     <small class="text-muted d-block mb-2">PDF, JPG, JPEG, or PNG. Maximum 10 MB.</small>
+                    @error('contract')<div class="text-danger small mb-2">{{ $message }}</div>@enderror
                     @if($booking->hasContract())
                         <button class="btn ph-btn-primary btn-sm">Replace Contract</button>
                     @else

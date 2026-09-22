@@ -25,7 +25,7 @@
             <div class="row g-4">
                 <div class="col-12">
                     <label class="form-label fw-semibold">Event Photos</label>
-                    <input type="file" name="photos[]" class="form-control ph-input" accept="image/*" multiple>
+                    <input type="file" name="photos[]" class="form-control ph-input" multiple>
                     <small class="text-muted d-block">Photos can be JPG, PNG, or WEBP, up to 5 MB each.</small>
                     @error('photos')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
                     @error('photos.*')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
@@ -33,7 +33,7 @@
 
                 <div class="col-12">
                     <label class="form-label fw-semibold">Event Videos</label>
-                    <input type="file" name="videos[]" class="form-control ph-input" accept="video/mp4,video/webm" multiple>
+                    <input type="file" name="videos[]" class="form-control ph-input" multiple>
                     <small class="text-muted">Videos can be MP4 or WEBM, up to 25 MB each. You can upload up to 3 photos and videos combined.</small>
                     @error('videos')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
                     @error('videos.*')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
@@ -41,7 +41,8 @@
 
                 <div class="col-12">
                     <label class="form-label">Event Name</label>
-                    <input type="text" class="form-control ph-input" name="title" value="{{ old('title') }}" required>
+                    <input type="text" class="form-control ph-input @error('title') is-invalid @enderror" name="title" value="{{ old('title') }}">
+                    @error('title')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
 
                 <div class="col-md-6">
@@ -51,7 +52,7 @@
                             Request missing event type
                         </button>
                     </div>
-                    <select class="form-select ph-input" name="event_type_id" id="event_type_id" required>
+                    <select class="form-select ph-input @error('event_type_id') is-invalid @enderror" name="event_type_id" id="event_type_id">
                         <option value="">Select Event Type</option>
                         @foreach($eventTypes as $eventType)
                             <option value="{{ $eventType->id }}" data-compensation-type="{{ $eventType->compensation_type }}" @selected(old('event_type_id') == $eventType->id)>
@@ -59,11 +60,12 @@
                             </option>
                         @endforeach
                     </select>
+                    @error('event_type_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
 
                 <div class="col-md-6 compensation-field d-none" data-compensation-type="fixed">
                     <label class="form-label">Budget (₱)</label>
-                    <input type="number" class="form-control ph-input" name="budget" value="{{ old('budget') }}" min="0" step="0.01">
+                    <input type="number" class="form-control ph-input" name="budget" value="{{ old('budget') }}" step="0.01">
                     @error('budget')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
                 </div>
 
@@ -79,7 +81,7 @@
                             @foreach($categories as $category)
                                 <div class="col">
                                     <div class="form-check">
-                                        <input class="form-check-input event-category-checkbox" type="checkbox" name="category_ids[]" value="{{ $category->id }}" id="category-{{ $category->id }}" data-category-name="{{ $category->name }}" @checked(in_array($category->id, $selectedCategoryIds))>
+                                        <input class="form-check-input event-category-checkbox" type="checkbox" name="category_ids[]" value="{{ $category->id }}" id="category-{{ $category->id }}" @checked(in_array($category->id, $selectedCategoryIds))>
                                         <label class="form-check-label" for="category-{{ $category->id }}">{{ $category->name }}</label>
                                     </div>
                                 </div>
@@ -94,8 +96,8 @@
                     <label class="form-label">Preferred Genre / Style <span class="text-muted fw-normal">(Optional)</span></label>
                     <div class="organizer-category-list organizer-genre-list @error('preferred_genres') organizer-category-list-error @enderror">
                         <div class="row row-cols-2 row-cols-md-3 g-2">
-                        @foreach($genreCategories as $genre => $categoryNames)
-                            <div class="col genre-option d-none" data-category-names="{{ implode('|', $categoryNames) }}">
+                        @foreach($genreCategories as $genre => $categoryIds)
+                            <div class="col genre-option d-none" data-category-ids="{{ implode('|', $categoryIds) }}">
                                 <div class="form-check">
                                     <input class="form-check-input" type="checkbox" name="preferred_genres[]" value="{{ $genre }}" id="create-genre-{{ $loop->index }}" @checked(in_array($genre, $selectedPreferredGenres))>
                                     <label class="form-check-label" for="create-genre-{{ $loop->index }}">{{ $genre }}</label>
@@ -111,20 +113,24 @@
 
                 <div class="col-md-4">
                     <label class="form-label">Event Date</label>
-                    <input type="date" class="form-control ph-input" name="event_date" value="{{ old('event_date') }}" required>
+                    <input type="date" class="form-control ph-input @error('event_date') is-invalid @enderror" name="event_date" value="{{ old('event_date') }}">
+                    @error('event_date')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
                 <div class="col-md-4">
                     <label class="form-label">Start Time</label>
-                    <input type="time" class="form-control ph-input" name="start_time" value="{{ old('start_time') }}" required>
+                    <input type="time" class="form-control ph-input @error('start_time') is-invalid @enderror" name="start_time" value="{{ old('start_time') }}">
+                    @error('start_time')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
                 <div class="col-md-4">
                     <label class="form-label">End Time</label>
-                    <input type="time" class="form-control ph-input" name="end_time" value="{{ old('end_time') }}" required>
+                    <input type="time" class="form-control ph-input @error('end_time') is-invalid @enderror" name="end_time" value="{{ old('end_time') }}">
+                    @error('end_time')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
 
                 <div class="col-12">
                     <label class="form-label">Venue / Location</label>
-                    <input type="text" class="form-control ph-input" name="venue" value="{{ old('venue') }}" required>
+                    <input type="text" class="form-control ph-input @error('venue') is-invalid @enderror" name="venue" value="{{ old('venue') }}">
+                    @error('venue')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
 
                 <div class="col-12">
@@ -139,7 +145,7 @@
                     <div class="row g-4" id="compensationFields">
                         <div class="col-md-6 compensation-field d-none" data-compensation-type="hourly">
                             <label class="form-label">Rate per Hour (&#8369;)</label>
-                            <input type="number" class="form-control ph-input" name="rate_per_hour" value="{{ old('rate_per_hour') }}" min="0" step="0.01">
+                            <input type="number" class="form-control ph-input" name="rate_per_hour" value="{{ old('rate_per_hour') }}" step="0.01">
                             @error('rate_per_hour')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
                         </div>
 
@@ -147,17 +153,17 @@
                             <div class="row g-4">
                                 <div class="col-md-4">
                                     <label class="form-label">First Prize (&#8369;)</label>
-                                    <input type="number" class="form-control ph-input" name="first_prize" value="{{ old('first_prize') }}" min="0" step="0.01">
+                                    <input type="number" class="form-control ph-input" name="first_prize" value="{{ old('first_prize') }}" step="0.01">
                                     @error('first_prize')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
                                 </div>
                                 <div class="col-md-4">
                                     <label class="form-label">Second Prize (&#8369;)</label>
-                                    <input type="number" class="form-control ph-input" name="second_prize" value="{{ old('second_prize') }}" min="0" step="0.01">
+                                    <input type="number" class="form-control ph-input" name="second_prize" value="{{ old('second_prize') }}" step="0.01">
                                     @error('second_prize')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
                                 </div>
                                 <div class="col-md-4">
                                     <label class="form-label">Third Prize (&#8369;)</label>
-                                    <input type="number" class="form-control ph-input" name="third_prize" value="{{ old('third_prize') }}" min="0" step="0.01">
+                                    <input type="number" class="form-control ph-input" name="third_prize" value="{{ old('third_prize') }}" step="0.01">
                                     @error('third_prize')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
                                 </div>
                             </div>
@@ -186,7 +192,8 @@
             <div class="modal-body">
                 <p class="text-muted small">Tell the admin what is missing. It will appear here after approval.</p>
                 <label class="form-label" for="featureRequestName">Name</label>
-                <input type="text" name="name" id="featureRequestName" class="form-control ph-input mb-3" placeholder="Option name" required>
+                <input type="text" name="name" id="featureRequestName" class="form-control ph-input mb-3 @error('name') is-invalid @enderror" placeholder="Option name">
+                @error('name')<div class="invalid-feedback mb-3">{{ $message }}</div>@enderror
                 <label class="form-label" for="featureRequestDescription">Description <span class="text-muted fw-normal">(Optional)</span></label>
                 <textarea name="description" id="featureRequestDescription" class="form-control ph-input" rows="3" placeholder="What is it used for?"></textarea>
             </div>
@@ -241,21 +248,21 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function showRelevantGenres() {
-        const selectedCategoryNames = [];
+        const selectedCategoryIds = [];
 
         categoryCheckboxes.forEach(function (checkbox) {
             if (checkbox.checked) {
-                selectedCategoryNames.push(checkbox.dataset.categoryName);
+                selectedCategoryIds.push(checkbox.value);
             }
         });
 
         genreOptions.forEach(function (option) {
-            const categoryNames = option.dataset.categoryNames.split('|');
+            const categoryIds = option.dataset.categoryIds.split('|');
             const genreCheckbox = option.querySelector('input');
             let isRelevant = false;
 
-            categoryNames.forEach(function (categoryName) {
-                if (selectedCategoryNames.includes(categoryName)) {
+            categoryIds.forEach(function (categoryId) {
+                if (selectedCategoryIds.includes(categoryId)) {
                     isRelevant = true;
                 }
             });
@@ -268,7 +275,7 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
 
-        if (selectedCategoryNames.length === 0) {
+        if (selectedCategoryIds.length === 0) {
             genreHelp.textContent = 'Select a performer category first. You can then tick one or more relevant styles.';
         } else {
             genreHelp.textContent = 'Tick one or more relevant styles. Categories are still required; styles only prioritize suggestions.';

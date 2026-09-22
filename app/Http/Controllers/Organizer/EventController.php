@@ -7,9 +7,9 @@ use App\Models\Category;
 use App\Models\Event;
 use App\Models\EventType;
 use App\Models\Booking;
+use App\Models\Genre;
 use App\Services\SupabaseStorageService;
 use App\Support\OptionList;
-use App\Support\PerformerGenres;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -125,7 +125,10 @@ class EventController extends Controller
         $event->load(['photos', 'categories']);
         $eventTypes = EventType::where('is_active', true)->orderBy('name')->get();
         $categories = Category::orderBy('name')->get();
-        $genreCategories = $this->getGenreCategories();
+        $genreCategories = $this->getGenreCategories(
+            OptionList::wrap($event->preferred_genres),
+            $event->categories->pluck('id')->all()
+        );
 
         return view('organizer.events.edit', compact('event', 'eventTypes', 'categories', 'genreCategories'));
     }
@@ -256,7 +259,9 @@ class EventController extends Controller
             'videos' => ['nullable', 'array', 'max:3'],
             'videos.*' => ['file', 'mimes:mp4,webm', 'max:25600'],
             'description' => ['nullable', 'string'],
-            'event_date' => ['required', 'date'],
+            'event_date' => $updating
+                ? ['required', 'date']
+                : ['required', 'date', 'after_or_equal:today'],
             'start_time' => ['required'],
             'end_time' => ['required'],
             'venue' => ['required', 'string', 'max:255'],
@@ -417,21 +422,24 @@ class EventController extends Controller
         }
     }
 
-    private function getGenreCategories(): array
+    private function getGenreCategories(array $savedGenres = [], array $savedCategoryIds = []): array
     {
-        $mapped = [];
-
-        foreach (config('organizer_genre_styles', []) as $categoryName => $genres) {
-            foreach ($genres as $genre) {
-                $mapped[$genre][] = $categoryName;
-            }
-        }
-
-        $allCategoryNames = Category::query()->orderBy('name')->pluck('name')->all();
         $genreCategories = [];
 
-        foreach (PerformerGenres::all() as $genre) {
-            $genreCategories[$genre] = $mapped[$genre] ?? $allCategoryNames;
+        $genres = Genre::query()
+            ->where('is_active', true)
+            ->whereNotNull('category_id')
+            ->orderBy('name')
+            ->get(['name', 'category_id']);
+
+        foreach ($genres as $genre) {
+            $genreCategories[$genre->name] = [(string) $genre->category_id];
+        }
+
+        foreach ($savedGenres as $genre) {
+            if (! isset($genreCategories[$genre]) && $savedCategoryIds !== []) {
+                $genreCategories[$genre] = array_map('strval', $savedCategoryIds);
+            }
         }
 
         ksort($genreCategories);

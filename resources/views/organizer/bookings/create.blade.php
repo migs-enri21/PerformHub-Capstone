@@ -88,16 +88,17 @@
             </option>
         @endforeach
 
-        <input type="hidden" name="event_id" id="event_id" value="{{ $eventDetails['id'] }}">
+            </select>
+            <input type="hidden" name="event_id" id="event_id" value="{{ $eventDetails['id'] }}">
+            @error('event_id')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
+            </div>
 
-            </select></div>
-
-            <div class="col-md-6"><label class="form-label text-muted small">Event Name</label><input type="text" name="event_name"class="form-control ph-input" id="event_name" value="{{ old('event_name', $eventDetails['title']) }}"required></div>
-            <div class="col-md-3"><label class="form-label text-muted small">Event Date</label><input type="date" name="event_date"class="form-control ph-input" id="event_date" value="{{ old('event_date', $eventDetails['date']) }}"required></div>
-            <div class="col-md-3"><label class="form-label text-muted small">Event Time</label><input type="time" name="event_time" class="form-control ph-input"id="event_time" value="{{ old('event_time', $eventDetails['start_time']) }}"required></div>
-            <div class="col-md-6"><label class="form-label text-muted small">Venue</label><input type="text" name="venue" class="form-control ph-input" id="venue" value="{{ old('venue', $eventDetails['venue']) }}"required></div>
-            <div class="col-md-4"><label class="form-label text-muted small">Budget Offer (₱)</label><input type="number" name="budget" id="budget" class="form-control ph-input" value="{{ old('budget', $selectedEventBudget) }}" min="0" step="0.01"required></div>
-            <div class="col-md-3"><label class="form-label text-muted small">End Time</label><input type="time" name="end_time" id="end_time" class="form-control ph-input" value="{{ old('end_time', $eventDetails['end_time']) }}"required></div>
+            <div class="col-md-6"><label class="form-label text-muted small">Event Name</label><input type="text" name="event_name" class="form-control ph-input @error('event_name') is-invalid @enderror" id="event_name" value="{{ old('event_name', $eventDetails['title']) }}">@error('event_name')<div class="invalid-feedback">{{ $message }}</div>@enderror</div>
+            <div class="col-md-3"><label class="form-label text-muted small">Event Date</label><input type="date" name="event_date" class="form-control ph-input @error('event_date') is-invalid @enderror" id="event_date" value="{{ old('event_date', $eventDetails['date']) }}">@error('event_date')<div class="invalid-feedback">{{ $message }}</div>@enderror</div>
+            <div class="col-md-3"><label class="form-label text-muted small">Event Time</label><input type="time" name="event_time" class="form-control ph-input @error('event_time') is-invalid @enderror" id="event_time" value="{{ old('event_time', $eventDetails['start_time']) }}">@error('event_time')<div class="invalid-feedback">{{ $message }}</div>@enderror</div>
+            <div class="col-md-6"><label class="form-label text-muted small">Venue</label><input type="text" name="venue" class="form-control ph-input @error('venue') is-invalid @enderror" id="venue" value="{{ old('venue', $eventDetails['venue']) }}">@error('venue')<div class="invalid-feedback">{{ $message }}</div>@enderror</div>
+            <div class="col-md-4"><label class="form-label text-muted small">Budget Offer (₱)</label><input type="number" name="budget" id="budget" class="form-control ph-input @error('budget') is-invalid @enderror" value="{{ old('budget', $selectedEventBudget) }}" step="0.01">@error('budget')<div class="invalid-feedback">{{ $message }}</div>@enderror</div>
+            <div class="col-md-3"><label class="form-label text-muted small">End Time</label><input type="time" name="end_time" id="end_time" class="form-control ph-input @error('end_time') is-invalid @enderror" value="{{ old('end_time', $eventDetails['end_time']) }}">@error('end_time')<div class="invalid-feedback">{{ $message }}</div>@enderror</div>
             <div class="col-12"><label class="form-label text-muted small">Requirements</label><textarea id="requirements" name="requirements" class="form-control ph-input">{{ old('requirements', $eventDetails['description']) }}</textarea></div>
             <div class="col-12"><label class="form-label text-muted small">Notes</label><textarea name="notes" class="form-control ph-input" rows="2"></textarea></div>
 

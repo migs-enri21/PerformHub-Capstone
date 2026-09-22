@@ -51,7 +51,8 @@
                 <label class="form-label text-muted small mb-0" for="banner_photo_input">Drag the picture to your preference, or upload a new one (JPG, PNG, WEBP · max 5 MB)</label>
                 <button type="button" class="btn ph-btn-outline btn-sm flex-shrink-0 text-nowrap" id="bannerResetPosition">Reset to Center</button>
                 </div>
-                <input type="file" name="banner_photo" id="banner_photo_input" class="form-control ph-input" accept="image/jpeg,image/png,image/webp,image/gif">
+                <input type="file" name="banner_photo" id="banner_photo_input" class="form-control ph-input @error('banner_photo') is-invalid @enderror">
+                @error('banner_photo')<div class="invalid-feedback">{{ $message }}</div>@enderror
             </div>
         </div>
         <div class="col-lg-8">
@@ -59,22 +60,26 @@
                 <div class="row g-3">
                     <div class="col-md-6">
                         <label class="form-label text-muted small">First Name</label>
-                        <input type="text" name="first_name" class="form-control ph-input" value="{{ old('first_name', auth()->user()->first_name) }}" required>
+                        <input type="text" name="first_name" class="form-control ph-input @error('first_name') is-invalid @enderror" value="{{ old('first_name', auth()->user()->first_name) }}">
+                        @error('first_name')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     </div>
                     <div class="col-md-6">
                         <label class="form-label text-muted small">Last Name</label>
-                        <input type="text" name="last_name" class="form-control ph-input" value="{{ old('last_name', auth()->user()->last_name) }}" required>
+                        <input type="text" name="last_name" class="form-control ph-input @error('last_name') is-invalid @enderror" value="{{ old('last_name', auth()->user()->last_name) }}">
+                        @error('last_name')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     </div>
                     <div class="col-12">
                         <label class="form-label text-muted small">Organization Name</label>
-                        <input type="text" name="organization_name" class="form-control ph-input" value="{{ old('organization_name', $profile->organization_name) }}" required>
+                        <input type="text" name="organization_name" class="form-control ph-input @error('organization_name') is-invalid @enderror" value="{{ old('organization_name', $profile->organization_name) }}">
+                        @error('organization_name')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     </div>
                     <div class="col-md-6">
                         <label class="form-label text-muted small">Organization Type</label>
-                        <select name="organization_type" class="form-select ph-input" required>
+                        <select name="organization_type" class="form-select ph-input @error('organization_type') is-invalid @enderror">
                             <option value="agency" @if(old('organization_type', $profile->organization_type) == 'agency') selected @endif>Agency</option>
                             <option value="freelancer" @if(old('organization_type', $profile->organization_type) == 'freelancer') selected @endif>Freelancer</option>
                         </select>
+                        @error('organization_type')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     </div>
                     <div class="col-md-6">
                         <label class="form-label text-muted small">Phone</label>
