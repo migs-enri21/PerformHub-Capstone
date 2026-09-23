@@ -91,6 +91,10 @@ class BookingController extends Controller
     {
         $this->ensureBookingOwner($booking);
 
+        if ($booking->status === 'cancelled') {
+            return back()->with('warning', 'A cancelled booking cannot receive a contract.');
+        }
+
         if ($booking->signwell_document_id) {
             return back()->with('warning', 'This contract has already been sent through SignWell and cannot be replaced.');
         }
@@ -178,6 +182,51 @@ class BookingController extends Controller
         }
 
         return back()->with('success', 'Booking marked as completed.');
+    }
+
+    public function approveCancel(Booking $booking): RedirectResponse
+    {
+        $this->ensureBookingOwner($booking);
+
+        if (! $booking->hasCancelRequest()) {
+            return back()->with('warning', 'There is no cancellation request to approve.');
+        }
+
+        $booking->update(['status' => 'cancelled']);
+
+        Notification::send(
+            $booking->performer,
+            'booking',
+            'Cancellation Approved',
+            'Your cancellation request for '.$booking->event_name.' was approved.',
+            route('performer.bookings.show', $booking)
+        );
+
+        return back()->with('success', 'Cancellation request approved. The booking is now cancelled.');
+    }
+
+    public function declineCancel(Booking $booking): RedirectResponse
+    {
+        $this->ensureBookingOwner($booking);
+
+        if (! $booking->hasCancelRequest()) {
+            return back()->with('warning', 'There is no cancellation request to decline.');
+        }
+
+        $booking->update([
+            'cancel_reason' => null,
+            'cancel_requested_at' => null,
+        ]);
+
+        Notification::send(
+            $booking->performer,
+            'booking',
+            'Cancellation Declined',
+            'Your cancellation request for '.$booking->event_name.' was declined. The booking remains active.',
+            route('performer.bookings.show', $booking)
+        );
+
+        return back()->with('success', 'Cancellation request declined. The booking remains active.');
     }
 
     private function getSelectedEvent(Request $request): ?Event

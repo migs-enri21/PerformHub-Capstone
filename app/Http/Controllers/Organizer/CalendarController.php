@@ -5,15 +5,34 @@ namespace App\Http\Controllers\Organizer;
 use App\Http\Controllers\Controller;
 use App\Models\Event;
 use App\Models\OrganizerProfile;
+use App\Services\OrganizerGoogleCalendarService;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 
 class CalendarController extends Controller
 {
-    public function index(): View
+    public function index(OrganizerGoogleCalendarService $googleCalendar): View
     {
         $profile = $this->getProfile();
+        $wasGoogleConnected = $profile->google_calendar_connected;
+
+        if ($googleCalendar->shouldSync($profile)) {
+            try {
+                $googleCalendar->syncBusyDates($profile);
+                $profile->refresh();
+            } catch (\Throwable $exception) {
+                $message = $exception->getMessage();
+
+                if (str_contains($message, 'link expired') || str_contains($message, 'link is invalid')) {
+                    session()->flash('error', $message);
+                    $profile->refresh();
+                }
+            }
+        } elseif ($wasGoogleConnected && ! $profile->google_calendar_connected) {
+            session()->flash('error', 'Your Google Calendar link is invalid. Click Connect Google Calendar to sign in again.');
+        }
+
         $events = $this->getEvents();
         $googleBusyDates = $profile->googleCalendarBusyDates()->orderBy('date')->get();
 
@@ -61,10 +80,21 @@ class CalendarController extends Controller
         foreach ($busyDates as $busyDate) {
             $googleBusy[$busyDate->date->format('Y-m-d')] = [
                 'summary' => $busyDate->summary,
+                'start_time' => $this->shortTime($busyDate->start_time),
+                'end_time' => $this->shortTime($busyDate->end_time),
             ];
         }
 
         return $googleBusy;
+    }
+
+    private function shortTime(?string $time): ?string
+    {
+        if (! $time) {
+            return null;
+        }
+
+        return substr($time, 0, 5);
     }
 
     private function getUpcomingEvents(Collection $events): array

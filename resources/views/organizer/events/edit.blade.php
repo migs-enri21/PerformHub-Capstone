@@ -23,6 +23,12 @@
     if (! $selectedPreferredGenres) {
         $selectedPreferredGenres = [];
     }
+
+    $selectedCompensationType = old('compensation_type');
+
+    if (! $selectedCompensationType) {
+        $selectedCompensationType = $event->compensation_type;
+    }
 @endphp
 <div class="container">
     <div class="d-flex justify-content-between align-items-center mb-4">
@@ -91,12 +97,23 @@
                     <select class="form-select @error('event_type_id') is-invalid @enderror" name="event_type_id" id="event_type_id">
                         <option value="">Select Event Type</option>
                         @foreach($eventTypes as $eventType)
-                            <option value="{{ $eventType->id }}" data-compensation-type="{{ $eventType->compensation_type }}" @selected((string) old('event_type_id', $event->event_type_id) === (string) $eventType->id)>
+                            <option value="{{ $eventType->id }}" @selected((string) old('event_type_id', $event->event_type_id) === (string) $eventType->id)>
                                 {{ $eventType->name }}
                             </option>
                         @endforeach
                     </select>
                     @error('event_type_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Compensation Type</label>
+                    <select class="form-select @error('compensation_type') is-invalid @enderror" name="compensation_type" id="compensation_type">
+                        <option value="">Select Compensation Type</option>
+                        <option value="fixed" @selected($selectedCompensationType === 'fixed')>Fixed Budget</option>
+                        <option value="hourly" @selected($selectedCompensationType === 'hourly')>Rate per Hour</option>
+                        <option value="contest" @selected($selectedCompensationType === 'contest')>Contest Prizes</option>
+                    </select>
+                    @error('compensation_type')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
 
                 <div class="col-md-6 mb-3">
@@ -219,18 +236,17 @@
 @include('organizer.partials.confirmation-modal')
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    const eventType = document.getElementById('event_type_id');
+    const compensationType = document.getElementById('compensation_type');
     const compensationFields = document.querySelectorAll('.compensation-field');
     const categoryCheckboxes = document.querySelectorAll('.event-category-checkbox');
     const genreOptions = document.querySelectorAll('.genre-option');
     const genreHelp = document.getElementById('genreHelp');
 
     function showCompensationFields() {
-        const selectedOption = eventType.options[eventType.selectedIndex];
-        const compensationType = selectedOption.dataset.compensationType;
+        const selectedType = compensationType.value;
 
         compensationFields.forEach(function (field) {
-            const isSelectedType = field.dataset.compensationType === compensationType;
+            const isSelectedType = field.dataset.compensationType === selectedType;
             field.classList.toggle('d-none', !isSelectedType);
             field.querySelectorAll('input').forEach(function (input) {
                 input.disabled = !isSelectedType;
@@ -273,7 +289,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    eventType.addEventListener('change', showCompensationFields);
+    compensationType.addEventListener('change', showCompensationFields);
     categoryCheckboxes.forEach(function (checkbox) {
         checkbox.addEventListener('change', showRelevantGenres);
     });

@@ -7,11 +7,17 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class OrganizerGoogleCalendarBusyDate extends Model
 {
-    protected $fillable = ['organizer_profile_id','date','summary',];
+    protected $fillable = [
+        'organizer_profile_id',
+        'date',
+        'summary',
+        'start_time',
+        'end_time',
+    ];
 
     protected function casts(): array
     {
-        return ['date' => 'date',];
+        return ['date' => 'date'];
     }
 
     public function organizerProfile(): BelongsTo

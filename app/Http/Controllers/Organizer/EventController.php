@@ -246,8 +246,15 @@ class EventController extends Controller
             ]));
         }
 
+        $eventDateRules = ['required', 'date'];
+
+        if (! $updating) {
+            $eventDateRules[] = 'after_or_equal:today';
+        }
+
         $rules = [
             'event_type_id' => ['required', 'exists:event_types,id'],
+            'compensation_type' => ['required', Rule::in(['fixed', 'hourly', 'contest'])],
             'category_ids' => ['required', 'array', 'min:1'],
             'category_ids.*' => ['exists:categories,id'],
             'preferred_genres' => ['nullable', 'array'],
@@ -259,9 +266,7 @@ class EventController extends Controller
             'videos' => ['nullable', 'array', 'max:3'],
             'videos.*' => ['file', 'mimes:mp4,webm', 'max:25600'],
             'description' => ['nullable', 'string'],
-            'event_date' => $updating
-                ? ['required', 'date']
-                : ['required', 'date', 'after_or_equal:today'],
+            'event_date' => $eventDateRules,
             'start_time' => ['required'],
             'end_time' => ['required'],
             'venue' => ['required', 'string', 'max:255'],
@@ -273,19 +278,19 @@ class EventController extends Controller
             'status' => $this->statusRules($updating),
         ];
 
-        $eventType = EventType::find($request->input('event_type_id'));
+        $compensationType = $request->input('compensation_type');
 
-        if ($eventType && $eventType->compensation_type === 'contest') {
+        if ($compensationType === 'contest') {
             $rules['first_prize'] = ['required', 'numeric', 'min:0'];
             $rules['second_prize'] = ['required', 'numeric', 'min:0'];
             $rules['third_prize'] = ['required', 'numeric', 'min:0'];
         }
 
-        if ($eventType && $eventType->compensation_type === 'hourly') {
+        if ($compensationType === 'hourly') {
             $rules['rate_per_hour'] = ['required', 'numeric', 'min:0'];
         }
 
-        if ($eventType && $eventType->compensation_type === 'fixed') {
+        if ($compensationType === 'fixed') {
             $rules['budget'] = ['required', 'numeric', 'min:0'];
         }
 
@@ -295,10 +300,7 @@ class EventController extends Controller
             $validated['preferred_genres'] = [];
         }
 
-        if ($eventType) {
-            $validated['compensation_type'] = $eventType->compensation_type;
-            $this->clearUnusedCompensationFields($validated, $eventType->compensation_type);
-        }
+        $this->clearUnusedCompensationFields($validated, $validated['compensation_type']);
 
         return $validated;
     }

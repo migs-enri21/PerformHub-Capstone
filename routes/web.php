@@ -121,6 +121,8 @@ Route::middleware(['auth', 'role:organizer'])->prefix('organizer')->name('organi
         Route::post('/bookings/{booking}/send-signature', [OrganizerBookingController::class, 'sendForSignature'])->name('bookings.signwell.send');
         Route::post('/bookings/{booking}/sync-signature', [OrganizerBookingController::class, 'syncSignatureStatus'])->name('bookings.signwell.sync');
         Route::post('/bookings/{booking}/complete', [OrganizerBookingController::class, 'complete'])->name('bookings.complete');
+        Route::post('/bookings/{booking}/approve-cancel', [OrganizerBookingController::class, 'approveCancel'])->name('bookings.cancel.approve');
+        Route::post('/bookings/{booking}/decline-cancel', [OrganizerBookingController::class, 'declineCancel'])->name('bookings.cancel.decline');
         Route::post('/events/{event}/applications/{application}/decline', [OrganizerEventApplicationController::class, 'decline'])->name('events.applications.decline');
     });
     Route::prefix('calendar')->name('calendar.')->group(function () {

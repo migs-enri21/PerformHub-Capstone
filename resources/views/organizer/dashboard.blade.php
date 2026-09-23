@@ -22,22 +22,28 @@
         <div class="org-panel mb-4">
             <h5 class="fw-bold mb-3">Quick Overview</h5>
             <div class="row g-3">
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <a href="{{ route('organizer.events.index') }}" class="org-stat">
                         <i class="fas fa-calendar-plus"></i>
                         <div><strong>{{ $upcomingEvents->count() }}</strong><small>Upcoming Events</small></div>
                     </a>
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <a href="{{ route('organizer.events.index') }}" class="org-stat">
                         <i class="fas fa-clock"></i>
                         <div><strong>{{ $pendingBookings }}</strong><small>Pending Bookings</small></div>
                     </a>
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <a href="{{ route('organizer.events.index') }}" class="org-stat">
                         <i class="fas fa-check-circle"></i>
                         <div><strong>{{ $activeBookings }}</strong><small>Accepted Bookings</small></div>
+                    </a>
+                </div>
+                <div class="col-md-3">
+                    <a href="{{ route('organizer.events.index') }}" class="org-stat">
+                        <i class="fas fa-ban"></i>
+                        <div><strong>{{ $cancelRequests }}</strong><small>Cancel Requests</small></div>
                     </a>
                 </div>
             </div>

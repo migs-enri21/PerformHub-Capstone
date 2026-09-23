@@ -139,25 +139,50 @@ class OrganizerGoogleCalendarService
             }
 
             $summary = Str::limit((string) ($event['summary'] ?? 'Busy'), 255, '');
+            [$startTime, $endTime] = $this->eventTimes($event);
 
             if (! isset($busyDates[$dateKey])) {
-                $busyDates[$dateKey] = $summary;
+                $busyDates[$dateKey] = [
+                    'summary' => $summary,
+                    'start_time' => $startTime,
+                    'end_time' => $endTime,
+                ];
 
                 continue;
             }
 
-            if ($busyDates[$dateKey] !== $summary && $summary !== 'Busy') {
-                $busyDates[$dateKey] = Str::limit($busyDates[$dateKey].', '.$summary, 255, '');
+            if ($busyDates[$dateKey]['summary'] !== $summary && $summary !== 'Busy') {
+                $busyDates[$dateKey]['summary'] = Str::limit(
+                    $busyDates[$dateKey]['summary'].', '.$summary,
+                    255,
+                    ''
+                );
+            }
+
+            if ($startTime && (
+                $busyDates[$dateKey]['start_time'] === null
+                || $startTime < $busyDates[$dateKey]['start_time']
+            )) {
+                $busyDates[$dateKey]['start_time'] = $startTime;
+            }
+
+            if ($endTime && (
+                $busyDates[$dateKey]['end_time'] === null
+                || $endTime > $busyDates[$dateKey]['end_time']
+            )) {
+                $busyDates[$dateKey]['end_time'] = $endTime;
             }
         }
 
         $profile->googleCalendarBusyDates()->delete();
 
-        foreach ($busyDates as $date => $summary) {
+        foreach ($busyDates as $date => $busyDate) {
             OrganizerGoogleCalendarBusyDate::create([
                 'organizer_profile_id' => $profile->id,
                 'date' => $date,
-                'summary' => $summary,
+                'summary' => $busyDate['summary'],
+                'start_time' => $busyDate['start_time'],
+                'end_time' => $busyDate['end_time'],
             ]);
         }
 
@@ -220,10 +245,29 @@ class OrganizerGoogleCalendarService
         }
 
         if (! empty($event['start']['dateTime'])) {
-            return Carbon::parse($event['start']['dateTime'])->toDateString();
+            return Carbon::parse($event['start']['dateTime'])
+                ->timezone(config('app.timezone'))
+                ->toDateString();
         }
 
         return null;
+    }
+
+    private function eventTimes(array $event): array
+    {
+        if (! empty($event['start']['date']) || empty($event['start']['dateTime'])) {
+            return [null, null];
+        }
+
+        $timezone = config('app.timezone');
+        $startTime = Carbon::parse($event['start']['dateTime'])->timezone($timezone)->format('H:i');
+        $endTime = null;
+
+        if (! empty($event['end']['dateTime'])) {
+            $endTime = Carbon::parse($event['end']['dateTime'])->timezone($timezone)->format('H:i');
+        }
+
+        return [$startTime, $endTime];
     }
 
     private function refreshToken(OrganizerProfile $profile): ?string

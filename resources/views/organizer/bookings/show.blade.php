@@ -116,6 +116,23 @@
     </div>
 
     <div class="col-lg-4">
+        @if($booking->hasCancelRequest())
+            <div class="ph-card p-4 mb-4">
+                <h5 class="fw-semibold mb-2">Cancellation Request</h5>
+                <p class="small mb-3"><strong>Reason:</strong> {{ $booking->cancel_reason }}</p>
+                <div class="d-flex gap-2">
+                    <form method="POST" action="{{ route('organizer.bookings.cancel.approve', $booking) }}" class="flex-grow-1">
+                        @csrf
+                        <button class="btn btn-danger w-100">Approve</button>
+                    </form>
+                    <form method="POST" action="{{ route('organizer.bookings.cancel.decline', $booking) }}" class="flex-grow-1">
+                        @csrf
+                        <button class="btn ph-btn-outline w-100">Decline</button>
+                    </form>
+                </div>
+            </div>
+        @endif
+
         <div class="ph-card p-4 mb-4">
             <h5 class="fw-semibold mb-3">Booking Progress</h5>
             <p><span class="badge bg-success">Done</span> Booking Request Sent</p>

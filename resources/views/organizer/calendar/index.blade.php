@@ -158,6 +158,16 @@ document.querySelectorAll('.organizer-calendar').forEach(calendar => {
             if (! event && googleBusy) {
                 cell.classList.add('av-day--google-busy');
                 cell.title = googleBusy.summary || 'Busy on Google Calendar';
+
+                if (googleBusy.start_time) {
+                    cell.title += ` (${googleBusy.start_time}`;
+
+                    if (googleBusy.end_time) {
+                        cell.title += ` - ${googleBusy.end_time}`;
+                    }
+
+                    cell.title += ')';
+                }
             }
 
             if (date < today) {
@@ -199,6 +209,10 @@ document.querySelectorAll('.organizer-calendar').forEach(calendar => {
                 const label = document.createElement('span');
                 label.className = 'av-day-google-label';
                 label.textContent = 'Google';
+
+                if (googleBusy.start_time) {
+                    label.textContent += ` ${googleBusy.start_time}`;
+                }
                 cell.appendChild(label);
             }
 
