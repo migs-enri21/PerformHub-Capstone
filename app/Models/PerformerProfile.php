@@ -100,7 +100,7 @@ class PerformerProfile extends Model
     {
         $hasActiveBooking = $this->bookings()
             ->whereDate('event_date', $date)
-            ->whereIn('status', ['pending', 'accepted', 'completed'])
+            ->lockingDate()
             ->exists();
 
         if ($hasActiveBooking) {

@@ -123,7 +123,7 @@ class PerformerSearchController extends Controller
         $query->where(function ($performer) use ($date) {
             $performer->whereDoesntHave('bookings', function ($booking) use ($date) {
                 return $booking->whereDate('event_date', $date)
-                    ->whereIn('status', ['pending', 'accepted', 'completed']);
+                    ->lockingDate();
             })
                 ->where(function ($schedule) use ($date) {
                     $schedule->whereDoesntHave('availabilitySchedules', function ($item) use ($date) {

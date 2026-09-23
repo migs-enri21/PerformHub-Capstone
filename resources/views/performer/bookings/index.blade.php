@@ -9,56 +9,62 @@
 @section('content')
 <h2 class="fw-bold mb-4">Booking History</h2>
 
-{{--
- <form method="GET" class="ph-card p-3 mb-4 d-flex gap-2 align-items-end">
-    <div>
-        <label class="form-label">Booking Status</label>
-        <select name="status" class="form-select ph-input">
-            <option value="">All</option>
-            <option value="pending" @selected(request('status') === 'pending')>Pending</option>
-            <option value="accepted" @selected(request('status') === 'accepted')>Accepted</option>
-            <option value="completed" @selected(request('status') === 'completed')>Completed</option>
-            <option value="rejected" @selected(request('status') === 'rejected')>Rejected</option>
-        </select>
-    </div>
-
-    <button type="submit" class="btn ph-btn-primary">Filter</button>
-</form> 
---}}
-
 <div class="ph-card p-0 overflow-hidden">
-    <table class="table table-dark table-hover mb-0">
-        <thead><tr><th>Event</th><th>Organizer</th><th>Date</th><th>Status</th><th>Contract</th><th></th></tr></thead>
-        <tbody>
-            @forelse($bookings as $booking)
+    <div class="table-responsive">
+        <table class="table table-dark table-hover mb-0">
+            <thead>
                 <tr>
-                    <td>{{ $booking->event_name }}</td>
-                    <td>{{ $booking->organizer->organizerProfile?->organization_name ?? $booking->organizer->name }}</td>
-                    <td>{{ $booking->event_date->format('M d, Y') }}</td>
-                    <td><span class="badge {{ $booking->statusBadgeClass() }}">{{ $booking->statusLabel() }}</span></td>
-                    <td>
-                        @if($booking->hasSignedContract())
-                            <span class="badge bg-success">Signed copy sent</span>
-                        @elseif($booking->status === 'accepted' && $booking->hasContract())
-                            <span class="badge bg-warning text-dark">Sign contract</span>
-                        @elseif($booking->hasContract())
-                            <span class="badge bg-info">Contract uploaded</span>
-                        @else
-                            <span class="text-muted small">—</span>
-                        @endif
-                    </td>
-                    <td>
-                        <a href="{{ route('performer.bookings.show', $booking) }}" 
-                        class="btn btn-sm {{ $booking->status === 'accepted' && $booking->hasContract() && ! $booking->hasSignedContract() ? 'ph-btn-primary' : 'ph-btn-outline' }} booking-view-btn">
-                            <i class="fas fa-eye me-1"></i> {{ $booking->status === 'accepted' && $booking->hasContract() && ! $booking->hasSignedContract() ? 'Sign' : 'View' }}
-                        </a>
-                    </td>
+                    <th>Event</th>
+                    <th>Organizer</th>
+                    <th>Date</th>
+                    <th>Status</th>
+                    <th>Contract</th>
+                    <th></th>
                 </tr>
-            @empty
-                <tr><td colspan="6" class="text-center text-muted py-4">No bookings yet.</td></tr>
-            @endforelse
-        </tbody>
-    </table>
+            </thead>
+            <tbody>
+                @forelse($bookings as $booking)
+                    @php
+                        $needsSignature = $booking->status === 'accepted'
+                            && $booking->hasContract()
+                            && ! $booking->isSigned();
+                    @endphp
+                    <tr>
+                        <td>{{ $booking->event_name }}</td>
+                        <td>{{ $booking->organizer->organizerProfile?->organization_name ?? $booking->organizer->name }}</td>
+                        <td>{{ $booking->event_date->format('M d, Y') }}</td>
+                        <td>
+                            <span class="badge {{ $booking->statusBadgeClass() }}">{{ $booking->statusLabel() }}</span>
+                        </td>
+                        <td>
+                            @if($booking->hasSignedContract())
+                                <span class="badge bg-success">Signed copy sent</span>
+                            @elseif($booking->isSignWellCompleted())
+                                <span class="badge bg-success">Signed</span>
+                            @elseif($needsSignature)
+                                <span class="badge bg-warning text-dark">Sign contract</span>
+                            @elseif($booking->hasContract())
+                                <span class="badge bg-info">Contract uploaded</span>
+                            @else
+                                <span class="text-muted small">—</span>
+                            @endif
+                        </td>
+                        <td class="text-end">
+                            <a href="{{ route('performer.bookings.show', $booking) }}"
+                                class="btn btn-sm {{ $needsSignature ? 'ph-btn-primary' : 'ph-btn-outline' }} booking-view-btn">
+                                <i class="fas fa-eye me-1"></i> {{ $needsSignature ? 'Sign' : 'View' }}
+                            </a>
+                        </td>
+                    </tr>
+                @empty
+                    <tr>
+                        <td colspan="6" class="text-center text-muted py-4">No bookings yet.</td>
+                    </tr>
+                @endforelse
+            </tbody>
+        </table>
+    </div>
 </div>
+
 {{ $bookings->links() }}
 @endsection

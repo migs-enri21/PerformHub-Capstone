@@ -112,6 +112,34 @@ public function index(Request $request): View
         return back()->with('success', 'Booking rejected.');
     }
 
+    public function requestCancel(Request $request, Booking $booking): RedirectResponse
+    {
+        abort_unless($booking->performer_id === Auth::id(), 403);
+
+        if (! $booking->canRequestCancel()) {
+            return back()->with('warning', 'This booking can no longer be cancelled.');
+        }
+
+        $validated = $request->validate([
+            'cancel_reason' => ['required', 'string', 'max:500'],
+        ]);
+
+        $booking->update([
+            'cancel_reason' => $validated['cancel_reason'],
+            'cancel_requested_at' => now(),
+        ]);
+
+        Notification::send(
+            $booking->organizer,
+            'booking',
+            'Cancel Request',
+            Auth::user()->name.' asked to cancel '.$booking->event_name.'.',
+            route('organizer.bookings.show', $booking)
+        );
+
+        return back()->with('success', 'Cancel request sent to the organizer.');
+    }
+
     public function uploadSignedContract(Request $request, Booking $booking): RedirectResponse
     {
         abort_unless($booking->performer_id === Auth::id(), 403);
@@ -124,6 +152,13 @@ public function index(Request $request): View
         $file = $request->validate([
             'signed_contract' => ['required', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:10240'],
         ])['signed_contract'];
+
+        if ($booking->sameDayConfirmedConflict()) {
+            return back()->with(
+                'warning',
+                'You already have a signed booking on '.$booking->event_date->format('F d, Y').'. PerformHub allows 1 event per day.'
+            );
+        }
 
         $storage = new SupabaseStorageService();
 
@@ -138,15 +173,17 @@ public function index(Request $request): View
             'signed_contract_uploaded_at' => now(),
         ]);
 
+        $booking->markCompletedFromSignature();
+
         Notification::send(
             $booking->organizer,
             'contract',
-            'Signed Contract Uploaded',
-            Auth::user()->name.' uploaded the signed contract for '.$booking->event_name,
+            'Contract Signed',
+            Auth::user()->name.' signed the contract for '.$booking->event_name.'. The date is now booked.',
             route('organizer.bookings.show', $booking)
         );
 
-        return back()->with('success', 'Signed contract sent to the organizer.');
+        return back()->with('success', 'Signed contract sent. This date is now booked.');
     }
 
     public function signContract(Booking $booking, SignWellService $signWell)
@@ -188,13 +225,13 @@ public function index(Request $request): View
                 $booking->organizer,
                 'contract',
                 'Contract Electronically Signed',
-                Auth::user()->name.' signed the contract for '.$booking->event_name.'. You can now confirm the booking.',
+                Auth::user()->name.' signed the contract for '.$booking->event_name.'. The date is now booked.',
                 route('organizer.bookings.show', $booking)
             );
         }
 
         return redirect()
             ->route('performer.bookings.show', $booking)
-            ->with('success', 'Electronic signature completed. The organizer has been notified.');
+            ->with('success', 'Electronic signature completed. This date is now booked.');
     }
 }

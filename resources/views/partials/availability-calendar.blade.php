@@ -43,8 +43,8 @@
         ])
         ->all();
 
-    $confirmedMap = $bookingCalendar
-        ->whereIn('status', ['accepted', 'completed'])
+        $confirmedMap = $bookingCalendar
+        ->filter(fn ($booking) => $booking->locksTheDate())
         ->mapWithKeys(fn ($booking) => [
             $booking->event_date->format('Y-m-d') => [
                 'event_name' => $booking->event_name,
@@ -392,10 +392,6 @@
                     return 'pending';
                 }
 
-                if (entry && !entry.is_available && entry.notes) {
-                    return 'booked';
-                }
-
                 if (entry && !entry.is_available) {
                     return 'blocked';
                 }
@@ -597,11 +593,7 @@
                         notesInput.value = confirmedBooking.event_name || '';
                     }
                 } else if (pendingBooking) {
-                    mode = 'event';
                     statusHint = ` · Pending: ${pendingBooking.event_name}`;
-                    if (!notesInput.value) {
-                        notesInput.value = pendingBooking.event_name || '';
-                    }
                 } else if (googleBusy) {
                     mode = 'event';
                     const summary = googleBusy.summary || 'Busy';
@@ -636,8 +628,6 @@
                 if (mode === 'event' && !notesInput.value) {
                     if (confirmedBooking) {
                         notesInput.value = confirmedBooking.event_name || '';
-                    } else if (pendingBooking) {
-                        notesInput.value = pendingBooking.event_name || '';
                     } else if (googleBusy) {
                         notesInput.value = googleBusy.summary || 'Busy';
                     }

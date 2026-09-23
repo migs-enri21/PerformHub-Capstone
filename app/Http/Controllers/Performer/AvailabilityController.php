@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Performer;
 use App\Http\Controllers\Controller;
 use App\Models\AvailabilitySchedule;
 use App\Models\Booking;
+use App\Models\PerformerProfile;
 use App\Services\GoogleCalendarService;
 use App\Support\AvailabilityCalendar;
 use Illuminate\View\View;
@@ -18,6 +19,8 @@ class AvailabilityController extends Controller
     {
         $profile = Auth::user()->performerProfile()->with('categories')->firstOrFail();
         $profile = AvailabilityCalendar::loadCalendarRelations($profile);
+        $this->clearStaleBookingBlocks($profile);
+        $profile = AvailabilityCalendar::loadCalendarRelations($profile->fresh('categories'));
 
         $wasGoogleConnected = $profile->google_calendar_connected;
 
@@ -58,7 +61,7 @@ class AvailabilityController extends Controller
 
         $hasConfirmedBooking = Booking::where('performer_id', Auth::id())
             ->whereDate('event_date', $validated['date'])
-            ->whereIn('status', ['accepted', 'completed'])
+            ->lockingDate()
             ->exists();
 
         if ($hasConfirmedBooking) {
@@ -97,7 +100,7 @@ class AvailabilityController extends Controller
 
         $hasConfirmedBooking = Booking::where('performer_id', Auth::id())
             ->whereDate('event_date', $schedule->date)
-            ->whereIn('status', ['accepted', 'completed'])
+            ->lockingDate()
             ->exists();
 
         if ($hasConfirmedBooking) {
@@ -111,6 +114,39 @@ class AvailabilityController extends Controller
         return redirect()
             ->route('performer.availability.index')
             ->with('success', 'Date cleared — available by default again.');
+    }
+
+    private function clearStaleBookingBlocks(PerformerProfile $profile): void
+    {
+        $bookings = $profile->bookings;
+
+        foreach ($profile->availabilitySchedules as $schedule) {
+            if ($schedule->is_available || ! filled($schedule->notes)) {
+                continue;
+            }
+
+            $date = $schedule->date->toDateString();
+
+            $hasConfirmed = $bookings->contains(
+                fn ($booking) => $booking->locksTheDate() && $booking->event_date->toDateString() === $date
+            );
+
+            if ($hasConfirmed) {
+                continue;
+            }
+
+            $copiedFromOpenBooking = $bookings->contains(
+                function ($booking) use ($date, $schedule) {
+                    return in_array($booking->status, ['pending', 'accepted'], true)
+                        && $booking->event_date->toDateString() === $date
+                        && strcasecmp(trim((string) $booking->event_name), trim((string) $schedule->notes)) === 0;
+                }
+            );
+
+            if ($copiedFromOpenBooking) {
+                $schedule->delete();
+            }
+        }
     }
 }
 

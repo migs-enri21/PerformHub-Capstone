@@ -137,42 +137,40 @@ class SignWellService
         }
 
         $document = $response->json();
-        $status = 'sent';
-
-        if (isset($document['status'])) {
-            $status = $document['status'];
-        }
+        $status = strtolower(trim((string) ($document['status'] ?? 'sent')));
         $booking->update(['signwell_status' => $status]);
 
-        if ($status !== 'completed' || $booking->hasSignedContract()) {
+        if (! in_array($status, ['completed', 'manually completed'], true)) {
             return false;
         }
 
-        $pdfResponse = Http::withHeaders([
-            'X-Api-Key' => config('services.signwell.api_key'),
-        ])->timeout(30)
-            ->get($documentUrl.'/completed_pdf');
+        if (! $booking->hasSignedContract()) {
+            $pdfResponse = Http::withHeaders([
+                'X-Api-Key' => config('services.signwell.api_key'),
+            ])->timeout(30)
+                ->get($documentUrl.'/completed_pdf');
 
-        if ($pdfResponse->failed()) {
-            throw new RuntimeException('SignWell signed PDF download failed: '.$pdfResponse->body());
+            if ($pdfResponse->successful()) {
+                $storage = new SupabaseStorageService();
+                $path = $storage->uploadContents(
+                    $pdfResponse->body(),
+                    'booking-'.$booking->id.'-signed.pdf',
+                    'organizer-files',
+                    'signed_contract',
+                    $booking->performer_id,
+                    'application/pdf'
+                );
+
+                $booking->update([
+                    'signed_contract_path' => $path,
+                    'signed_contract_uploaded_at' => now(),
+                    'signwell_completed_at' => now(),
+                ]);
+            } else {
+                $booking->update(['signwell_completed_at' => now()]);
+            }
         }
 
-        $storage = new SupabaseStorageService();
-        $path = $storage->uploadContents(
-            $pdfResponse->body(),
-            'booking-'.$booking->id.'-signed.pdf',
-            'organizer-files',
-            'signed_contract',
-            $booking->performer_id,
-            'application/pdf'
-        );
-
-        $booking->update([
-            'signed_contract_path' => $path,
-            'signed_contract_uploaded_at' => now(),
-            'signwell_completed_at' => now(),
-        ]);
-
-        return true;
+        return $booking->markCompletedFromSignature();
     }
 }

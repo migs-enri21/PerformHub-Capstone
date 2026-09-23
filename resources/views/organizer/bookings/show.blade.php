@@ -103,6 +103,8 @@
                     @endif
                 </p>
                 <a href="{{ $booking->signedContractUrl() }}" target="_blank" class="btn ph-btn-outline btn-sm">View Signed Contract</a>
+            @elseif($booking->isSignWellCompleted())
+                <p class="text-success small mb-0">The performer finished signing in SignWell. The signed PDF will appear here after the next status check.</p>
             @else
                 @if($booking->signwell_document_id)
                     <p class="text-muted small mb-0">Waiting for the performer to complete the SignWell signature.</p>
@@ -134,7 +136,7 @@
                 Contract Uploaded
             </p>
             <p>
-                @if($booking->hasSignedContract())
+                @if($booking->isSigned())
                     <span class="badge bg-success">Done</span>
                 @else
                     <span class="badge bg-secondary">Pending</span>
@@ -154,7 +156,7 @@
         @if($booking->status === 'accepted')
             <div class="ph-card p-4">
                 <h5 class="fw-semibold mb-3">Confirm Booking</h5>
-                @if($booking->hasSignedContract())
+                @if($booking->isSigned())
                     <form method="POST" action="{{ route('organizer.bookings.complete', $booking) }}">
                         @csrf
                         <button class="btn btn-success w-100">Confirm Booking</button>

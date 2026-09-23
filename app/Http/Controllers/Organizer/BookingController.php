@@ -47,7 +47,7 @@ class BookingController extends Controller
 
         $sameDayBooking = Booking::where('performer_id', $performer->user_id)
             ->whereDate('event_date', $validated['event_date'])
-            ->whereIn('status', ['accepted', 'completed'])
+            ->lockingDate()
             ->first();
 
         if ($sameDayBooking) {
@@ -149,7 +149,7 @@ class BookingController extends Controller
         }
 
         if ($isNewlyCompleted) {
-            return back()->with('success', 'The signed contract was received from SignWell. You can now confirm the booking.');
+            return back()->with('success', 'The signed contract was received from SignWell. This date is now booked.');
         }
 
         return back()->with('success', 'SignWell status updated: '.ucfirst($booking->fresh()->signwell_status).'.');
@@ -160,7 +160,7 @@ class BookingController extends Controller
         $this->ensureBookingOwner($booking);
         abort_unless($booking->status === 'accepted', 400);
 
-        if ($booking->signwell_document_id && ! $booking->hasSignedContract()) {
+        if ($booking->signwell_document_id && ! $booking->isSigned()) {
             try {
                 $signWell->syncStatus($booking);
                 $booking->refresh();
@@ -169,11 +169,13 @@ class BookingController extends Controller
             }
         }
 
-        if (! $booking->hasSignedContract()) {
+        if (! $booking->isSigned()) {
             return back()->with('warning', 'Wait for the signed contract before confirming this booking.');
         }
 
-        $booking->update(['status' => 'completed']);
+        if (! $booking->markCompletedFromSignature()) {
+            return back()->with('warning', 'This performer already has a confirmed booking on that date.');
+        }
 
         return back()->with('success', 'Booking marked as completed.');
     }
