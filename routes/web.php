@@ -14,6 +14,7 @@ use App\Http\Controllers\TalentProfileController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\Organizer\BookingController as OrganizerBookingController;
+use App\Http\Controllers\Organizer\CancellationRequestController;
 use App\Http\Controllers\Organizer\DashboardController as OrganizerDashboardController;
 use App\Http\Controllers\Organizer\PerformerSearchController;
 use App\Http\Controllers\Organizer\ProfileController as OrganizerProfileController;
@@ -103,6 +104,7 @@ Route::middleware(['auth', 'role:organizer'])->prefix('organizer')->name('organi
     Route::get('/performers', [PerformerSearchController::class, 'index'])->name('performers.index');
     Route::get('/performers/{performer}', [PerformerSearchController::class, 'show'])->name('performers.show');
     Route::get('/bookings/{booking}', [OrganizerBookingController::class, 'show'])->name('bookings.show');
+    Route::get('/cancellation-requests', [CancellationRequestController::class, 'index'])->name('cancellation-requests.index');
     Route::get('/events', [OrganizerEventController::class, 'index'])->name('events.index');
     Route::post('/feature-requests', [OrganizerFeatureRequestController::class, 'store'])->name('feature-requests.store');
     Route::get('/events/create', [OrganizerEventController::class, 'create'])->name('events.create');

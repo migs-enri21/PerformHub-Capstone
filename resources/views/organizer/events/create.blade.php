@@ -120,6 +120,7 @@
                     <label class="form-label">Event Date</label>
                     <input type="date" class="form-control ph-input @error('event_date') is-invalid @enderror" name="event_date" value="{{ old('event_date') }}">
                     @error('event_date')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    <small class="text-muted d-block mt-1">Up to 3 active events may be scheduled on one day, with a 3-hour gap between them.</small>
                 </div>
                 <div class="col-md-4">
                     <label class="form-label">Start Time</label>

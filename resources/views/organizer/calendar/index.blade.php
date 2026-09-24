@@ -106,6 +106,26 @@
         </div>
     </div>
 </div>
+
+<div class="modal fade" id="organizerCalendarDayModal" tabindex="-1" aria-labelledby="organizerCalendarDayModalTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold" id="organizerCalendarDayModalTitle">Schedule</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted small" id="organizerCalendarDayModalDate"></p>
+                <div class="d-grid gap-2" id="organizerCalendarDayEvents"></div>
+                <div class="alert alert-secondary small mt-3 mb-0 d-none" id="organizerCalendarGoogleBusy"></div>
+                <p class="text-muted mb-0 d-none" id="organizerCalendarNoSchedule">No event is scheduled for this day.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn ph-btn-outline" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
 
 @push('scripts')
@@ -115,6 +135,11 @@ document.querySelectorAll('.organizer-calendar').forEach(calendar => {
     const googleBusyDates = JSON.parse(calendar.dataset.googleBusy || '{}');
     const grid = calendar.querySelector('.availability-calendar-grid');
     const monthLabel = calendar.querySelector('.organizer-calendar-month');
+    const modalElement = document.getElementById('organizerCalendarDayModal');
+    const modalDate = document.getElementById('organizerCalendarDayModalDate');
+    const modalEvents = document.getElementById('organizerCalendarDayEvents');
+    const googleBusyMessage = document.getElementById('organizerCalendarGoogleBusy');
+    const noScheduleMessage = document.getElementById('organizerCalendarNoSchedule');
     const today = new Date();
     const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
@@ -125,6 +150,98 @@ document.querySelectorAll('.organizer-calendar').forEach(calendar => {
 
     function dateKey(year, month, day) {
         return `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    }
+
+    function formatDate(key) {
+        const parts = key.split('-');
+        const year = Number(parts[0]);
+        const month = Number(parts[1]) - 1;
+        const day = Number(parts[2]);
+
+        return new Date(year, month, day).toLocaleDateString(undefined, {
+            weekday: 'long',
+            month: 'long',
+            day: 'numeric',
+            year: 'numeric',
+        });
+    }
+
+    function formatTime(time) {
+        if (!time) {
+            return '';
+        }
+
+        const parts = time.split(':');
+        const hour = Number(parts[0]);
+        const minute = parts[1];
+        const suffix = hour >= 12 ? 'PM' : 'AM';
+        const hourTwelve = hour % 12 || 12;
+
+        return `${hourTwelve}:${minute} ${suffix}`;
+    }
+
+    function showDaySchedule(key, dayEvents, googleBusy) {
+        if (!modalElement || typeof bootstrap === 'undefined') {
+            return;
+        }
+
+        modalDate.textContent = formatDate(key);
+        modalEvents.innerHTML = '';
+        noScheduleMessage.classList.toggle('d-none', dayEvents.length > 0 || googleBusy);
+        googleBusyMessage.classList.add('d-none');
+
+        dayEvents.forEach(function (event) {
+            const item = document.createElement('div');
+            item.className = 'border rounded p-3';
+
+            const title = document.createElement('strong');
+            title.textContent = event.title;
+            item.appendChild(title);
+
+            const details = document.createElement('p');
+            details.className = 'text-muted small mb-2';
+            let time = formatTime(event.start_time);
+
+            if (event.end_time) {
+                time += ` - ${formatTime(event.end_time)}`;
+            }
+
+            details.textContent = `${time} | ${event.venue}`;
+            item.appendChild(details);
+
+            const status = document.createElement('span');
+            status.className = 'badge bg-secondary me-2';
+            status.textContent = event.status;
+            item.appendChild(status);
+
+            const viewLink = document.createElement('a');
+            viewLink.href = event.url;
+            viewLink.className = 'btn btn-sm ph-btn-primary';
+            viewLink.textContent = 'View Event';
+            item.appendChild(viewLink);
+
+            modalEvents.appendChild(item);
+        });
+
+        if (googleBusy) {
+            let busyText = googleBusy.summary || 'Busy on Google Calendar';
+
+            if (googleBusy.start_time) {
+                busyText += ` (${formatTime(googleBusy.start_time)}`;
+
+                if (googleBusy.end_time) {
+                    busyText += ` - ${formatTime(googleBusy.end_time)}`;
+                }
+
+                busyText += ')';
+            }
+
+            googleBusyMessage.textContent = busyText;
+            googleBusyMessage.classList.remove('d-none');
+        }
+
+        const modal = new bootstrap.Modal(modalElement);
+        modal.show();
     }
 
     function render() {
@@ -184,9 +301,8 @@ document.querySelectorAll('.organizer-calendar').forEach(calendar => {
             cell.appendChild(number);
 
             if (event) {
-                const label = document.createElement('a');
+                const label = document.createElement('span');
                 label.className = 'av-day-event';
-                label.href = event.url;
                 if (event.title.length > 14) {
                     label.textContent = `${event.title.slice(0, 14)}…`;
                 } else {
@@ -195,9 +311,8 @@ document.querySelectorAll('.organizer-calendar').forEach(calendar => {
                 cell.appendChild(label);
 
                 dayEvents.slice(1).forEach(item => {
-                    const more = document.createElement('a');
+                    const more = document.createElement('span');
                     more.className = 'av-day-event';
-                    more.href = item.url;
                     if (item.title.length > 14) {
                         more.textContent = `${item.title.slice(0, 14)}...`;
                     } else {
@@ -214,6 +329,22 @@ document.querySelectorAll('.organizer-calendar').forEach(calendar => {
                     label.textContent += ` ${googleBusy.start_time}`;
                 }
                 cell.appendChild(label);
+            }
+
+            if (dayEvents.length > 0 || googleBusy) {
+                cell.classList.add('organizer-calendar-day--clickable');
+                cell.setAttribute('role', 'button');
+                cell.setAttribute('tabindex', '0');
+                cell.setAttribute('aria-label', `View schedule for ${formatDate(key)}`);
+                cell.addEventListener('click', function () {
+                    showDaySchedule(key, dayEvents, googleBusy);
+                });
+                cell.addEventListener('keydown', function (keyboardEvent) {
+                    if (keyboardEvent.key === 'Enter' || keyboardEvent.key === ' ') {
+                        keyboardEvent.preventDefault();
+                        showDaySchedule(key, dayEvents, googleBusy);
+                    }
+                });
             }
 
             grid.appendChild(cell);

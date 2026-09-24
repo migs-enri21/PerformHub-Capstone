@@ -312,6 +312,15 @@
     color: var(--ph-text);
 }
 
+.organizer-calendar-day--clickable {
+    cursor: pointer;
+}
+
+.organizer-calendar-day--clickable:focus-visible {
+    outline: 3px solid var(--ph-purple-glow);
+    outline-offset: 2px;
+}
+
 .organizer-event-form {
     max-width: 1120px;
 }

@@ -8,17 +8,24 @@ use App\Models\Event;
 use App\Models\EventType;
 use App\Models\Booking;
 use App\Models\Genre;
+use App\Models\OrganizerProfile;
 use App\Services\SupabaseStorageService;
 use App\Support\OptionList;
+use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 
 class EventController extends Controller
 {
+    private const MAX_EVENTS_PER_DAY = 3;
+
+    private const REQUIRED_GAP_HOURS = 3;
+
     public function index(Request $request): View
     {
         Event::markPastEventsEnded();
@@ -267,8 +274,8 @@ class EventController extends Controller
             'videos.*' => ['file', 'mimes:mp4,webm', 'max:25600'],
             'description' => ['nullable', 'string'],
             'event_date' => $eventDateRules,
-            'start_time' => ['required'],
-            'end_time' => ['required'],
+            'start_time' => ['required', 'date_format:H:i'],
+            'end_time' => ['required', 'date_format:H:i'],
             'venue' => ['required', 'string', 'max:255'],
             'budget' => ['nullable', 'numeric'],
             'first_prize' => ['nullable', 'numeric', 'min:0'],
@@ -301,8 +308,129 @@ class EventController extends Controller
         }
 
         $this->clearUnusedCompensationFields($validated, $validated['compensation_type']);
+        $this->ensureOrganizerScheduleAvailable($validated, $event);
 
         return $validated;
+    }
+
+    private function ensureOrganizerScheduleAvailable(array $eventDetails, ?Event $event): void
+    {
+        $eventDate = $eventDetails['event_date'];
+
+        if ($eventDate < today()->toDateString()) {
+            return;
+        }
+
+        if (array_key_exists('status', $eventDetails)) {
+            $status = $eventDetails['status'];
+
+            if (in_array($status, ['Cancelled', 'Completed', 'Ended'], true)) {
+                return;
+            }
+        }
+
+        $scheduledEvents = Event::where('organizer_id', Auth::id())
+            ->whereDate('event_date', $eventDate)
+            ->whereIn('status', ['Open', 'open', 'Ongoing', 'ongoing']);
+
+        if ($event) {
+            $scheduledEvents->where('id', '!=', $event->id);
+        }
+
+        $scheduledEvents = $scheduledEvents->get();
+
+        if ($scheduledEvents->count() >= self::MAX_EVENTS_PER_DAY) {
+            throw ValidationException::withMessages([
+                'event_date' => 'You can schedule up to 3 active events on one day.',
+            ]);
+        }
+
+        $newStart = $this->eventDateTime($eventDate, $eventDetails['start_time']);
+        $newEnd = $this->eventDateTime($eventDate, $eventDetails['end_time']);
+
+        if ($newEnd->lessThanOrEqualTo($newStart)) {
+            $newEnd->addDay();
+        }
+
+        foreach ($scheduledEvents as $scheduledEvent) {
+            $scheduledStart = $this->eventDateTime($eventDate, $scheduledEvent->start_time);
+            $scheduledEndTime = $scheduledEvent->end_time;
+
+            if (! $scheduledEndTime) {
+                $scheduledEndTime = $scheduledEvent->start_time;
+            }
+
+            $scheduledEnd = $this->eventDateTime($eventDate, $scheduledEndTime);
+
+            if ($scheduledEnd->lessThanOrEqualTo($scheduledStart)) {
+                $scheduledEnd->addDay();
+            }
+
+            if (! $this->hasRequiredGap($newStart, $newEnd, $scheduledStart, $scheduledEnd)) {
+                throw ValidationException::withMessages([
+                    'start_time' => 'Leave at least a 3-hour gap from "'.$scheduledEvent->title.'".',
+                ]);
+            }
+        }
+
+        $this->ensureGoogleCalendarGap($eventDate, $newStart, $newEnd);
+    }
+
+    private function ensureGoogleCalendarGap(string $eventDate, Carbon $newStart, Carbon $newEnd): void
+    {
+        $profile = OrganizerProfile::where('user_id', Auth::id())->first();
+
+        if (! $profile || ! $profile->google_calendar_connected) {
+            return;
+        }
+
+        $busyDates = $profile->googleCalendarBusyDates()
+            ->whereDate('date', $eventDate)
+            ->get();
+
+        foreach ($busyDates as $busyDate) {
+            if (! $busyDate->start_time || ! $busyDate->end_time) {
+                throw ValidationException::withMessages([
+                    'event_date' => 'Your Google Calendar has an all-day busy entry on this date.',
+                ]);
+            }
+
+            $busyStart = $this->eventDateTime($eventDate, $busyDate->start_time);
+            $busyEnd = $this->eventDateTime($eventDate, $busyDate->end_time);
+
+            if ($busyEnd->lessThanOrEqualTo($busyStart)) {
+                $busyEnd->addDay();
+            }
+
+            if (! $this->hasRequiredGap($newStart, $newEnd, $busyStart, $busyEnd)) {
+                $summary = 'a Google Calendar event';
+
+                if ($busyDate->summary) {
+                    $summary = '"'.$busyDate->summary.'" in Google Calendar';
+                }
+
+                throw ValidationException::withMessages([
+                    'start_time' => 'Leave at least a 3-hour gap from '.$summary.'.',
+                ]);
+            }
+        }
+    }
+
+    private function hasRequiredGap(Carbon $firstStart, Carbon $firstEnd, Carbon $secondStart, Carbon $secondEnd): bool
+    {
+        $firstStartsAfterGap = $firstStart->greaterThanOrEqualTo(
+            $secondEnd->copy()->addHours(self::REQUIRED_GAP_HOURS)
+        );
+        $secondStartsAfterGap = $secondStart->greaterThanOrEqualTo(
+            $firstEnd->copy()->addHours(self::REQUIRED_GAP_HOURS)
+        );
+
+        return $firstStartsAfterGap || $secondStartsAfterGap;
+    }
+
+    private function eventDateTime(string $date, string $time): Carbon
+    {
+        return Carbon::parse($date.' '.$time);
     }
 
     private function clearUnusedCompensationFields(array &$eventDetails, string $compensationType): void

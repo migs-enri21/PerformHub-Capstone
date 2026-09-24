@@ -66,6 +66,10 @@ class CalendarController extends Controller
 
             $calendarEvents[$date][] = [
                 'title' => $event->title,
+                'start_time' => $this->shortTime($event->start_time),
+                'end_time' => $this->shortTime($event->end_time),
+                'venue' => $event->venue,
+                'status' => $event->status,
                 'url' => route('organizer.events.show', $event),
             ];
         }

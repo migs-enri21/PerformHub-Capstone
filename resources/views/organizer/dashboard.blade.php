@@ -41,7 +41,7 @@
                     </a>
                 </div>
                 <div class="col-md-3">
-                    <a href="{{ route('organizer.events.index') }}" class="org-stat">
+                    <a href="{{ route('organizer.cancellation-requests.index') }}" class="org-stat">
                         <i class="fas fa-ban"></i>
                         <div><strong>{{ $cancelRequests }}</strong><small>Cancel Requests</small></div>
                     </a>

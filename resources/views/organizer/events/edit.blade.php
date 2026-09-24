@@ -155,6 +155,7 @@
                     <label class="form-label">Event Date</label>
                     <input type="date" class="form-control @error('event_date') is-invalid @enderror" name="event_date" value="{{ old('event_date', \Illuminate\Support\Carbon::parse($event->event_date)->format('Y-m-d')) }}">
                     @error('event_date')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    <small class="text-muted d-block mt-1">Up to 3 active events may be scheduled on one day, with a 3-hour gap between them.</small>
                 </div>
                 <div class="col-md-4 mb-3">
                     <label class="form-label">Start Time</label>
