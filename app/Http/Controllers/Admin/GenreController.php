@@ -18,10 +18,13 @@ class GenreController extends Controller
     {
         $search = request('search');
         $status = request('status');
+        $categoryId = request('category_id');
 
         $genres = $this->filtered(Genre::query()->with('category'), $search, $status)
+            ->when($categoryId, fn ($query) => $query->where('category_id', $categoryId))
             ->orderBy('name')
-            ->paginate(15);
+            ->paginate(15)
+            ->withQueryString();
 
         $categories = Category::where('is_active', true)->orderBy('name')->get();
 
@@ -29,7 +32,7 @@ class GenreController extends Controller
             ->orderBy('name')
             ->paginate(15, ['*'], 'specialties_page');
 
-        return view('admin.genres.index', compact('genres', 'specialties', 'categories', 'search', 'status'));
+        return view('admin.genres.index', compact('genres', 'specialties', 'categories', 'search', 'status', 'categoryId'));
     }
 
     public function store(Request $request): RedirectResponse

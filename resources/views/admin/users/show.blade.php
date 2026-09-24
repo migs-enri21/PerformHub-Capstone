@@ -14,7 +14,8 @@
 
 <div class="ph-card p-4 mb-4">
     @php
-        $profileComplete = $user->onboarding_step >= \App\Models\User::ONBOARDING_VERIFICATION;
+        $isOrganizer = $user->isOrganizer();
+        $profileComplete = $isOrganizer || $user->onboarding_step >= \App\Models\User::ONBOARDING_VERIFICATION;
         $verificationComplete = $user->is_verified;
         $onboardingComplete = $profileComplete && $verificationComplete;
     @endphp
@@ -81,6 +82,7 @@
         <div class="col-md-4">
             <h5 class="fw-bold">Onboarding Progress</h5>
             <div class="d-flex flex-column gap-3 mt-3">
+                @unless($isOrganizer)
                 <div class="d-flex align-items-center gap-2">
                     <i class="fas {{ $profileComplete ? 'fa-circle-check text-success' : 'fa-circle-xmark text-danger' }}"></i>
                     <div>
@@ -88,10 +90,11 @@
                         <small class="text-muted">{{ $profileComplete ? 'Complete' : 'Incomplete' }}</small>
                     </div>
                 </div>
+                @endunless
                 <div class="d-flex align-items-center gap-2">
                     <i class="fas {{ $verificationComplete ? 'fa-circle-check text-success' : 'fa-circle-xmark text-danger' }}"></i>
                     <div>
-                        <div class="fw-semibold">2. Admin Verification</div>
+                        <div class="fw-semibold">{{ $isOrganizer ? '1' : '2' }}. Admin Verification</div>
                         <small class="text-muted">{{ $verificationComplete ? 'Complete' : 'Incomplete' }}</small>
                     </div>
                 </div>
@@ -165,6 +168,7 @@
             </div>
             <div class="modal-body d-flex flex-column">
                 <p class="fw-semibold mb-3">{{ $user->fullName() }}</p>
+                @unless($isOrganizer)
                 <div class="d-flex align-items-center gap-2 mb-3">
                     <i class="fas {{ $profileComplete ? 'fa-circle-check text-success' : 'fa-circle-xmark text-danger' }}"></i>
                     <div>
@@ -172,22 +176,23 @@
                         <small class="text-muted">{{ $profileComplete ? 'Complete' : 'Incomplete' }}</small>
                     </div>
                 </div>
+                @endunless
                 <div class="d-flex align-items-center gap-2">
                     <i class="fas {{ $verificationComplete ? 'fa-circle-check text-success' : 'fa-circle-xmark text-danger' }}"></i>
                     <div>
-                        <div class="fw-semibold">2. Admin Verification</div>
+                        <div class="fw-semibold">{{ $isOrganizer ? '1' : '2' }}. Admin Verification</div>
                         <small class="text-muted">{{ $verificationComplete ? 'Complete' : 'Incomplete' }}</small>
                     </div>
                 </div>
             </div>
             <div class="modal-footer mt-auto">
                 <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
-                @if(!$profileComplete)
+                @if(!$isOrganizer && !$profileComplete)
                     <form method="POST" action="{{ route('admin.users.check-profile', $user) }}" class="d-inline">
                         @csrf
                         <button type="submit" class="btn ph-btn-primary">Check Profile</button>
                     </form>
-                @else
+                @elseif(!$isOrganizer)
                     <form method="POST" action="{{ route('admin.users.uncheck-profile', $user) }}" class="d-inline">
                         @csrf
                         <button type="submit" class="btn btn-outline-warning">Uncheck Profile</button>

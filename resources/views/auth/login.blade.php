@@ -46,7 +46,7 @@
                         <label class="form-label text-muted small">Password</label>
                         <a href="{{ route('password.request') }}" class="small mb-2">Forgot password?</a>
                     </div>
-                    <div class="input-group">
+                    <div class="input-group password-input-group">
                         <input type="password" name="password" id="loginPassword" class="form-control ph-input" placeholder="••••••••" required>
                         <button type="button" class="btn btn-outline-secondary" data-password-toggle="loginPassword" aria-label="Show password" aria-pressed="false" title="Show password">
                             <i class="fas fa-eye" aria-hidden="true"></i>
