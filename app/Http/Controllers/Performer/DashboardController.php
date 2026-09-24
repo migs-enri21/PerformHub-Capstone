@@ -73,11 +73,6 @@ class DashboardController extends Controller
             'recentNotifications',
         ));
     }
-    public function clickMe(): View
-    {
-        return view('performer.click-me');
-    }
-
     private function getRecommendedEvents(array $categoryIds)
     {
         return Event::with(['organizer.organizerProfile', 'eventType', 'categories', 'photos'])

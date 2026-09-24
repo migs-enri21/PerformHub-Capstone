@@ -184,8 +184,3 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::get('/events', [\App\Http\Controllers\Admin\EventController::class, 'index'])->name('events.index');
     Route::get('/events/{booking}', [\App\Http\Controllers\Admin\EventController::class, 'show'])->name('events.show');
 });
-
-Route::middleware(['auth', 'role:performer'])->prefix('performer')->name('performer.')->group(function () {
-    Route::get('/click-me', [PerformerDashboardController::class, 'clickMe'])->name('click-me');
-});
-Route::get('click-me', [PerformerDashboardController::class, 'clickMe'])->name('click-me');
