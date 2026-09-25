@@ -3,7 +3,9 @@
 namespace App\Http\Controllers\Performer;
 
 use App\Http\Controllers\Controller;
+use App\Models\Booking;
 use App\Models\Event;
+use App\Models\EventApplication;
 use App\Models\User;
 use Illuminate\View\View;
 
@@ -21,14 +23,31 @@ class OrganizerProfileController extends Controller
             abort(404);
         }
 
-        $events = Event::with('eventType')
+        $events = Event::with(['organizer.organizerProfile', 'eventType', 'categories', 'photos'])
             ->where('organizer_id', $organizer->id)
-            ->whereIn('status', ['Open', 'open'])
-            ->whereDate('event_date', '>=', today())
-            ->orderBy('event_date')
-            ->orderBy('start_time')
+            ->orderByDesc('event_date')
+            ->orderByDesc('start_time')
             ->get();
 
-        return view('performer.organizers.show', compact('profile', 'events'));
+        $applicationStatuses = EventApplication::where('performer_id', auth()->id())
+            ->whereIn('event_id', $events->pluck('id'))
+            ->pluck('status', 'event_id');
+
+        $pendingBookingUrls = Booking::where('performer_id', auth()->id())
+            ->where('status', 'pending')
+            ->whereIn('event_id', $events->pluck('id'))
+            ->get()
+            ->mapWithKeys(function (Booking $booking) {
+                return [
+                    $booking->event_id => route('performer.bookings.show', $booking),
+                ];
+            });
+
+        return view('performer.organizers.show', compact(
+            'profile',
+            'events',
+            'applicationStatuses',
+            'pendingBookingUrls'
+        ));
     }
 }

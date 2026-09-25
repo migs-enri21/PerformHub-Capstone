@@ -17,7 +17,7 @@ class ProfileController extends Controller
     {
         $profile = $this->getProfile();
         $events = Auth::user()->events()
-            ->with('eventType')
+            ->with(['organizer.organizerProfile', 'eventType', 'categories', 'photos'])
             ->latest('event_date')
             ->take(6)
             ->get();

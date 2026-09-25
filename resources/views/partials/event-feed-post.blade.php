@@ -32,6 +32,13 @@
     }
     $galleryPhotos = $event->photos;
     $photoCount = $galleryPhotos->count();
+    $canApply = false;
+
+    if ($eventDate && in_array($event->status, ['Open', 'open'], true)) {
+        if ($eventDate->toDateString() >= now()->toDateString()) {
+            $canApply = true;
+        }
+    }
 @endphp
 
 <article class="event-feed-post">
@@ -134,10 +141,12 @@
             <form method="POST" action="{{ route('performer.events.apply.cancel', $event) }}" class="m-0 w-100">
                 @csrf
                 @method('DELETE')
-                <button type="submit" class="event-feed-footer-btn event-feed-footer-btn--applied w-100">
-                    Cancel application
-                </button>
+                <button type="submit" class="event-feed-footer-btn event-feed-footer-btn--applied w-100">Cancel application</button>
             </form>
+        @elseif(! $canApply)
+            <button type="button" class="event-feed-footer-btn event-feed-footer-btn--declined w-100" disabled>
+                Applications closed
+            </button>
         @elseif(auth()->user()->isAwaitingVerification())
             <button type="button" class="event-feed-footer-btn w-100" disabled>
                 <i class="fas fa-lock me-1"></i> Available after verification
@@ -149,9 +158,7 @@
         @else
             <form method="POST" action="{{ route('performer.events.apply', $event) }}" class="m-0 w-100">
                 @csrf
-                <button type="submit" class="event-feed-footer-btn w-100">
-                    Apply
-                </button>
+                <button type="submit" class="event-feed-footer-btn w-100">Apply</button>
             </form>
         @endif
     </div>

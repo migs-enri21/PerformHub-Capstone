@@ -53,24 +53,35 @@
 </div>
 
 <div class="mt-4">
-    <h5 class="fw-semibold mb-3">Open Events</h5>
+    <h5 class="fw-semibold mb-3">Events</h5>
 
     @if($events->isNotEmpty())
-        <div class="row g-3">
+        <div class="row justify-content-center">
+            <div class="col-lg-9">
             @foreach($events as $event)
-                <div class="col-md-6 col-lg-4">
-                    <div class="ph-card p-3 h-100">
-                        <p class="text-muted small mb-1">{{ \Illuminate\Support\Carbon::parse($event->event_date)->format('F d, Y') }}</p>
-                        <h6 class="fw-semibold mb-1">{{ $event->title }}</h6>
-                        @if($event->eventType)
-                            <p class="text-muted small mb-0">{{ $event->eventType->name }}</p>
-                        @endif
-                    </div>
-                </div>
+                @php
+                    $applicationStatus = null;
+                    $bookingUrl = null;
+
+                    if ($applicationStatuses->has($event->id)) {
+                        $applicationStatus = $applicationStatuses->get($event->id);
+                    }
+
+                    if ($pendingBookingUrls->has($event->id)) {
+                        $bookingUrl = $pendingBookingUrls->get($event->id);
+                    }
+                @endphp
+
+                @include('partials.event-feed-post', [
+                    'event' => $event,
+                    'applicationStatus' => $applicationStatus,
+                    'bookingUrl' => $bookingUrl,
+                ])
             @endforeach
+            </div>
         </div>
     @else
-        <div class="ph-card p-4 text-muted">This organizer has no open upcoming events right now.</div>
+        <div class="ph-card p-4 text-muted">This organizer has not created any events yet.</div>
     @endif
 </div>
 @endsection

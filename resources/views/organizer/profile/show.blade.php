@@ -60,19 +60,12 @@
     </div>
 
     @if($events->isNotEmpty())
-        <div class="row g-3">
+        <div class="row justify-content-center">
+            <div class="col-lg-9">
             @foreach($events as $event)
-                <div class="col-md-6 col-lg-4">
-                    <a href="{{ route('organizer.events.show', $event) }}" class="ph-card p-3 h-100 d-block text-decoration-none text-dark">
-                        <p class="text-muted small mb-1">{{ \Illuminate\Support\Carbon::parse($event->event_date)->format('F d, Y') }}</p>
-                        <h6 class="fw-semibold mb-1">{{ $event->title }}</h6>
-                        @if($event->eventType)
-                            <p class="text-muted small mb-2">{{ $event->eventType->name }}</p>
-                        @endif
-                        <span class="badge bg-primary">{{ $event->status }}</span>
-                    </a>
-                </div>
+                @include('partials.event-activity-post', ['event' => $event])
             @endforeach
+            </div>
         </div>
     @else
         <div class="ph-card p-4 text-muted">You have not created any events yet.</div>

@@ -15,75 +15,109 @@
     }
 @endphp
 
-<h2 class="fw-bold mb-4">Search Performers</h2>
+<div class="organizer-performer-search-header mb-4">
+    <div>
+        <span class="organizer-page-kicker">Talent Directory</span>
+        <h2 class="fw-bold mb-1">Find Performers</h2>
+        <p class="text-muted mb-0">Search verified performers by category, specialty, genre, and availability.</p>
+    </div>
+</div>
 
 @if($selectedEvent)
-<div class="alert alert-info mb-4">
-    <strong>Recommended performers for</strong>
-    {{ $selectedEvent->title }}
-
-    <br>
-
-    <small>
-        <strong>Category:</strong>
-        {{ $eventTypeName }}
-    </small>
-
-    <br>
-
-    <small>
-        <strong>Event Date:</strong>
-        {{ \Carbon\Carbon::parse($selectedEvent->event_date)->format('F d, Y') }}
-    </small>
-
-    <br>
-
-    <small class="text-muted">Recommendations are based on the selected event's category and performer availability.</small>
-</div>
+    <div class="organizer-selected-event mb-4">
+        <i class="fas fa-wand-magic-sparkles"></i>
+        <div>
+            <strong>Recommended for {{ $selectedEvent->title }}</strong>
+            <small>{{ $eventTypeName }} · {{ \Carbon\Carbon::parse($selectedEvent->event_date)->format('F d, Y') }}</small>
+        </div>
+    </div>
 @endif
 
-<div class="ph-card p-4 mb-4">
+<div class="organizer-search-filters mb-4">
     <form method="GET" class="row g-3">
-        <div class="col-md-3"><input type="text" name="search" class="form-control ph-input" placeholder="Search..." value="{{ request('search') }}"></div>
-        <div class="col-md-2">
-            <select name="category_id" class="form-select ph-input">
+        @if($selectedEvent) <input type="hidden" name="event" value="{{ $selectedEvent->id }}">
+        @endif
+
+        <div class="col-md-6 col-lg-3"><label class="form-label small fw-semibold" for="performerSearch">Search</label>
+            <input type="text" id="performerSearch" name="search" class="form-control ph-input" placeholder="Name, specialty, genre, or location" value="{{ request('search') }}">
+        </div>
+        <div class="col-md-6 col-lg-2">
+            <label class="form-label small fw-semibold" for="categoryId">Category</label>
+            <select name="category_id" id="categoryId" class="form-select ph-input">
                 <option value="">All Categories</option>
-                @foreach($categories as $c)<option value="{{ $c->id }}" data-category-name="{{ strtolower($c->name) }}" @selected(request('category_id')==$c->id)>{{ $c->name }}</option>@endforeach
+                @foreach($categories as $category)
+                    <option value="{{ $category->id }}" @selected(request('category_id') == $category->id)>{{ $category->name }}</option>
+                @endforeach
             </select>
         </div>
-        <div class="col-md-2">@include('partials.specialty-select', ['value' => request('specialty'), 'placeholder' => 'All Specialties'])</div>
-        <div class="col-md-2">@include('partials.genre-select', ['value' => request('genre'), 'placeholder' => 'All Genres'])</div>
-        <div class="col-md-2"><input type="date" name="available_date" class="form-control ph-input" value="{{ request('available_date') }}"></div>
-        <div class="col-md-1"><button class="btn ph-btn-primary w-100">Filter</button></div>
+        <div class="col-md-6 col-lg-2"><label class="form-label small fw-semibold">Specialty</label>
+            @include('partials.specialty-select', ['value' => request('specialty'), 'placeholder' => 'All Specialties'])
+        </div>
+        <div class="col-md-6 col-lg-2">
+            <label class="form-label small fw-semibold">Genre</label>
+            @include('partials.genre-select', ['value' => request('genre'), 'placeholder' => 'All Genres'])
+        </div>
+        <div class="col-md-6 col-lg-2"><label class="form-label small fw-semibold" for="availableDate">Available on</label>
+            <input type="date" id="availableDate" name="available_date" class="form-control ph-input" value="{{ request('available_date') }}">
+        </div>
+        <div class="col-md-6 col-lg-1 d-flex align-items-end">
+            <button class="btn ph-btn-primary w-100">Search</button>
+        </div>
     </form>
 </div>
 
-<div class="row g-4">
-    @forelse($performers as $p)
+<p class="text-muted small mb-3">{{ $performers->total() }} verified performer(s) found</p>
+
+<div class="row g-4 organizer-performer-results">
+    @forelse($performers as $performer)
         <div class="col-md-6 col-lg-4">
-            <div class="ph-card p-4 h-100">
-                <div class="d-flex gap-3 mb-3">
-                    @if($p->profilePhotoUrl())
-                        <img src="{{ $p->profilePhotoUrl() }}" class="performer-avatar" alt="{{ $p->stage_name }}">
+            @php
+                $location = $performer->shortLocation();
+                $rateLines = $performer->rateLines();
+            @endphp
+
+            <div class="organizer-performer-card h-100">
+                <div class="d-flex align-items-start gap-3 mb-3">
+                    @if($performer->profilePhotoUrl())
+                        <img src="{{ $performer->profilePhotoUrl() }}" class="performer-avatar" alt="{{ $performer->stage_name }}">
                     @else
-                        <img src="https://ui-avatars.com/api/?name={{ urlencode($p->stage_name) }}&background=6346ff&color=fff" class="performer-avatar" alt="{{ $p->stage_name }}">
+                        <img src="https://ui-avatars.com/api/?name={{ urlencode($performer->stage_name) }}&background=6346ff&color=fff" class="performer-avatar" alt="{{ $performer->stage_name }}">
                     @endif
-                    <div>
-                        <h6 class="mb-0">{{ $p->stage_name }} @if($p->is_verified_badge)<i class="fas fa-circle-check verified-badge"></i>@endif</h6>
-                        <small class="text-muted">{{ collect([$p->categoryNames(), $p->specialtyLabel(), $p->genreLabel()])->filter()->implode(' · ') }}</small>
+
+                    <div class="flex-grow-1 min-w-0">
+                        <h5 class="mb-1">{{ $performer->stage_name }} @if($performer->is_verified_badge)<i class="fas fa-circle-check verified-badge"></i>@endif</h5>
+                        <small class="text-muted d-block"><i class="fas fa-location-dot me-1"></i>{{ $location }}</small>
                     </div>
                 </div>
-                <p class="text-muted small">{{ Str::limit($p->bio, 80) }}</p>
-                <a href="{{ route('organizer.performers.show', $p) }}" class="btn ph-btn-primary btn-sm">View Profile</a>
-                <a href="{{ route('organizer.bookings.create', $p) }}"
-   class="btn ph-btn-primary btn-sm flex-fill">
-    Send Booking Request
-</a>
+
+                <div class="organizer-performer-tags mb-3">
+                    @foreach($performer->categories as $category)
+                        <span>{{ $category->name }}</span>
+                    @endforeach
+                    @foreach($performer->specialtyList() as $specialty)
+                        <span>{{ $specialty }}</span>
+                    @endforeach
+                    @foreach($performer->genreList() as $genre)
+                        <span>{{ $genre }}</span>
+                    @endforeach
+                </div>
+
+                <p class="text-muted small mb-3">{{ Str::limit($performer->bio, 105) }}</p>
+
+                @if($rateLines)
+                    <p class="small mb-3"><strong>Rate:</strong> {{ implode(' · ', $rateLines) }}</p>
+                @endif
+
+                <div class="d-flex gap-2 mt-auto">
+                    <a href="{{ route('organizer.performers.show', $performer) }}" class="btn ph-btn-outline btn-sm flex-fill">View Profile</a>
+                    <a href="{{ route('organizer.bookings.create', ['performer' => $performer, 'event' => request('event')]) }}" class="btn ph-btn-primary btn-sm flex-fill">Book</a>
+                </div>
             </div>
         </div>
     @empty
-        <div class="col-12 text-muted">No performers found.</div>
+        <div class="col-12"><div class="organizer-performers-empty">No verified performers match your filters yet.</div></div>
     @endforelse
 </div>
+
 {{ $performers->links() }}
 @endsection
