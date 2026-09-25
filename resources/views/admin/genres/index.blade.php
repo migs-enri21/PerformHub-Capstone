@@ -13,19 +13,28 @@
 
 <div class="ph-card p-4 mb-4">
     <form method="GET" action="{{ route('admin.genres.index') }}" class="row g-3 align-items-end">
-        <div class="col-md-5">
+        <div class="col-md-4">
             <label class="form-label">Search</label>
             <input type="text" name="search" class="form-control ph-input" placeholder="Search by name or description" value="{{ $search ?? '' }}">
         </div>
         <div class="col-md-3">
+            <label class="form-label">Category</label>
+            <select name="category_id" class="form-select ph-input">
+                <option value="">All Categories</option>
+                @foreach($categories as $category)
+                    <option value="{{ $category->id }}" @selected(($categoryId ?? '') == $category->id)>{{ $category->name }}</option>
+                @endforeach
+            </select>
+        </div>
+        <div class="col-md-2">
             <label class="form-label">Status</label>
-            <select name="status" class="form-control ph-input">
+            <select name="status" class="form-select ph-input">
                 <option value="">All Status</option>
                 <option value="active" {{ ($status === 'active') ? 'selected' : '' }}>Active</option>
                 <option value="inactive" {{ ($status === 'inactive') ? 'selected' : '' }}>Inactive</option>
             </select>
         </div>
-        <div class="col-md-4 d-flex gap-2">
+        <div class="col-md-3 d-flex gap-2">
             <button type="submit" class="btn ph-btn-primary flex-grow-1">Filter</button>
             <a href="{{ route('admin.genres.index') }}" class="btn btn-outline-secondary flex-grow-1">Reset</a>
         </div>
