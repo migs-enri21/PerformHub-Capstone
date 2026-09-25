@@ -14,7 +14,7 @@ class GoogleCalendarController extends Controller
 {
     public function connect(OrganizerGoogleCalendarService $googleCalendar): RedirectResponse
     {
-        if (! $googleCalendar->isConfigured()) {
+        if (!$googleCalendar->isConfigured()) {
             return $this->calendarMessage('error', 'Google Calendar is not configured on this server yet.');
         }
 
@@ -52,7 +52,7 @@ class GoogleCalendarController extends Controller
     {
         $profile = $this->getProfile();
 
-        if (! $profile->google_calendar_connected) {
+        if (!$profile->google_calendar_connected) {
             return $this->calendarMessage('error', 'Connect Google Calendar first.');
         }
 

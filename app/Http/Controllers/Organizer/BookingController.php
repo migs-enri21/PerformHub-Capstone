@@ -25,13 +25,7 @@ class BookingController extends Controller
         $existingBooking = $this->findActiveBooking($performer, $selectedEvent);
         $fromApplication = $request->boolean('from_application');
 
-        return view('organizer.bookings.create', compact(
-            'performer',
-            'events',
-            'selectedEvent',
-            'existingBooking',
-            'fromApplication'
-        ));
+        return view('organizer.bookings.create', compact('performer','events','selectedEvent','existingBooking','fromApplication'));
     }
 
     public function store(Request $request, PerformerProfile $performer): RedirectResponse
@@ -51,8 +45,7 @@ class BookingController extends Controller
             ->first();
 
         if ($sameDayBooking) {
-            return back()->with(
-                'error',
+            return back()->with('error',
                 'This performer already has "'.$sameDayBooking->event_name.'" on that date. PerformHub allows 1 event per day.'
             );
         }
@@ -99,9 +92,7 @@ class BookingController extends Controller
             return back()->with('warning', 'This contract has already been sent through SignWell and cannot be replaced.');
         }
 
-        $file = $request->validate([
-            'contract' => ['required', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:10240'],
-        ])['contract'];
+        $file = $request->validate(['contract' => ['required', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:10240'],])['contract'];
 
         $this->saveContract($booking, $file);
 
@@ -168,8 +159,10 @@ class BookingController extends Controller
             try {
                 $signWell->syncStatus($booking);
                 $booking->refresh();
+
             } catch (\RuntimeException $exception) {
                 return back()->with('error', $exception->getMessage());
+        
             }
         }
 
@@ -194,10 +187,7 @@ class BookingController extends Controller
 
         $booking->update(['status' => 'cancelled']);
 
-        Notification::send(
-            $booking->performer,
-            'booking',
-            'Cancellation Approved',
+        Notification::send($booking->performer, 'booking', 'Cancellation Approved',
             'Your cancellation request for '.$booking->event_name.' was approved.',
             route('performer.bookings.show', $booking)
         );
@@ -218,10 +208,7 @@ class BookingController extends Controller
             'cancel_requested_at' => null,
         ]);
 
-        Notification::send(
-            $booking->performer,
-            'booking',
-            'Cancellation Declined',
+        Notification::send($booking->performer, 'booking', 'Cancellation Declined',
             'Your cancellation request for '.$booking->event_name.' was declined. The booking remains active.',
             route('performer.bookings.show', $booking)
         );
@@ -260,7 +247,7 @@ class BookingController extends Controller
 
     private function findActiveBooking(PerformerProfile $performer, ?Event $event): ?Booking
     {
-        if (! $event) {
+        if (!$event) {
             return null;
         }
 
@@ -290,10 +277,7 @@ class BookingController extends Controller
     private function sendBookingNotification(Booking $booking, PerformerProfile $performer, bool $appliedFirst): void
     {
         if ($appliedFirst) {
-            Notification::send(
-                $performer->user,
-                'booking',
-                'Application Accepted',
+            Notification::send($performer->user, 'booking', 'Application Accepted',
                 Auth::user()->name.' accepted your application for '.$booking->event_name.'. Wait for the contract, then upload the signed copy.',
                 route('performer.bookings.show', $booking)
             );
@@ -301,10 +285,7 @@ class BookingController extends Controller
             return;
         }
 
-        Notification::send(
-            $performer->user,
-            'booking',
-            'New Booking Request',
+        Notification::send($performer->user, 'booking', 'New Booking Request',
             Auth::user()->name.' sent you a booking request for '.$booking->event_name,
             route('performer.bookings.show', $booking)
         );
@@ -351,11 +332,7 @@ class BookingController extends Controller
             $message = 'A contract is ready for you to sign inside PerformHub for '.$booking->event_name.'.';
         }
 
-        Notification::send(
-            $booking->performer,
-            'contract',
-            'Contract Uploaded',
-            $message,
+        Notification::send($booking->performer, 'contract', 'Contract Uploaded', $message,
             route('performer.bookings.show', $booking)
         );
     }

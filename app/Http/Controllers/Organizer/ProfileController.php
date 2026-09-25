@@ -71,7 +71,7 @@ class ProfileController extends Controller
 
     private function storePhoto(Request $request, OrganizerProfile $profile, array $data, string $field, string $type): array
     {
-        if (! $request->hasFile($field)) {
+        if (!$request->hasFile($field)) {
             return $data;
         }
 
@@ -101,15 +101,9 @@ class ProfileController extends Controller
 
     private function updateProfileDetails(OrganizerProfile $profile, array $data): void
     {
-        $profile->update(collect($data)->except([
-            'first_name',
-            'last_name',
-            'region',
-            'city',
-            'barangay',
-        ])->all());
+        $profile->update(collect($data)->except(['first_name', 'last_name', 'region','city','barangay',])->all());
 
-        if (! empty($data['region']) && ! empty($data['city'])) {
+        if (!empty($data['region']) && ! empty($data['city'])) {
             $profile->update(PhilippineLocations::profileLocationAttributes($data));
         }
     }

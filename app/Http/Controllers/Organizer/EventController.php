@@ -303,7 +303,7 @@ class EventController extends Controller
 
         $validated = $request->validate($rules);
 
-        if (! array_key_exists('preferred_genres', $validated)) {
+        if (!array_key_exists('preferred_genres', $validated)) {
             $validated['preferred_genres'] = [];
         }
 
@@ -366,7 +366,7 @@ class EventController extends Controller
                 $scheduledEnd->addDay();
             }
 
-            if (! $this->hasRequiredGap($newStart, $newEnd, $scheduledStart, $scheduledEnd)) {
+            if (!$this->hasRequiredGap($newStart, $newEnd, $scheduledStart, $scheduledEnd)) {
                 throw ValidationException::withMessages([
                     'start_time' => 'Leave at least a 3-hour gap from "'.$scheduledEvent->title.'".',
                 ]);
@@ -380,7 +380,7 @@ class EventController extends Controller
     {
         $profile = OrganizerProfile::where('user_id', Auth::id())->first();
 
-        if (! $profile || ! $profile->google_calendar_connected) {
+        if (!$profile || !$profile->google_calendar_connected) {
             return;
         }
 
@@ -389,7 +389,7 @@ class EventController extends Controller
             ->get();
 
         foreach ($busyDates as $busyDate) {
-            if (! $busyDate->start_time || ! $busyDate->end_time) {
+            if (!$busyDate->start_time || !$busyDate->end_time) {
                 throw ValidationException::withMessages([
                     'event_date' => 'Your Google Calendar has an all-day busy entry on this date.',
                 ]);
@@ -478,7 +478,7 @@ class EventController extends Controller
         $firstPath = null;
 
         foreach ($media as $file) {
-            if (! $file->isValid()) {
+            if (!$file->isValid()) {
                 continue;
             }
 
@@ -500,7 +500,7 @@ class EventController extends Controller
             }
         }
 
-        if (! $event->cover_photo && $firstPath) {
+        if (!$event->cover_photo && $firstPath) {
             $event->update(['cover_photo' => $firstPath]);
         }
     }
@@ -529,7 +529,7 @@ class EventController extends Controller
 
     private function syncLegacyCoverPhoto(Event $event): void
     {
-        if ($event->cover_photo && ! $event->photos()->exists()) {
+        if ($event->cover_photo && !$event->photos()->exists()) {
             $event->photos()->create([
                 'file_path' => $event->cover_photo,
                 'sort_order' => 0,
@@ -542,12 +542,12 @@ class EventController extends Controller
         $supabase = new SupabaseStorageService();
 
         foreach ($event->photos as $photo) {
-            if (! str_starts_with($photo->file_path, 'http')) {
+            if (!str_starts_with($photo->file_path, 'http')) {
                 $supabase->delete('organizer-files', $photo->file_path);
             }
         }
 
-        if ($event->cover_photo && ! str_starts_with($event->cover_photo, 'http')) {
+        if ($event->cover_photo && !str_starts_with($event->cover_photo, 'http')) {
             $supabase->delete('organizer-files', $event->cover_photo);
         }
     }
@@ -567,7 +567,7 @@ class EventController extends Controller
         }
 
         foreach ($savedGenres as $genre) {
-            if (! isset($genreCategories[$genre]) && $savedCategoryIds !== []) {
+            if (!isset($genreCategories[$genre]) && $savedCategoryIds !== []) {
                 $genreCategories[$genre] = array_map('strval', $savedCategoryIds);
             }
         }

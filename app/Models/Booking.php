@@ -114,7 +114,7 @@ class Booking extends Model
 
     public function contractUrl(): ?string
     {
-        if (! $this->hasContract()) {
+        if (!$this->hasContract()) {
             return null;
         }
 
@@ -154,7 +154,7 @@ class Booking extends Model
             return true;
         }
 
-        if ($this->status !== 'accepted' || ! $this->isSigned()) {
+        if ($this->status !== 'accepted' || !$this->isSigned()) {
             return false;
         }
 
@@ -175,7 +175,7 @@ class Booking extends Model
 
     public function signedContractUrl(): ?string
     {
-        if (! $this->hasSignedContract()) {
+        if (!$this->hasSignedContract()) {
             return null;
         }
 

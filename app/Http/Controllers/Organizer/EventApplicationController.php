@@ -30,14 +30,10 @@ class EventApplicationController extends Controller
             $performerName = $performerProfile->stage_name;
         }
 
-        Notification::send(
-            $performer,
-            'event_application',
-            'Application update',
-            'Your application for "'.$event->title.'" was declined by the organizer.',
+        Notification::send($performer, 'event_application', 'Application update', 'Your application for "'.$event->title.'" was declined by the organizer.',
             route('performer.dashboard')
         );
-
+        
         return back()->with('success', "Declined {$performerName}'s application.");
     }
 }

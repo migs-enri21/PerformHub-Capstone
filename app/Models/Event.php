@@ -76,7 +76,7 @@ class Event extends Model
 
     public function coverPhotoUrl(): ?string
     {
-        if (! $this->cover_photo) {
+        if (!$this->cover_photo) {
             return null;
         }
 
