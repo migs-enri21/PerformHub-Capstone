@@ -12,33 +12,27 @@ class DashboardController extends Controller
 {
     public function index(): View
     {
+        $userCounts = User::query()
+            ->selectRaw('COUNT(*) as users')
+            ->selectRaw('COUNT(CASE WHEN role = ? THEN 1 END) as performers', [User::ROLE_PERFORMER])
+            ->selectRaw('COUNT(CASE WHEN role = ? THEN 1 END) as organizers', [User::ROLE_ORGANIZER])
+            ->selectRaw(
+                'COUNT(CASE WHEN is_verified = ? AND role IN (?, ?) THEN 1 END) as pending_verifications',
+                [false, User::ROLE_PERFORMER, User::ROLE_ORGANIZER]
+            )
+            ->first();
+
         $stats = [
-            'users' => User::count(),
-            'performers' => User::where('role', 'performer')->count(),
-            'organizers' => User::where('role', 'organizer')->count(),
+            'users' => (int) $userCounts->users,
+            'performers' => (int) $userCounts->performers,
+            'organizers' => (int) $userCounts->organizers,
             'bookings' => Booking::count(),
-            'pending_verifications' => User::where('is_verified', false)
-                ->whereIn('role', ['performer', 'organizer'])
-                ->count(),
+            'pending_verifications' => (int) $userCounts->pending_verifications,
             'unread_notifications' => Auth::user()->notifications()->where('is_read', false)->count(),
         ];
 
         $recentBookings = Booking::with(['organizer', 'performer'])->latest()->limit(5)->get();
 
-        $recentRegistrationAlerts = Auth::user()
-            ->notifications()
-            ->whereIn('type', ['user.registered', 'new_registration'])
-            ->latest()
-            ->limit(5)
-            ->get();
-
-        $organizersForFilter = User::where('role', 'organizer')->orderBy('first_name')->get();
-
-        return view('admin.dashboard', compact(
-            'stats',
-            'recentBookings',
-            'recentRegistrationAlerts',
-            'organizersForFilter'
-        ));
+        return view('admin.dashboard', compact('stats', 'recentBookings'));
     }
 }

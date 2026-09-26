@@ -33,7 +33,11 @@
                 <h5 class="fw-semibold mb-0">Recent Bookings</h5>
                 <a href="{{ route('admin.monitoring.bookings') }}" class="btn btn-sm btn-outline-primary">View All Bookings</a>
             </div>
-
+           {{-- <tr>
+                <td>
+                    <a href="{{ route('admin.users.index') }}" class="btn btn-sm btn-outline-primary">View All Users</a>
+                </td>
+            </tr>--}}
             <div class="list-group list-group-flush">
                 @forelse($recentBookings as $b)
                     <div class="list-group-item px-0 d-flex justify-content-between align-items-center border-0 border-bottom">
