@@ -71,7 +71,7 @@
                     @else
                         <input type="file" name="contract" class="form-control ph-input mb-2">
                     @endif
-                    <small class="text-muted d-block mb-2">PDF, JPG, JPEG, or PNG. Maximum 10 MB.</small>
+                    <small class="text-muted d-block mb-2">PDF only. Maximum 10 MB.</small>
                     @error('contract')<div class="text-danger small mb-2">{{ $message }}</div>@enderror
                     @if($booking->hasContract())
                         <button class="btn ph-btn-primary btn-sm">Replace Contract</button>
@@ -87,7 +87,7 @@
                             <button class="btn ph-btn-outline btn-sm">Prepare Existing Contract for E-Signature</button>
                         </form>
                     @else
-                        <p class="text-muted small mt-2 mb-0">Add the SignWell API key in the .env file to email this contract for e-signature.</p>
+                        <p class="text-muted small mt-2 mb-0">SignWell must be configured before this contract can be prepared for e-signature.</p>
                     @endif
                 @endif
             @endif
@@ -109,7 +109,7 @@
                 @if($booking->signwell_document_id)
                     <p class="text-muted small mb-0">Waiting for the performer to complete the SignWell signature.</p>
                 @else
-                    <p class="text-muted small mb-0">Waiting for the performer to upload the signed contract.</p>
+                    <p class="text-muted small mb-0">Waiting for the organizer to prepare this contract for e-signature.</p>
                 @endif
             @endif
         </div>

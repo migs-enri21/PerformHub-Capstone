@@ -84,15 +84,21 @@ class BookingController extends Controller
     {
         $this->ensureBookingOwner($booking);
 
-        if ($booking->status === 'cancelled') {
-            return back()->with('warning', 'A cancelled booking cannot receive a contract.');
+        if (! in_array($booking->status, ['pending', 'accepted'], true)) {
+            return back()->with('warning', 'Only an active booking can receive a contract.');
+        }
+
+        if (! $signWell->isConfigured()) {
+            return back()->with('warning', 'SignWell must be configured before uploading a contract for e-signature.');
         }
 
         if ($booking->signwell_document_id) {
             return back()->with('warning', 'This contract has already been sent through SignWell and cannot be replaced.');
         }
 
-        $file = $request->validate(['contract' => ['required', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:10240'],])['contract'];
+        $file = $request->validate([
+            'contract' => ['required', 'file', 'mimes:pdf', 'max:10240'],
+        ])['contract'];
 
         $this->saveContract($booking, $file);
 
@@ -108,10 +114,9 @@ class BookingController extends Controller
                 }
             }
 
-            $this->sendContractNotification($booking, false);
         }
 
-        return back()->with('success', 'Contract uploaded. Add the SignWell API key to send it for e-signature.');
+        return back()->with('success', 'Contract uploaded. It will be prepared for e-signature when the performer accepts the booking.');
     }
 
     public function sendForSignature(Booking $booking, SignWellService $signWell): RedirectResponse
@@ -147,7 +152,7 @@ class BookingController extends Controller
             return back()->with('success', 'The signed contract was received from SignWell. This date is now booked.');
         }
 
-        return back()->with('success', 'SignWell status updated: '.ucfirst($booking->fresh()->signwell_status).'.');
+        return back()->with('warning', 'The performer has not finished signing yet.');
     }
 
     public function complete(Booking $booking, SignWellService $signWell): RedirectResponse
@@ -278,7 +283,7 @@ class BookingController extends Controller
     {
         if ($appliedFirst) {
             Notification::send($performer->user, 'booking', 'Application Accepted',
-                Auth::user()->name.' accepted your application for '.$booking->event_name.'. Wait for the contract, then upload the signed copy.',
+                Auth::user()->name.' accepted your application for '.$booking->event_name.'. Wait for the organizer to prepare the e-signature contract.',
                 route('performer.bookings.show', $booking)
             );
 

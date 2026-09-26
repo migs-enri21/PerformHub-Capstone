@@ -36,9 +36,11 @@
 
     <div class="ph-card p-0 overflow-hidden">
         @if($event->photos->count() > 1)
-            @include('partials.event-photo-collage', ['photos' => $event->photos, 'title' => $event->title])
+            <div class="organizer-event-detail-collage">
+                @include('partials.event-photo-collage', ['photos' => $event->photos, 'title' => $event->title])
+            </div>
         @elseif($event->photos->count() === 1)
-            <div class="organizer-event-cover">
+            <div class="organizer-event-cover organizer-event-detail-cover">
                 @if($event->photos->first()->isVideo())
                     <video controls preload="metadata"><source src="{{ $event->photos->first()->fileUrl() }}"></video>
                 @else
@@ -46,7 +48,7 @@
                 @endif
             </div>
         @elseif($event->coverPhotoUrl())
-            <div class="organizer-event-cover">
+            <div class="organizer-event-cover organizer-event-detail-cover">
                 <img src="{{ $event->coverPhotoUrl() }}" alt="{{ $event->title }}">
             </div>
         @endif
@@ -174,7 +176,7 @@
                     $bookingMessage = 'Signed contract received';
                     $bookingMessageClass = 'text-primary';
                 } elseif ($booking->hasContract()) {
-                    $bookingMessage = 'Waiting for performer to upload the signed contract';
+                    $bookingMessage = 'Waiting for performer to sign the contract';
                     $bookingMessageClass = 'text-primary';
                 } else {
                     $bookingMessage = 'Application accepted — upload the contract';

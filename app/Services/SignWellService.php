@@ -61,7 +61,7 @@ class SignWellService
             ->post('https://www.signwell.com/api/v1/documents', $payload);
 
         if ($response->failed()) {
-            throw new RuntimeException('SignWell could not send the contract: '.$response->body());
+            throw new RuntimeException('SignWell could not prepare the contract. Please try again.');
         }
 
         $document = $response->json();
@@ -103,7 +103,7 @@ class SignWellService
             ->get($documentUrl);
 
         if ($response->failed()) {
-            throw new RuntimeException('SignWell signing screen could not be loaded: '.$response->body());
+            throw new RuntimeException('The SignWell signing screen could not be loaded. Please try again.');
         }
 
         $document = $response->json();
@@ -133,7 +133,7 @@ class SignWellService
             ->get($documentUrl);
 
         if ($response->failed()) {
-            throw new RuntimeException('SignWell status check failed: '.$response->body());
+            throw new RuntimeException('SignWell status could not be checked. Please try again.');
         }
 
         $document = $response->json();

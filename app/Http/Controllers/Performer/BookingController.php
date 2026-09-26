@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Models\Booking;
 use App\Models\Notification;
 use App\Models\EventApplication;
-use App\Services\SupabaseStorageService;
 use App\Services\SignWellService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
@@ -140,52 +139,6 @@ public function index(Request $request): View
         return back()->with('success', 'Cancel request sent to the organizer.');
     }
 
-    public function uploadSignedContract(Request $request, Booking $booking): RedirectResponse
-    {
-        abort_unless($booking->performer_id === Auth::id(), 403);
-        abort_unless($booking->status === 'accepted' && $booking->hasContract(), 400); // bad request
-
-        if ($booking->signwell_document_id) {
-            return back()->with('warning', 'This contract must be signed through the SignWell signing screen.');
-        }
-
-        $file = $request->validate([
-            'signed_contract' => ['required', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:10240'],
-        ])['signed_contract'];
-
-        if ($booking->sameDayConfirmedConflict()) {
-            return back()->with(
-                'warning',
-                'You already have a signed booking on '.$booking->event_date->format('F d, Y').'. PerformHub allows 1 event per day.'
-            );
-        }
-
-        $storage = new SupabaseStorageService();
-
-        if ($booking->signed_contract_path) {
-            $storage->delete('organizer-files', $booking->signed_contract_path);
-        }
-
-        $path = $storage->upload($file, 'organizer-files', 'signed_contract', Auth::id());
-
-        $booking->update([
-            'signed_contract_path' => $path,
-            'signed_contract_uploaded_at' => now(),
-        ]);
-
-        $booking->markCompletedFromSignature();
-
-        Notification::send(
-            $booking->organizer,
-            'contract',
-            'Contract Signed',
-            Auth::user()->name.' signed the contract for '.$booking->event_name.'. The date is now booked.',
-            route('organizer.bookings.show', $booking)
-        );
-
-        return back()->with('success', 'Signed contract sent. This date is now booked.');
-    }
-
     public function signContract(Booking $booking, SignWellService $signWell)
     {
         abort_unless($booking->performer_id === Auth::id(), 403);
@@ -212,15 +165,17 @@ public function index(Request $request): View
     {
         abort_unless($booking->performer_id === Auth::id(), 403);
 
+        $wasAlreadyCompleted = $booking->status === 'completed';
+
         try {
-            $signedContractSaved = $signWell->syncStatus($booking);
+            $bookingConfirmed = $signWell->syncStatus($booking);
         } catch (\RuntimeException $exception) {
             return redirect()
                 ->route('performer.bookings.show', $booking)
                 ->with('warning', 'Your signature was completed. The signed PDF is still being prepared, so check the booking again shortly.');
         }
 
-        if ($signedContractSaved) {
+        if ($bookingConfirmed && ! $wasAlreadyCompleted) {
             Notification::send(
                 $booking->organizer,
                 'contract',
@@ -228,6 +183,12 @@ public function index(Request $request): View
                 Auth::user()->name.' signed the contract for '.$booking->event_name.'. The date is now booked.',
                 route('organizer.bookings.show', $booking)
             );
+        }
+
+        if (! $bookingConfirmed) {
+            return redirect()
+                ->route('performer.bookings.show', $booking)
+                ->with('warning', 'Your signature is still being processed. Please check the booking again shortly.');
         }
 
         return redirect()

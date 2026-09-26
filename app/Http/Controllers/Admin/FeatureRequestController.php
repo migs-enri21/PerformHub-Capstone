@@ -71,7 +71,6 @@ class FeatureRequestController extends Controller
                     'name' => $optionName,
                     'slug' => $this->uniqueSlug(EventType::class, $optionName),
                     'description' => $featureRequest->description,
-                    'compensation_type' => 'fixed',
                     'is_active' => true,
                 ]);
             }
