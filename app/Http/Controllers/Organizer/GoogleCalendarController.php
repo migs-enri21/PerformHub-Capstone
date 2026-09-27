@@ -26,7 +26,7 @@ class GoogleCalendarController extends Controller
 
     public function callback(Request $request, OrganizerGoogleCalendarService $googleCalendar): RedirectResponse
     {
-        if ($request->get('state') !== session('google_oauth_state')) {
+        if ($request->input('state') !== session('google_oauth_state')) {
             return $this->calendarMessage('error', 'Google Calendar connection failed. Please try again.');
         }
 
@@ -39,7 +39,7 @@ class GoogleCalendarController extends Controller
         $profile = $this->getProfile();
 
         try {
-            $tokens = $googleCalendar->exchangeAuthorizationCode((string) $request->get('code'));
+            $tokens = $googleCalendar->exchangeAuthorizationCode((string) $request->input('code'));
             $googleCalendar->connect($profile, $tokens);
         } catch (\Throwable $exception) {
             return $this->calendarMessage('error', $exception->getMessage());
