@@ -14,6 +14,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
+use App\Models\FeatureRequest;
+
 
 class ProfileController extends Controller
 {
@@ -30,7 +32,29 @@ class ProfileController extends Controller
         $categories = Category::where('is_active', true)->orderBy('name')->get();
         $optionCatalog = PerformerOptionGuide::catalog($categories);
 
-        return view('performer.profile.edit', compact('profile', 'categories', 'optionCatalog'));
+
+        // Fetch pending specialty requests
+        $pendingSpecialtyRequests = FeatureRequest::query()
+        ->where('requester_id', Auth::id())
+        ->where('type', FeatureRequest::TYPE_SPECIALTY)
+        ->where('status', FeatureRequest::STATUS_PENDING)
+        ->latest()
+        ->get();
+
+        $pendingGenreRequests = FeatureRequest::query()
+        ->where('requester_id', Auth::id())
+        ->where('type', FeatureRequest::TYPE_GENRE)
+        ->where('status', FeatureRequest::STATUS_PENDING)
+        ->latest()
+        ->get();
+
+        return view('performer.profile.edit', compact(
+        'profile',
+        'categories',
+        'optionCatalog',
+        'pendingSpecialtyRequests',
+        'pendingGenreRequests'
+    ));
     }
 
     public function update(Request $request): RedirectResponse

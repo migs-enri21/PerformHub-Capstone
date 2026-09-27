@@ -28,12 +28,19 @@ class PerformerOptionGuide
         $catalog = [];
 
         foreach ($categories as $category) {
-            $catalog[(string) $category->id] = [
-                'name' => $category->name,
-                'genres' => Genre::withOtherLast(
-                    $genresByCategory->get((string) $category->id, collect())->pluck('name')->all()
-                ),
-            ];
+        $names = $genresByCategory
+            ->get((string) $category->id, collect())
+            ->pluck('name')
+            ->all();
+
+        if (! collect($names)->contains(fn ($name) => strcasecmp((string) $name, 'Other') === 0)) {
+            $names[] = 'Other';
+        }
+
+        $catalog[(string) $category->id] = [
+            'name' => $category->name,
+            'genres' => Genre::withOtherLast($names),
+        ];
         }
 
         return $catalog;
