@@ -138,14 +138,10 @@
                     Cancel application
                 </button>
             </form>
-        @elseif(auth()->user()->isAwaitingVerification())
+        @elseif(auth()->user()->isAwaitingVerification() || auth()->user()->hasLimitedAccess())
             <button type="button" class="event-feed-footer-btn w-100" disabled>
                 <i class="fas fa-lock me-1"></i> Available after verification
             </button>
-        @elseif(auth()->user()->hasLimitedAccess())
-            <a href="{{ auth()->user()->onboardingRoute() }}" class="event-feed-footer-btn w-100">
-                <i class="fas fa-lock me-1"></i>Sign up
-            </a>
         @else
             <form method="POST" action="{{ route('performer.events.apply', $event) }}" class="m-0 w-100">
                 @csrf

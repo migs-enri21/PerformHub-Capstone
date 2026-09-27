@@ -1,0 +1,6 @@
+﻿/* Performer bookings */
+/* --- Bookings --- */
+.booking-view-btn:hover:not(:disabled) {
+    background: var(--ph-purple);
+    color: #f9f8f8;
+}

@@ -110,6 +110,8 @@
                 @endif
             </p>
         @endif
+     {{--   <a href="{{ route('performer.availability.index') }}" class="btn ph-btn-outline btn-sm" >  
+        <i class="fas fa-calendar me-1"></i> View on calendar</a> --}}
 
         @if($booking->canRequestCancel())
             <div class="border-top pt-3 mt-3">
@@ -136,6 +138,10 @@
                 </div>
                 <div class="modal-body">
                     <p class="text-muted small">The organizer must approve this. This booking stays booked until they do.</p>
+                   {{-- <p class= "mb-2">
+                        <strong>{{ $booking->event_name }}</strong> <br>
+                        <span class= "text-muted small">{{ $booking->event_date->format('F d, Y') }}</span>
+                    </p>--}}
                     <label class="form-label" for="cancel_reason">Reason</label>
                     <textarea name="cancel_reason" id="cancel_reason" class="form-control ph-input" rows="3" required maxlength="500" placeholder="Why do you need to cancel?"></textarea>
                 </div>

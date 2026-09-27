@@ -23,12 +23,7 @@ class EventApplicationController extends Controller
             return back()->with('error', 'This event has already passed.');
         }
 
-        if ($user->hasLimitedAccess()) {
-            return redirect($user->onboardingRoute())
-                ->with('warning', 'Complete sign-up to apply for events.');
-        }
-
-        if ($user->isAwaitingVerification()) {
+        if ($user->hasLimitedAccess() || $user->isAwaitingVerification()) {
             return back()->with('warning', 'Your account is under review. You can apply to events after an admin verifies you.');
         }
 

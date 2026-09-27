@@ -17,21 +17,28 @@ use Illuminate\Http\Request;
 class BookingController extends Controller
 {
 
-public function index(Request $request): View
-{
-    $query = Booking::where('performer_id', Auth::id())
-        ->with('organizer.organizerProfile')
-        ->latest();
+    public function index(Request $request): View
+    {
+        $status = $request->query('status');
 
-    // copied idea from PerformerSearchController
-    if ($request->filled('status')) {
-        $query->where('status', $request->status);
+        $query = Booking::where('performer_id', Auth::id())
+            ->with('organizer.organizerProfile')
+            ->latest();
+
+        if ($status === 'cancel') {
+            $query->cancelRequested();
+            $listFilter = 'cancel';
+        } elseif (in_array($status, ['pending', 'accepted', 'completed', 'rejected', 'cancelled'], true)) {
+            $query->where('status', $status);
+            $listFilter = $status;
+        } else {
+            $listFilter = null;
+        }
+
+        $bookings = $query->paginate(10)->withQueryString();
+
+        return view('performer.bookings.index', compact('bookings', 'listFilter'));
     }
-
-    $bookings = $query->paginate(10)->withQueryString();
-
-    return view('performer.bookings.index', compact('bookings'));
-}
 
     public function show(Booking $booking): View
     {

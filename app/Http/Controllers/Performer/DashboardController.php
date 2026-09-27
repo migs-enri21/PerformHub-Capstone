@@ -52,6 +52,9 @@ class DashboardController extends Controller
             ];
         })
             ->all();
+        $cancelRequests = Booking::where('performer_id', $user->id)
+            ->cancelRequested()
+            ->count();
 
         $nextBooking = Booking::where('performer_id', $user->id)
             ->where('status', 'accepted')
@@ -66,6 +69,7 @@ class DashboardController extends Controller
             'profile',
             'pendingBookings',
             'upcomingBookings',
+            'cancelRequests',
             'availableEvents',
             'applicationStatuses',
             'pendingBookingUrls',

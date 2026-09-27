@@ -24,13 +24,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->redirectGuestsTo(fn () => route('login'));
 
         $middleware->redirectUsersTo(function (Request $request) {
-            $user = $request->user();
-
-            if ($user && $user->hasLimitedAccess() && ! $user->isAdmin()) {
-                return $user->onboardingRoute();
-            }
-
-            return $user?->dashboardRoute() ?? route('home');
+            return $request->user()?->dashboardRoute() ?? route('home');
         });
     })
     ->withExceptions(function (Exceptions $exceptions) {

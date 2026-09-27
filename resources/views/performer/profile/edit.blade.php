@@ -109,14 +109,14 @@
                         <label class="form-label text-muted small">Rate per hour</label>
                         <div class="input-group profile-rate-group">
                             <span class="input-group-text">₱</span>
-                            <input type="number" step="1" min="0" name="rate_per_hour" class="form-control ph-input" value="{{ $hourRate }}" placeholder="0">
+                            <input type="text" inputmode="numeric" name="rate_per_hour" class="form-control ph-input" value="{{ $hourRate }}" placeholder="0">
                         </div>
                     </div>
                     <div class="col-md-6">
                         <label class="form-label text-muted small">Rate per day</label>
                         <div class="input-group profile-rate-group">
                             <span class="input-group-text">₱</span>
-                            <input type="number" step="1" min="0" name="rate_per_day" class="form-control ph-input" value="{{ $dayRate }}" placeholder="0">
+                            <input type="text" inputmode="numeric" name="rate_per_day" class="form-control ph-input" value="{{ $dayRate }}" placeholder="0">
                         </div>
                     </div>
                     <div class="col-12">

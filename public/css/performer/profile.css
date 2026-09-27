@@ -1,0 +1,430 @@
+﻿/* Performer profile + social */
+/* --- Profile --- */
+/* Profile card wrapper */
+.performer-profile-card {
+    overflow: hidden;
+}
+
+/* Cover banner background */
+.performer-profile-banner {
+    position: relative;
+    height: 520px;
+    background: linear-gradient(135deg, #6346ff 0%, #4f35d4 55%, #3b28a8 100%);
+    background-size: cover;
+    background-position: center;
+}
+
+/* Shorter banner on small screens */
+@media (max-width: 576px) {
+    .performer-profile-banner {
+        height: 280px;
+    }
+}
+
+/* Banner edit button */
+.performer-profile-banner-edit {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: rgba(11, 14, 20, 0.65);
+    border: 1px solid var(--ph-border);
+    color: #fff;
+    border-radius: 8px;
+    backdrop-filter: blur(6px);
+}
+
+.performer-profile-banner-edit:hover {
+    background: rgba(11, 14, 20, 0.85);
+    color: #fff;
+    border-color: var(--ph-purple);
+}
+
+/* Profile content padding */
+.performer-profile-body {
+    padding: 1.25rem 1.5rem 1.5rem;
+}
+
+.performer-profile-layout {
+    display: grid;
+    grid-template-columns: 200px minmax(0, 1fr);
+    column-gap: 1.5rem;
+    align-items: start;
+}
+
+.performer-profile-facts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem 1.15rem;
+    color: var(--ph-text-muted);
+    font-size: 0.9rem;
+}
+
+.performer-profile-facts i {
+    width: 1rem;
+    text-align: center;
+    margin-right: 0.35rem;
+    opacity: 0.75;
+}
+
+.performer-profile-category {
+    color: var(--ph-purple);
+    font-weight: 600;
+}
+
+.performer-profile-category i {
+    opacity: 1;
+}
+
+.performer-profile-detail {
+    color: var(--ph-text-muted);
+    font-size: 0.9rem;
+    margin-top: 0.35rem;
+}
+
+.performer-profile-detail i {
+    width: 1rem;
+    text-align: center;
+    margin-right: 0.35rem;
+    opacity: 0.75;
+}
+
+.performer-profile-layout-photo {
+    grid-column: 1;
+    grid-row: 1;
+}
+
+.performer-profile-layout-main {
+    grid-column: 2;
+    grid-row: 1;
+    min-width: 0;
+    padding-top: 0;
+}
+
+@media (max-width: 576px) {
+    .performer-profile-layout {
+        grid-template-columns: 120px minmax(0, 1fr);
+        column-gap: 1rem;
+    }
+}
+
+/* Avatar photo wrapper */
+.performer-profile-avatar-wrap {
+    position: relative;
+    margin-top: 0;
+    width: 200px;
+    height: 200px;
+    z-index: 1;
+}
+
+/* Smaller avatar overlap on small screens */
+@media (max-width: 576px) {
+    .performer-profile-avatar-wrap {
+        margin-top: 0;
+        width: 120px;
+        height: 120px;
+    }
+}
+
+/* Profile photo image */
+.performer-profile-avatar {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border: 4px solid var(--ph-bg-card);
+    box-shadow: 0 0 0 3px var(--ph-purple);
+    background: var(--ph-bg-card);
+    /* Prevent Edge's "Visual Search" hover icon from appearing on the
+       avatar and being confused with the actual photo-edit button. */
+    pointer-events: none;
+}
+
+/* Avatar edit button */
+.performer-profile-avatar-edit {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--ph-purple);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 3px solid var(--ph-bg-card);
+    font-size: 0.9rem;
+}
+
+.performer-profile-avatar-edit:hover {
+    background: var(--ph-purple-hover);
+    color: #fff;
+}
+
+/* Performer name text */
+.performer-profile-name {
+    font-size: 1.75rem;
+}
+
+/* Category/genre subtitle */
+.performer-profile-subtitle {
+    font-size: 0.95rem;
+}
+
+/* Bio paragraph text */
+.performer-profile-bio {
+    color: var(--ph-text-muted);
+    line-height: 1.6;
+    max-width: 720px;
+}
+
+/* Verified badge pill */
+.profile-verified-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.65rem;
+    border-radius: 300px;
+    background: rgba(34, 197, 94, 0.12);
+    color: #4ade80;
+    border: 1px solid rgba(34, 197, 94, 0.35);
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-top: 1px;
+}
+
+/* Star rating pill */
+.profile-rating-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.35rem 0.75rem;
+    border-radius: 999px;
+    background: rgba(234, 179, 8, 0.12);
+    color: #fbbf24;
+    border: 1px solid rgba(234, 179, 8, 0.35);
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+/* Booking rate + CTA grouped under performer name */
+.profile-booking-bar {
+    width: fit-content;
+    max-width: 100%;
+}
+
+.profile-rate-pill {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.2rem;
+    padding: 0.45rem 0.85rem;
+    border-radius: 999px;
+    background: rgba(99, 70, 255, 0.12);
+    border: 1px solid rgba(99, 70, 255, 0.35);
+    color: var(--ph-text);
+    font-weight: 600;
+    font-size: 0.95rem;
+    white-space: nowrap;
+}
+
+/* Multi-select category pills (profile edit) */
+.category-checkbox-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.category-checkbox-option {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    padding: 0.5rem 1rem;
+    border: 1px solid var(--ph-border);
+    border-radius: 999px;
+    background: var(--ph-bg-card);
+    cursor: pointer;
+    transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
+    margin: 0;
+    font-weight: 600;
+    font-size: 0.9rem;
+    line-height: 1.2;
+}
+
+.category-checkbox-option input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+    width: 1px;
+    height: 1px;
+}
+
+.category-checkbox-option:hover {
+    border-color: var(--ph-purple);
+}
+
+.category-checkbox-option:has(input:checked) {
+    border-color: var(--ph-purple);
+    background: rgba(99, 70, 255, 0.14);
+    color: var(--ph-purple);
+}
+
+.profile-edit-divider {
+    height: 1px;
+    background: var(--ph-border);
+    margin: 0.35rem 0 1rem;
+}
+
+@media (min-width: 992px) {
+    .profile-edit-aside {
+        position: sticky;
+        top: 5.25rem;
+    }
+}
+
+.profile-field-copy {
+    min-height: 2.4em;
+    margin-bottom: 0.45rem;
+}
+
+.profile-rate-group .input-group-text {
+    background: var(--ph-bg-card);
+    border-color: var(--ph-border);
+    color: var(--ph-text-muted);
+    font-weight: 600;
+    border-radius: 10px 0 0 10px;
+}
+
+.profile-rate-group .ph-input {
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+}
+
+/* Draggable banner reposition control */
+.banner-reposition {
+    position: relative;
+    height: 220px;
+    background-size: cover;
+    background-repeat: no-repeat;
+    cursor: grab;
+    user-select: none;
+    touch-action: none;
+    overflow: hidden;
+}
+
+/* Grabbing state while dragging */
+.banner-reposition:active {
+    cursor: grabbing;
+}
+
+/* No banner uploaded yet */
+.banner-reposition--empty {
+    background: linear-gradient(135deg, #6346ff 0%, #4f35d4 100%);
+    cursor: default;
+}
+
+/* Empty-state label */
+.banner-reposition-placeholder {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(255, 255, 255, 0.75);
+    font-size: 0.85rem;
+}
+
+/* Floating "drag to reposition" hint */
+.banner-reposition-hint {
+    position: absolute;
+    bottom: 0.5rem;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(11, 14, 20, 0.75);
+    color: #fff;
+    font-size: 0.7rem;
+    padding: 0.25rem 0.65rem;
+    border-radius: 999px;
+    pointer-events: none;
+}
+
+/* --- Social media --- */
+/* Social platform stat card */
+.social-stat-card {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 1.15rem;
+    border-radius: 12px;
+    border: 1px solid var(--ph-border);
+    background: var(--ph-bg-input);
+    color: var(--ph-text);
+    transition: border-color 0.2s ease, transform 0.2s ease;
+    height: 100%;
+}
+
+.social-stat-card:hover {
+    border-color: var(--ph-purple);
+    color: var(--ph-text);
+    transform: translateY(-1px);
+}
+
+/* Platform icon circle */
+.social-stat-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    flex-shrink: 0;
+}
+
+/* Per-platform icon colors */
+.social-stat-card--facebook .social-stat-icon { background: rgba(24, 119, 242, 0.15); color: #1877f2; }
+.social-stat-card--instagram .social-stat-icon { background: rgba(225, 48, 108, 0.15); color: #e1306c; }
+.social-stat-card--youtube .social-stat-icon { background: rgba(255, 0, 0, 0.15); color: #ff4444; }
+.social-stat-card--tiktok .social-stat-icon { background: rgba(0, 0, 0, 0.08); color: #111; }
+.social-stat-card--twitter .social-stat-icon { background: rgba(29, 161, 242, 0.15); color: #1da1f2; }
+
+/* Stat text wrapper */
+.social-stat-body {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+/* Follower count number */
+.social-stat-count {
+    font-size: 1.35rem;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+/* Empty count state */
+.social-stat-count--empty {
+    color: var(--ph-text-muted);
+    font-weight: 500;
+}
+
+/* Stat label text */
+.social-stat-metric,
+.social-stat-platform {
+    font-size: 0.8rem;
+    color: var(--ph-text-muted);
+    line-height: 1.3;
+}
+
+/* Social link edit row */
+.social-edit-row {
+    background: var(--ph-bg-input);
+    border: 1px solid var(--ph-border);
+}
+
+/* Metric unit suffix */
+.social-metric-suffix {
+    background: var(--ph-bg-card);
+    border-color: var(--ph-border);
+    color: var(--ph-text-muted);
+    font-size: 0.8rem;
+}
+

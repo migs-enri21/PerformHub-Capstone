@@ -21,19 +21,32 @@
 </div>
 
 <div class="row g-4 mb-4">
-    <div class="col-md-6">
+<div class="col-md-4">
+    <a href="{{ route('performer.bookings.index', ['status' => 'pending']) }}" class="text-decoration-none">
         <div class="ph-card p-4 stat-card">
             <h3 class="fw-bold mb-0">{{ $pendingBookings }}</h3>
             <p class="text-muted mb-0 small">Pending Requests</p>
         </div>
-    </div>
-    <div class="col-md-6">
+    </a>
+</div>
+<div class="col-md-4">
+    <a href="{{ route('performer.bookings.index', ['status' => 'accepted']) }}" class="text-decoration-none">
         <div class="ph-card p-4 stat-card">
             <h3 class="fw-bold mb-0">{{ $upcomingBookings }}</h3>
             <p class="text-muted mb-0 small">Upcoming Bookings</p>
         </div>
-    </div>
+    </a>
 </div>
+<div class="col-md-4">
+    <a href="{{ route('performer.bookings.index', ['status' => 'cancel']) }}" class="text-decoration-none">
+        <div class="ph-card p-4 stat-card">
+            <h3 class="fw-bold mb-0">{{ $cancelRequests }}</h3>
+            <p class="text-muted mb-0 small">Cancel Requests</p>
+        </div>
+    </a>
+</div>
+</div>
+
 <div class="row g-4">
     <div class="col-xl-8">
         <div class="event-feed-section">

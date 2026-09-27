@@ -32,10 +32,6 @@
             @endif
         @elseif(auth()->user()->isAwaitingVerification())
             <span class="text-warning small"><i class="fas fa-lock me-1"></i> Available after admin verification</span>
-        @elseif(auth()->user()->hasLimitedAccess())
-            <a href="{{ auth()->user()->onboardingRoute() }}" class="btn btn-sm ph-btn-primary">
-                <i class="fas fa-lock me-1"></i> Complete sign-up to manage
-            </a>
         @endif
     </div>
 </div>
