@@ -8,7 +8,7 @@
 
 @section('content')
 <div class="mb-4">
-    <a href="{{ route('admin.categories.index') }}" class="btn btn-outline-secondary mb-3">← Back to Categories</a>
+    <a href="{{ route('admin.categories.index') }}" class="btn btn-outline-secondary mb-3">← Back to Categories &amp; Event</a>
     <h2 class="fw-bold">Edit Category: {{ $category->name }}</h2>
 </div>
 

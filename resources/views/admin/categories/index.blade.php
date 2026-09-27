@@ -64,17 +64,17 @@
                 @forelse($categories as $cat)
                     <tr>
                         <td class="align-middle"><strong>{{ $cat->name }}</strong></td>
-                        <td class="align-middle"><p class="mb-0 text-truncate" style="max-width: 350px;">{{ $cat->description ?? '—' }}</p></td>
+                        <td class="align-middle"><p class="mb-0 text-truncate admin-description-truncate">{{ $cat->description ?? '—' }}</p></td>
                         <td class="align-middle"><span class="badge {{ $cat->is_active ? 'bg-success' : 'bg-secondary' }}">{{ $cat->is_active ? 'Active' : 'Inactive' }}</span></td>
                         <td class="align-middle text-center"><span class="badge bg-info">{{ $cat->performers->count() }}</span></td>
                         <td class="align-middle text-end">
                             <a href="{{ route('admin.categories.show', $cat) }}" class="btn btn-sm btn-outline-info" title="View"><i class="fas fa-eye"></i></a>
                             <a href="{{ route('admin.categories.edit', $cat) }}" class="btn btn-sm btn-outline-warning" title="Edit"><i class="fas fa-edit"></i></a>
-                            <form method="POST" action="{{ route('admin.categories.toggle', $cat) }}" class="d-inline" style="display:inline-block;">
+                            <form method="POST" action="{{ route('admin.categories.toggle', $cat) }}" class="admin-action-form">
                                 @csrf @method('PATCH')
                                 <button type="submit" class="btn btn-sm {{ $cat->is_active ? 'btn-outline-secondary' : 'btn-outline-success' }}" title="{{ $cat->is_active ? 'Deactivate' : 'Activate' }}"><i class="fas {{ $cat->is_active ? 'fa-toggle-on' : 'fa-toggle-off' }}"></i></button>
                             </form>
-                            <form method="POST" action="{{ route('admin.categories.destroy', $cat) }}" class="d-inline" onsubmit="return confirm('Delete this category?');" style="display:inline-block;">
+                            <form method="POST" action="{{ route('admin.categories.destroy', $cat) }}" class="admin-action-form" onsubmit="return confirm('Delete this category?');">
                                 @csrf @method('DELETE')
                                 <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete"><i class="fas fa-trash"></i></button>
                             </form>
@@ -127,11 +127,11 @@
                         <td class="text-end">
                             <a href="{{ route('admin.event-types.show', $eventType) }}" class="btn btn-sm btn-outline-info" title="View"><i class="fas fa-eye"></i></a>
                             <a href="{{ route('admin.event-types.edit', $eventType) }}" class="btn btn-sm btn-outline-warning" title="Edit"><i class="fas fa-edit"></i></a>
-                            <form method="POST" action="{{ route('admin.event-types.toggle', $eventType) }}" class="d-inline" style="display:inline-block;">
+                            <form method="POST" action="{{ route('admin.event-types.toggle', $eventType) }}" class="admin-action-form">
                                 @csrf @method('PATCH')
                                 <button type="submit" class="btn btn-sm {{ $eventType->is_active ? 'btn-outline-secondary' : 'btn-outline-success' }}" title="{{ $eventType->is_active ? 'Deactivate' : 'Activate' }}"><i class="fas {{ $eventType->is_active ? 'fa-toggle-on' : 'fa-toggle-off' }}"></i></button>
                             </form>
-                            <form method="POST" action="{{ route('admin.event-types.destroy', $eventType) }}" class="d-inline" onsubmit="return confirm('Delete this event type?');" style="display:inline-block;">
+                            <form method="POST" action="{{ route('admin.event-types.destroy', $eventType) }}" class="admin-action-form" onsubmit="return confirm('Delete this event type?');">
                                 @csrf @method('DELETE')
                                 <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete"><i class="fas fa-trash"></i></button>
                             </form>
