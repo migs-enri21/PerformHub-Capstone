@@ -60,7 +60,23 @@
 
                 <article class="ph-card organizer-event-card h-100 overflow-hidden">
                     @if($event->photos->count() > 1)
-                        @include('partials.event-photo-collage', ['photos' => $event->photos, 'title' => $event->title])
+                        @php
+                            $firstMedia = $event->photos->first();
+                            $moreMediaCount = $event->photos->count() - 1;
+                        @endphp
+                        <a href="{{ route('organizer.events.show', $event) }}" class="organizer-event-media-preview" aria-label="View all media for {{ $event->title }}">
+                            <div class="organizer-event-media-main">
+                                @if($firstMedia->isVideo())
+                                    <video muted preload="metadata"><source src="{{ $firstMedia->fileUrl() }}"></video>
+                                @else
+                                    <img src="{{ $firstMedia->fileUrl() }}" alt="{{ $event->title }}">
+                                @endif
+                            </div>
+                            <div class="organizer-event-media-more">
+                                <strong>+{{ $moreMediaCount }}</strong>
+                                <span>more</span>
+                            </div>
+                        </a>
                     @elseif($event->photos->count() === 1)
                         <div class="organizer-event-cover">
                             @if($event->photos->first()->isVideo())

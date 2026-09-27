@@ -21,6 +21,7 @@ class CalendarController extends Controller
             try {
                 $googleCalendar->syncBusyDates($profile);
                 $profile->refresh();
+
             } catch (\Throwable $exception) {
                 $message = $exception->getMessage();
 
@@ -29,8 +30,9 @@ class CalendarController extends Controller
                     $profile->refresh();
                 }
             }
+
         } elseif ($wasGoogleConnected && ! $profile->google_calendar_connected) {
-            session()->flash('error', 'Your Google Calendar link is invalid. Click Connect Google Calendar to sign in again.');
+            session()->flash('error', 'Google Calendar link invalid. Click Connect Google Calendar to sign in again.');
         }
 
         $events = $this->getEvents();
@@ -94,7 +96,7 @@ class CalendarController extends Controller
 
     private function shortTime(?string $time): ?string
     {
-        if (! $time) {
+        if (!$time) {
             return null;
         }
 

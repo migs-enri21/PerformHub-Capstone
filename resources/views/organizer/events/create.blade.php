@@ -48,8 +48,8 @@
                 <div class="col-md-6">
                     <div class="d-flex justify-content-between align-items-center mb-1">
                         <label class="form-label mb-0">Event Type</label>
-                        <button type="button" class="btn btn-link btn-sm p-0" data-bs-toggle="modal" data-bs-target="#featureRequestModal" data-request-type="event_type">
-                            Request missing event type
+                        <button type="button" class="organizer-request-option" data-bs-toggle="modal" data-bs-target="#featureRequestModal" data-request-type="event_type">
+                            <i class="fas fa-plus-circle"></i> Request event type
                         </button>
                     </div>
                     <select class="form-select ph-input @error('event_type_id') is-invalid @enderror" name="event_type_id" id="event_type_id">
@@ -77,8 +77,8 @@
                 <div class="col-12">
                     <div class="d-flex justify-content-between align-items-center mb-1">
                         <label class="form-label mb-0">Required Performer Categories</label>
-                        <button type="button" class="btn btn-link btn-sm p-0" data-bs-toggle="modal" data-bs-target="#featureRequestModal" data-request-type="category">
-                            Request missing category
+                        <button type="button" class="organizer-request-option" data-bs-toggle="modal" data-bs-target="#featureRequestModal" data-request-type="category">
+                            <i class="fas fa-plus-circle"></i> Request category
                         </button>
                     </div>
                     <div class="organizer-category-list @error('category_ids') organizer-category-list-error @enderror">

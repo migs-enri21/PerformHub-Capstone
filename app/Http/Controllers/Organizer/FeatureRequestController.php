@@ -30,10 +30,9 @@ class FeatureRequestController extends Controller
             return back()->with('warning', 'A request for this option is already waiting for admin review.');
         }
 
-        $featureRequest = FeatureRequest::create([
-            ...$validated,
-            'requester_id' => Auth::id(),
-        ]);
+        $validated['requester_id'] = Auth::id();
+
+        $featureRequest = FeatureRequest::create($validated);
 
         $requester = Auth::user();
         $typeLabel = $featureRequest->typeLabel();

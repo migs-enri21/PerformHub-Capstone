@@ -29,7 +29,7 @@ class PerformerSearchController extends Controller
             $performer->load(['user', 'categories', 'portfolios'])
         );
 
-        if (! $performer->portfolioVisibleTo(Auth::user())) {
+        if (!$performer->portfolioVisibleTo(Auth::user())) {
             $performer->setRelation('portfolios', collect());
         }
 
@@ -42,7 +42,7 @@ class PerformerSearchController extends Controller
 
     private function getSelectedEvent(Request $request): ?Event
     {
-        if (! $request->filled('event')) {
+        if (!$request->filled('event')) {
             return null;
         }
 
@@ -67,7 +67,7 @@ class PerformerSearchController extends Controller
 
         $date = $request->available_date;
 
-        if (! $date && $selectedEvent) {
+        if (!$date && $selectedEvent) {
             $date = $selectedEvent->event_date;
         }
         $this->applyAvailabilityFilter($query, $date);
@@ -77,7 +77,7 @@ class PerformerSearchController extends Controller
 
     private function applySearchFilter($query, ?string $search): void
     {
-        if (! $search) {
+        if (!$search) {
             return;
         }
 
@@ -91,7 +91,7 @@ class PerformerSearchController extends Controller
 
     private function applyCategoryFilter($query, $categoryId): void
     {
-        if (! $categoryId) {
+        if (!$categoryId) {
             return;
         }
 
@@ -116,7 +116,7 @@ class PerformerSearchController extends Controller
 
     private function applyAvailabilityFilter($query, ?string $date): void
     {
-        if (! $date) {
+        if (!$date) {
             return;
         }
 
@@ -155,7 +155,7 @@ class PerformerSearchController extends Controller
     {
         $eventId = request('event');
 
-        if (! $eventId) {
+        if (!$eventId) {
             return null;
         }
 
@@ -165,7 +165,7 @@ class PerformerSearchController extends Controller
             ->whereIn('status', ['pending', 'accepted', 'completed'])
             ->first();
 
-        if (! $booking) {
+        if (!$booking) {
             return null;
         }
 

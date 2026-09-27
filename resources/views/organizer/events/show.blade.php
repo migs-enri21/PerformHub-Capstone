@@ -36,9 +36,11 @@
 
     <div class="ph-card p-0 overflow-hidden">
         @if($event->photos->count() > 1)
-            @include('partials.event-photo-collage', ['photos' => $event->photos, 'title' => $event->title])
+            <div class="organizer-event-detail-collage">
+                @include('partials.event-photo-collage', ['photos' => $event->photos, 'title' => $event->title])
+            </div>
         @elseif($event->photos->count() === 1)
-            <div class="organizer-event-cover">
+            <div class="organizer-event-cover organizer-event-detail-cover">
                 @if($event->photos->first()->isVideo())
                     <video controls preload="metadata"><source src="{{ $event->photos->first()->fileUrl() }}"></video>
                 @else
@@ -46,7 +48,7 @@
                 @endif
             </div>
         @elseif($event->coverPhotoUrl())
-            <div class="organizer-event-cover">
+            <div class="organizer-event-cover organizer-event-detail-cover">
                 <img src="{{ $event->coverPhotoUrl() }}" alt="{{ $event->title }}">
             </div>
         @endif
@@ -99,21 +101,25 @@
                     </div>
                 @endif
                 @if($event->compensation_type === 'fixed' && $event->budget)
-                    <div class="col-md-4">
-                        <strong class="event-detail-label d-block mb-1">Fixed Budget</strong>
-                        <span class="text-muted">PHP {{ number_format((float) $event->budget, 0) }}</span>
-                    </div>
-                    <div class="col-md-4">
-                        <strong class="event-detail-label d-block mb-1">Allocated to Confirmed Bookings</strong>
-                        <span class="text-muted">PHP {{ number_format($reservedBudget, 0) }}</span>
-                    </div>
-                    <div class="col-md-4">
-                        <strong class="event-detail-label d-block mb-1">Remaining Budget</strong>
-                        @if($remainingBudget < 0)
-                            <span class="text-danger">Over budget by PHP {{ number_format(abs($remainingBudget), 0) }}</span>
-                        @else
-                            <span class="text-success">PHP {{ number_format($remainingBudget, 0) }}</span>
-                        @endif
+                    <div class="col-12">
+                        <div class="organizer-budget-summary">
+                            <div>
+                                <strong>Fixed Budget</strong>
+                                <span>PHP {{ number_format((float) $event->budget, 0) }}</span>
+                            </div>
+                            <div>
+                                <strong>Allocated to Confirmed Bookings</strong>
+                                <span>PHP {{ number_format($reservedBudget, 0) }}</span>
+                            </div>
+                            <div>
+                                <strong>Remaining Budget</strong>
+                                @if($remainingBudget < 0)
+                                    <span class="text-danger">Over budget by PHP {{ number_format(abs($remainingBudget), 0) }}</span>
+                                @else
+                                    <span class="text-success">PHP {{ number_format($remainingBudget, 0) }}</span>
+                                @endif
+                            </div>
+                        </div>
                     </div>
                 @endif
                 @if($event->compensation_type === 'hourly' && $event->rate_per_hour)
@@ -170,7 +176,7 @@
                     $bookingMessage = 'Signed contract received';
                     $bookingMessageClass = 'text-primary';
                 } elseif ($booking->hasContract()) {
-                    $bookingMessage = 'Waiting for performer to upload the signed contract';
+                    $bookingMessage = 'Waiting for performer to sign the contract';
                     $bookingMessageClass = 'text-primary';
                 } else {
                     $bookingMessage = 'Application accepted — upload the contract';
@@ -178,8 +184,8 @@
                 }
             }
         @endphp
-        <div class="ph-card p-3 mb-3">
-            <div class="d-flex justify-content-between align-items-center">
+        <div class="ph-card p-3 mb-3 organizer-applicant-card">
+            <div class="organizer-applicant-layout">
                 <div class="d-flex align-items-center gap-3">
                     @if($applicantProfile)
                         <a href="{{ route('organizer.performers.show', $applicantProfile) }}">
@@ -216,10 +222,16 @@
                         @if($bookingMessage)
                             <small class="{{ $bookingMessageClass }} d-block mt-2">{{ $bookingMessage }}</small>
                         @endif
+
+                        @if($application->status === 'accepted' && isset($bookings[$application->performer_id]))
+                            @if($bookings[$application->performer_id]->hasCancelRequest())
+                                <small class="text-danger d-block mt-2">Cancellation requested - review the performer's reason.</small>
+                            @endif
+                        @endif
                     </div>
                 </div>
 
-                <div class="d-flex justify-content-end flex-wrap gap-2">
+                <div class="organizer-applicant-actions">
                     @if($application->status === 'pending')
                         <a href="{{ route('organizer.bookings.create', ['performer' => $application->performer->performerProfile, 'event' => $event->id, 'from_application' => 1]) }}" class="btn ph-btn-primary btn-sm">
                             Accept Application
@@ -230,7 +242,11 @@
                         </form>
                     @elseif($application->status === 'accepted' && isset($bookings[$application->performer_id]))
                         @php($booking = $bookings[$application->performer_id])
-                        <a href="{{ route('organizer.bookings.show', $booking) }}" class="btn ph-btn-primary btn-sm">View Booking</a>
+                        @if($booking->hasCancelRequest())
+                            <a href="{{ route('organizer.bookings.show', $booking) }}" class="btn btn-outline-danger btn-sm">Review Cancellation</a>
+                        @else
+                            <a href="{{ route('organizer.bookings.show', $booking) }}" class="btn ph-btn-primary btn-sm">View Booking</a>
+                        @endif
                     @endif
                 </div>
             </div>

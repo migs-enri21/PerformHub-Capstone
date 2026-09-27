@@ -174,7 +174,11 @@ document.querySelectorAll('.organizer-calendar').forEach(calendar => {
         const parts = time.split(':');
         const hour = Number(parts[0]);
         const minute = parts[1];
-        const suffix = hour >= 12 ? 'PM' : 'AM';
+        let suffix = 'AM';
+
+        if (hour >= 12) {
+            suffix = 'PM';
+        }
         const hourTwelve = hour % 12 || 12;
 
         return `${hourTwelve}:${minute} ${suffix}`;
