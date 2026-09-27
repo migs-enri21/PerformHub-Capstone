@@ -162,9 +162,15 @@ class Booking extends Model
             return false;
         }
 
+        $confirmedAt = $this->contract_confirmed_at;
+
+        if ($confirmedAt === null) {
+            $confirmedAt = now();
+        }
+
         $this->update([
             'status' => 'completed',
-            'contract_confirmed_at' => $this->contract_confirmed_at ?? now(),
+            'contract_confirmed_at' => $confirmedAt,
             'performer_confirmed_contract' => true,
         ]);
 

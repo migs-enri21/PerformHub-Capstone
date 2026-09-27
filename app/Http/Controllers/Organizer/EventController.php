@@ -247,10 +247,10 @@ class EventController extends Controller
         $allowedGenres = array_keys($this->getGenreCategories());
 
         if ($event) {
-            $allowedGenres = array_values(array_unique([
-                ...$allowedGenres,
-                ...OptionList::wrap($event->preferred_genres),
-            ]));
+            $eventGenres = OptionList::wrap($event->preferred_genres);
+            $allowedGenres = array_merge($allowedGenres, $eventGenres);
+            $allowedGenres = array_unique($allowedGenres);
+            $allowedGenres = array_values($allowedGenres);
         }
 
         $eventDateRules = ['required', 'date'];

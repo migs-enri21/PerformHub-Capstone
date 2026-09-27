@@ -79,6 +79,10 @@ class OrganizerProfile extends Model
             return implode(', ', $parts);
         }
 
-        return $this->location ?: 'Philippines';
+        if ($this->location) {
+            return $this->location;
+        }
+
+        return 'Philippines';
     }
 }

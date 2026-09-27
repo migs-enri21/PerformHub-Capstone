@@ -53,8 +53,13 @@ class BookingController extends Controller
         $validated['organizer_id'] = Auth::id();
         $validated['performer_id'] = $performer->user_id;
         $fromApplication = $request->boolean('from_application');
-        $validated['source'] = $fromApplication ? 'application' : 'invite';
-        $validated['status'] = $fromApplication ? 'accepted' : 'pending';
+        $validated['source'] = 'invite';
+        $validated['status'] = 'pending';
+
+        if ($fromApplication) {
+            $validated['source'] = 'application';
+            $validated['status'] = 'accepted';
+        }
 
         $booking = Booking::create($validated);
 
@@ -274,9 +279,15 @@ class BookingController extends Controller
 
     private function updateApplicationStatus(Booking $booking, bool $appliedFirst): void
     {
+        $applicationStatus = 'invited';
+
+        if ($appliedFirst) {
+            $applicationStatus = 'accepted';
+        }
+
         EventApplication::where('event_id', $booking->event_id)
             ->where('performer_id', $booking->performer_id)
-            ->update(['status' => $appliedFirst ? 'accepted' : 'invited']);
+            ->update(['status' => $applicationStatus]);
     }
 
     private function sendBookingNotification(Booking $booking, PerformerProfile $performer, bool $appliedFirst): void

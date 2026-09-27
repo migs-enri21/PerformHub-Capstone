@@ -9,10 +9,15 @@
 @section('content')
 @php
     $onboardingRoute = null;
+    $memberSince = null;
 
     if (auth()->user()->hasLimitedAccess()) {
         $bookingUrl = null;
         $onboardingRoute = auth()->user()->onboardingRoute();
+    }
+
+    if ($performer->user) {
+        $memberSince = $performer->user->created_at;
     }
 @endphp
 
@@ -44,7 +49,7 @@
 
 @include('partials.portfolio-work-samples', [
     'groups' => $portfolioGroups,
-    'memberSince' => $performer->user?->created_at,
+    'memberSince' => $memberSince,
     'emptyMessage' => 'This performer has not uploaded work samples yet.',
 ])
 

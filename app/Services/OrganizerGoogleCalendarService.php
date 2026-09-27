@@ -72,13 +72,17 @@ class OrganizerGoogleCalendarService
             throw new RuntimeException('Google did not return a refresh token. Disconnect the app in your Google Account and try again.');
         }
 
+        $expiresAt = null;
+
+        if (isset($tokenPayload['expires_in'])) {
+            $expiresAt = now()->addSeconds((int) $tokenPayload['expires_in']);
+        }
+
         $profile->update([
             'google_calendar_connected' => true,
             'google_calendar_id' => 'primary',
             'google_refresh_token' => $tokenPayload['refresh_token'],
-            'google_token_expires_at' => isset($tokenPayload['expires_in'])
-                ? now()->addSeconds((int) $tokenPayload['expires_in'])
-                : null,
+            'google_token_expires_at' => $expiresAt,
         ]);
 
         $this->syncBusyDates($profile->fresh());
@@ -106,7 +110,11 @@ class OrganizerGoogleCalendarService
         }
 
         $accessToken = $this->accessToken($profile);
-        $calendarId = $profile->google_calendar_id ?: 'primary';
+        $calendarId = 'primary';
+
+        if ($profile->google_calendar_id) {
+            $calendarId = $profile->google_calendar_id;
+        }
         $timeMin = now()->subDays(30)->startOfDay()->toIso8601String();
         $timeMax = now()->addDays(90)->endOfDay()->toIso8601String();
 
@@ -128,7 +136,13 @@ class OrganizerGoogleCalendarService
         $busyDates = [];
 
         foreach ($response->json('items', []) as $event) {
-            if (($event['status'] ?? null) === 'cancelled') {
+            $eventStatus = null;
+
+            if (isset($event['status'])) {
+                $eventStatus = $event['status'];
+            }
+
+            if ($eventStatus === 'cancelled') {
                 continue;
             }
 
@@ -138,7 +152,13 @@ class OrganizerGoogleCalendarService
                 continue;
             }
 
-            $summary = Str::limit((string) ($event['summary'] ?? 'Busy'), 255, '');
+            $summary = 'Busy';
+
+            if (isset($event['summary'])) {
+                $summary = $event['summary'];
+            }
+
+            $summary = Str::limit((string) $summary, 255, '');
             [$startTime, $endTime] = $this->eventTimes($event);
 
             if (! isset($busyDates[$dateKey])) {
@@ -229,11 +249,13 @@ class OrganizerGoogleCalendarService
             throw new RuntimeException('Google Calendar did not return a valid access token.');
         }
 
-        $profile->update([
-            'google_token_expires_at' => isset($payload['expires_in'])
-                ? now()->addSeconds((int) $payload['expires_in'])
-                : null,
-        ]);
+        $expiresAt = null;
+
+        if (isset($payload['expires_in'])) {
+            $expiresAt = now()->addSeconds((int) $payload['expires_in']);
+        }
+
+        $profile->update(['google_token_expires_at' => $expiresAt]);
 
         return (string) $payload['access_token'];
     }
@@ -277,7 +299,11 @@ class OrganizerGoogleCalendarService
         }
 
         try {
-            return filled($profile->google_refresh_token) ? $profile->google_refresh_token : null;
+            if (filled($profile->google_refresh_token)) {
+                return $profile->google_refresh_token;
+            }
+
+            return null;
         } catch (DecryptException) {
             $this->disconnect($profile);
 
