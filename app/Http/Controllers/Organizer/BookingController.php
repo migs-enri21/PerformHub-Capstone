@@ -25,13 +25,7 @@ class BookingController extends Controller
         $existingBooking = $this->findActiveBooking($performer, $selectedEvent);
         $fromApplication = $request->boolean('from_application');
 
-        return view('organizer.bookings.create', compact(
-            'performer',
-            'events',
-            'selectedEvent',
-            'existingBooking',
-            'fromApplication'
-        ));
+        return view('organizer.bookings.create', compact('performer','events','selectedEvent','existingBooking','fromApplication'));
     }
 
     public function store(Request $request, PerformerProfile $performer): RedirectResponse
@@ -51,8 +45,7 @@ class BookingController extends Controller
             ->first();
 
         if ($sameDayBooking) {
-            return back()->with(
-                'error',
+            return back()->with('error',
                 'This performer already has "'.$sameDayBooking->event_name.'" on that date. PerformHub allows 1 event per day.'
             );
         }
@@ -60,8 +53,13 @@ class BookingController extends Controller
         $validated['organizer_id'] = Auth::id();
         $validated['performer_id'] = $performer->user_id;
         $fromApplication = $request->boolean('from_application');
-        $validated['source'] = $fromApplication ? 'application' : 'invite';
-        $validated['status'] = $fromApplication ? 'accepted' : 'pending';
+        $validated['source'] = 'invite';
+        $validated['status'] = 'pending';
+
+        if ($fromApplication) {
+            $validated['source'] = 'application';
+            $validated['status'] = 'accepted';
+        }
 
         $booking = Booking::create($validated);
 
@@ -91,12 +89,20 @@ class BookingController extends Controller
     {
         $this->ensureBookingOwner($booking);
 
+        if (! in_array($booking->status, ['pending', 'accepted'], true)) {
+            return back()->with('warning', 'Only an active booking can receive a contract.');
+        }
+
+        if (! $signWell->isConfigured()) {
+            return back()->with('warning', 'SignWell must be configured before uploading a contract for e-signature.');
+        }
+
         if ($booking->signwell_document_id) {
             return back()->with('warning', 'This contract has already been sent through SignWell and cannot be replaced.');
         }
 
         $file = $request->validate([
-            'contract' => ['required', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:10240'],
+            'contract' => ['required', 'file', 'mimes:pdf', 'max:10240'],
         ])['contract'];
 
         $this->saveContract($booking, $file);
@@ -113,10 +119,9 @@ class BookingController extends Controller
                 }
             }
 
-            $this->sendContractNotification($booking, false);
         }
 
-        return back()->with('success', 'Contract uploaded. Add the SignWell API key to send it for e-signature.');
+        return back()->with('success', 'Contract uploaded. It will be prepared for e-signature when the performer accepts the booking.');
     }
 
     public function sendForSignature(Booking $booking, SignWellService $signWell): RedirectResponse
@@ -152,7 +157,7 @@ class BookingController extends Controller
             return back()->with('success', 'The signed contract was received from SignWell. This date is now booked.');
         }
 
-        return back()->with('success', 'SignWell status updated: '.ucfirst($booking->fresh()->signwell_status).'.');
+        return back()->with('warning', 'The performer has not finished signing yet.');
     }
 
     public function complete(Booking $booking, SignWellService $signWell): RedirectResponse
@@ -164,8 +169,10 @@ class BookingController extends Controller
             try {
                 $signWell->syncStatus($booking);
                 $booking->refresh();
+
             } catch (\RuntimeException $exception) {
                 return back()->with('error', $exception->getMessage());
+        
             }
         }
 
@@ -178,6 +185,45 @@ class BookingController extends Controller
         }
 
         return back()->with('success', 'Booking marked as completed.');
+    }
+
+    public function approveCancel(Booking $booking): RedirectResponse
+    {
+        $this->ensureBookingOwner($booking);
+
+        if (! $booking->hasCancelRequest()) {
+            return back()->with('warning', 'There is no cancellation request to approve.');
+        }
+
+        $booking->update(['status' => 'cancelled']);
+
+        Notification::send($booking->performer, 'booking', 'Cancellation Approved',
+            'Your cancellation request for '.$booking->event_name.' was approved.',
+            route('performer.bookings.show', $booking)
+        );
+
+        return back()->with('success', 'Cancellation request approved. The booking is now cancelled.');
+    }
+
+    public function declineCancel(Booking $booking): RedirectResponse
+    {
+        $this->ensureBookingOwner($booking);
+
+        if (! $booking->hasCancelRequest()) {
+            return back()->with('warning', 'There is no cancellation request to decline.');
+        }
+
+        $booking->update([
+            'cancel_reason' => null,
+            'cancel_requested_at' => null,
+        ]);
+
+        Notification::send($booking->performer, 'booking', 'Cancellation Declined',
+            'Your cancellation request for '.$booking->event_name.' was declined. The booking remains active.',
+            route('performer.bookings.show', $booking)
+        );
+
+        return back()->with('success', 'Cancellation request declined. The booking remains active.');
     }
 
     private function getSelectedEvent(Request $request): ?Event
@@ -211,7 +257,7 @@ class BookingController extends Controller
 
     private function findActiveBooking(PerformerProfile $performer, ?Event $event): ?Booking
     {
-        if (! $event) {
+        if (!$event) {
             return null;
         }
 
@@ -233,29 +279,29 @@ class BookingController extends Controller
 
     private function updateApplicationStatus(Booking $booking, bool $appliedFirst): void
     {
+        $applicationStatus = 'invited';
+
+        if ($appliedFirst) {
+            $applicationStatus = 'accepted';
+        }
+
         EventApplication::where('event_id', $booking->event_id)
             ->where('performer_id', $booking->performer_id)
-            ->update(['status' => $appliedFirst ? 'accepted' : 'invited']);
+            ->update(['status' => $applicationStatus]);
     }
 
     private function sendBookingNotification(Booking $booking, PerformerProfile $performer, bool $appliedFirst): void
     {
         if ($appliedFirst) {
-            Notification::send(
-                $performer->user,
-                'booking',
-                'Application Accepted',
-                Auth::user()->name.' accepted your application for '.$booking->event_name.'. Wait for the contract, then upload the signed copy.',
+            Notification::send($performer->user, 'booking', 'Application Accepted',
+                Auth::user()->name.' accepted your application for '.$booking->event_name.'. Wait for the organizer to prepare the e-signature contract.',
                 route('performer.bookings.show', $booking)
             );
 
             return;
         }
 
-        Notification::send(
-            $performer->user,
-            'booking',
-            'New Booking Request',
+        Notification::send($performer->user, 'booking', 'New Booking Request',
             Auth::user()->name.' sent you a booking request for '.$booking->event_name,
             route('performer.bookings.show', $booking)
         );
@@ -302,11 +348,7 @@ class BookingController extends Controller
             $message = 'A contract is ready for you to sign inside PerformHub for '.$booking->event_name.'.';
         }
 
-        Notification::send(
-            $booking->performer,
-            'contract',
-            'Contract Uploaded',
-            $message,
+        Notification::send($booking->performer, 'contract', 'Contract Uploaded', $message,
             route('performer.bookings.show', $booking)
         );
     }

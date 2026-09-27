@@ -71,7 +71,7 @@
                     @else
                         <input type="file" name="contract" class="form-control ph-input mb-2">
                     @endif
-                    <small class="text-muted d-block mb-2">PDF, JPG, JPEG, or PNG. Maximum 10 MB.</small>
+                    <small class="text-muted d-block mb-2">PDF only. Maximum 10 MB.</small>
                     @error('contract')<div class="text-danger small mb-2">{{ $message }}</div>@enderror
                     @if($booking->hasContract())
                         <button class="btn ph-btn-primary btn-sm">Replace Contract</button>
@@ -87,7 +87,7 @@
                             <button class="btn ph-btn-outline btn-sm">Prepare Existing Contract for E-Signature</button>
                         </form>
                     @else
-                        <p class="text-muted small mt-2 mb-0">Add the SignWell API key in the .env file to email this contract for e-signature.</p>
+                        <p class="text-muted small mt-2 mb-0">SignWell must be configured before this contract can be prepared for e-signature.</p>
                     @endif
                 @endif
             @endif
@@ -109,13 +109,30 @@
                 @if($booking->signwell_document_id)
                     <p class="text-muted small mb-0">Waiting for the performer to complete the SignWell signature.</p>
                 @else
-                    <p class="text-muted small mb-0">Waiting for the performer to upload the signed contract.</p>
+                    <p class="text-muted small mb-0">Waiting for the organizer to prepare this contract for e-signature.</p>
                 @endif
             @endif
         </div>
     </div>
 
     <div class="col-lg-4">
+        @if($booking->hasCancelRequest())
+            <div class="ph-card p-4 mb-4">
+                <h5 class="fw-semibold mb-2">Cancellation Request</h5>
+                <p class="small mb-3"><strong>Reason:</strong> {{ $booking->cancel_reason }}</p>
+                <div class="d-flex gap-2">
+                    <form method="POST" action="{{ route('organizer.bookings.cancel.approve', $booking) }}" class="flex-grow-1">
+                        @csrf
+                        <button class="btn btn-danger w-100">Approve</button>
+                    </form>
+                    <form method="POST" action="{{ route('organizer.bookings.cancel.decline', $booking) }}" class="flex-grow-1">
+                        @csrf
+                        <button class="btn ph-btn-outline w-100">Decline</button>
+                    </form>
+                </div>
+            </div>
+        @endif
+
         <div class="ph-card p-4 mb-4">
             <h5 class="fw-semibold mb-3">Booking Progress</h5>
             <p><span class="badge bg-success">Done</span> Booking Request Sent</p>

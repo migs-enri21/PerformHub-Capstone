@@ -10,7 +10,6 @@ class EventType extends Model
         'name',
         'slug',
         'description',
-        'compensation_type',
         'is_active',
     ];
 

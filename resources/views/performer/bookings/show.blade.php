@@ -69,14 +69,14 @@
         <h5 class="fw-semibold mb-1">Contract</h5>
 
         @if($booking->hasContract())
-            @if($booking->signwell_document_id)
+            @if($booking->hasSignedContract())
+                <p class="text-success small mb-2">Your signed contract is complete.</p>
+                <a href="{{ $booking->signedContractUrl() }}" target="_blank" class="btn ph-btn-outline btn-sm">View Signed Contract</a>
+            @elseif($booking->signwell_document_id)
                 <p class="text-muted small mb-3">The organizer uploaded a contract for electronic signature. Sign it here in PerformHub.</p>
                 <a href="{{ $booking->contractUrl() }}" target="_blank" class="btn ph-btn-outline btn-sm mb-3">View Contract</a>
 
-                @if($booking->hasSignedContract())
-                    <p class="text-success small mb-2">Your electronic signature is complete.</p>
-                    <a href="{{ $booking->signedContractUrl() }}" target="_blank" class="btn ph-btn-outline btn-sm">View Signed Contract</a>
-                @elseif($booking->isSignWellCompleted())
+                @if($booking->isSignWellCompleted())
                     <p class="text-success small mb-2">Your electronic signature is complete.</p>
                 @else
                     <p class="text-primary small mb-2">SignWell status: {{ ucfirst($booking->signwell_status) }}</p>
@@ -85,28 +85,15 @@
                     @endif
                 @endif
             @else
-                <p class="text-muted small mb-3">Download the organizer's contract, sign it, then upload the signed copy below.</p>
+                <p class="text-muted small mb-3">The organizer uploaded a contract, but it is not ready for electronic signature yet.</p>
                 <a href="{{ $booking->contractUrl() }}" target="_blank" class="btn ph-btn-outline btn-sm mb-3">Download Contract</a>
-
-                @if($booking->hasSignedContract())
-                    <p class="text-success small mb-2">Your signed contract was sent to the organizer.</p>
-                    <a href="{{ $booking->signedContractUrl() }}" target="_blank" class="btn ph-btn-outline btn-sm">View Signed Contract</a>
-                @elseif($booking->status === 'accepted')
-                    <form method="POST" action="{{ route('performer.bookings.signed-contract', $booking) }}" enctype="multipart/form-data" class="border-top pt-3">
-                        @csrf
-                        <label class="form-label small">Upload Signed Contract</label>
-                        <input type="file" name="signed_contract" class="form-control ph-input mb-2" accept=".pdf,.jpg,.jpeg,.png" required>
-                        <small class="text-muted d-block mb-2">PDF, JPG, JPEG, or PNG. Maximum 10 MB.</small>
-                        <button class="btn ph-btn-primary btn-sm">Send Signed Contract</button>
-                    </form>
-                @endif
             @endif
         @else
             <p class="text-muted small mb-0">
                 @if($booking->cameFromApplication())
-                    The organizer accepted your application. Wait for them to upload the contract, then you can send the signed copy here.
+                    The organizer accepted your application. Wait for them to prepare the contract for electronic signature.
                 @else
-                    Wait for the organizer to upload the contract, then you can send the signed copy here.
+                    Wait for the organizer to upload the contract for electronic signature.
                 @endif
             </p>
         @endif

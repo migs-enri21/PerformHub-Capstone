@@ -48,14 +48,14 @@
                 <div class="col-md-6">
                     <div class="d-flex justify-content-between align-items-center mb-1">
                         <label class="form-label mb-0">Event Type</label>
-                        <button type="button" class="btn btn-link btn-sm p-0" data-bs-toggle="modal" data-bs-target="#featureRequestModal" data-request-type="event_type">
-                            Request missing event type
+                        <button type="button" class="organizer-request-option" data-bs-toggle="modal" data-bs-target="#featureRequestModal" data-request-type="event_type">
+                            <i class="fas fa-plus-circle"></i> Request event type
                         </button>
                     </div>
                     <select class="form-select ph-input @error('event_type_id') is-invalid @enderror" name="event_type_id" id="event_type_id">
                         <option value="">Select Event Type</option>
                         @foreach($eventTypes as $eventType)
-                            <option value="{{ $eventType->id }}" data-compensation-type="{{ $eventType->compensation_type }}" @selected(old('event_type_id') == $eventType->id)>
+                            <option value="{{ $eventType->id }}" @selected(old('event_type_id') == $eventType->id)>
                                 {{ $eventType->name }}
                             </option>
                         @endforeach
@@ -63,17 +63,22 @@
                     @error('event_type_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
 
-                <div class="col-md-6 compensation-field d-none" data-compensation-type="fixed">
-                    <label class="form-label">Budget (₱)</label>
-                    <input type="number" class="form-control ph-input" name="budget" value="{{ old('budget') }}" step="0.01">
-                    @error('budget')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
+                <div class="col-md-6">
+                    <label class="form-label">Compensation Type</label>
+                    <select class="form-select ph-input @error('compensation_type') is-invalid @enderror" name="compensation_type" id="compensation_type">
+                        <option value="">Select Compensation Type</option>
+                        <option value="fixed" @selected(old('compensation_type') === 'fixed')>Fixed Budget</option>
+                        <option value="hourly" @selected(old('compensation_type') === 'hourly')>Rate per Hour</option>
+                        <option value="contest" @selected(old('compensation_type') === 'contest')>Contest Prizes</option>
+                    </select>
+                    @error('compensation_type')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
 
                 <div class="col-12">
                     <div class="d-flex justify-content-between align-items-center mb-1">
                         <label class="form-label mb-0">Required Performer Categories</label>
-                        <button type="button" class="btn btn-link btn-sm p-0" data-bs-toggle="modal" data-bs-target="#featureRequestModal" data-request-type="category">
-                            Request missing category
+                        <button type="button" class="organizer-request-option" data-bs-toggle="modal" data-bs-target="#featureRequestModal" data-request-type="category">
+                            <i class="fas fa-plus-circle"></i> Request category
                         </button>
                     </div>
                     <div class="organizer-category-list @error('category_ids') organizer-category-list-error @enderror">
@@ -115,6 +120,7 @@
                     <label class="form-label">Event Date</label>
                     <input type="date" class="form-control ph-input @error('event_date') is-invalid @enderror" name="event_date" value="{{ old('event_date') }}">
                     @error('event_date')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    <small class="text-muted d-block mt-1">Up to 3 active events may be scheduled on one day, with a 3-hour gap between them.</small>
                 </div>
                 <div class="col-md-4">
                     <label class="form-label">Start Time</label>
@@ -140,9 +146,15 @@
 
                 <div class="col-12 organizer-compensation-section">
                     <h5>Compensation Details</h5>
-                    <p class="organizer-form-help">Choose an event type first to show the correct compensation fields.</p>
+                    <p class="organizer-form-help">Choose a compensation type to show the correct payment fields.</p>
 
                     <div class="row g-4" id="compensationFields">
+                        <div class="col-md-6 compensation-field d-none" data-compensation-type="fixed">
+                            <label class="form-label">Fixed Budget (&#8369;)</label>
+                            <input type="number" class="form-control ph-input" name="budget" value="{{ old('budget') }}" step="0.01">
+                            @error('budget')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
+                        </div>
+
                         <div class="col-md-6 compensation-field d-none" data-compensation-type="hourly">
                             <label class="form-label">Rate per Hour (&#8369;)</label>
                             <input type="number" class="form-control ph-input" name="rate_per_hour" value="{{ old('rate_per_hour') }}" step="0.01">
@@ -207,10 +219,8 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    const eventType = document.getElementById('event_type_id');
-    const compensationBox = document.getElementById('compensationFields');
+    const compensationType = document.getElementById('compensation_type');
     const compensationFields = document.querySelectorAll('.compensation-field');
-    const fixedBudgetField = document.querySelector('.compensation-field[data-compensation-type="fixed"]');
     const categoryCheckboxes = document.querySelectorAll('.event-category-checkbox');
     const genreOptions = document.querySelectorAll('.genre-option');
     const genreHelp = document.getElementById('genreHelp');
@@ -221,24 +231,27 @@ document.addEventListener('DOMContentLoaded', function () {
 
     featureRequestModal.addEventListener('show.bs.modal', function (event) {
         const trigger = event.relatedTarget;
-        const type = trigger?.dataset.requestType || 'category';
-        const isEventType = type === 'event_type';
+        let type = 'category';
 
+        if (trigger && trigger.dataset.requestType) {
+            type = trigger.dataset.requestType;
+        }
         featureRequestType.value = type;
-        featureRequestModalLabel.textContent = isEventType ? 'Request an event type' : 'Request a category';
-        featureRequestName.placeholder = isEventType ? 'Event type name' : 'Category name';
+
+        if (type === 'event_type') {
+            featureRequestModalLabel.textContent = 'Request an event type';
+            featureRequestName.placeholder = 'Event type name';
+        } else {
+            featureRequestModalLabel.textContent = 'Request a category';
+            featureRequestName.placeholder = 'Category name';
+        }
     });
 
-    if (fixedBudgetField) {
-        compensationBox.prepend(fixedBudgetField);
-    }
-
     function showCompensationFields() {
-        const selectedOption = eventType.options[eventType.selectedIndex];
-        const compensationType = selectedOption.dataset.compensationType;
+        const selectedType = compensationType.value;
 
         compensationFields.forEach(function (field) {
-            const isSelectedType = field.dataset.compensationType === compensationType;
+            const isSelectedType = field.dataset.compensationType === selectedType;
             field.classList.toggle('d-none', !isSelectedType);
 
             field.querySelectorAll('input').forEach(function (input) {
@@ -282,7 +295,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    eventType.addEventListener('change', showCompensationFields);
+    compensationType.addEventListener('change', showCompensationFields);
     categoryCheckboxes.forEach(function (checkbox) {
         checkbox.addEventListener('change', showRelevantGenres);
     });

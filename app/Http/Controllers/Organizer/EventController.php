@@ -8,17 +8,24 @@ use App\Models\Event;
 use App\Models\EventType;
 use App\Models\Booking;
 use App\Models\Genre;
+use App\Models\OrganizerProfile;
 use App\Services\SupabaseStorageService;
 use App\Support\OptionList;
+use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 
 class EventController extends Controller
 {
+    private const MAX_EVENTS_PER_DAY = 3;
+
+    private const REQUIRED_GAP_HOURS = 3;
+
     public function index(Request $request): View
     {
         Event::markPastEventsEnded();
@@ -240,14 +247,21 @@ class EventController extends Controller
         $allowedGenres = array_keys($this->getGenreCategories());
 
         if ($event) {
-            $allowedGenres = array_values(array_unique([
-                ...$allowedGenres,
-                ...OptionList::wrap($event->preferred_genres),
-            ]));
+            $eventGenres = OptionList::wrap($event->preferred_genres);
+            $allowedGenres = array_merge($allowedGenres, $eventGenres);
+            $allowedGenres = array_unique($allowedGenres);
+            $allowedGenres = array_values($allowedGenres);
+        }
+
+        $eventDateRules = ['required', 'date'];
+
+        if (! $updating) {
+            $eventDateRules[] = 'after_or_equal:today';
         }
 
         $rules = [
             'event_type_id' => ['required', 'exists:event_types,id'],
+            'compensation_type' => ['required', Rule::in(['fixed', 'hourly', 'contest'])],
             'category_ids' => ['required', 'array', 'min:1'],
             'category_ids.*' => ['exists:categories,id'],
             'preferred_genres' => ['nullable', 'array'],
@@ -259,11 +273,9 @@ class EventController extends Controller
             'videos' => ['nullable', 'array', 'max:3'],
             'videos.*' => ['file', 'mimes:mp4,webm', 'max:25600'],
             'description' => ['nullable', 'string'],
-            'event_date' => $updating
-                ? ['required', 'date']
-                : ['required', 'date', 'after_or_equal:today'],
-            'start_time' => ['required'],
-            'end_time' => ['required'],
+            'event_date' => $eventDateRules,
+            'start_time' => ['required', 'date_format:H:i'],
+            'end_time' => ['required', 'date_format:H:i'],
             'venue' => ['required', 'string', 'max:255'],
             'budget' => ['nullable', 'numeric'],
             'first_prize' => ['nullable', 'numeric', 'min:0'],
@@ -273,34 +285,152 @@ class EventController extends Controller
             'status' => $this->statusRules($updating),
         ];
 
-        $eventType = EventType::find($request->input('event_type_id'));
+        $compensationType = $request->input('compensation_type');
 
-        if ($eventType && $eventType->compensation_type === 'contest') {
+        if ($compensationType === 'contest') {
             $rules['first_prize'] = ['required', 'numeric', 'min:0'];
             $rules['second_prize'] = ['required', 'numeric', 'min:0'];
             $rules['third_prize'] = ['required', 'numeric', 'min:0'];
         }
 
-        if ($eventType && $eventType->compensation_type === 'hourly') {
+        if ($compensationType === 'hourly') {
             $rules['rate_per_hour'] = ['required', 'numeric', 'min:0'];
         }
 
-        if ($eventType && $eventType->compensation_type === 'fixed') {
+        if ($compensationType === 'fixed') {
             $rules['budget'] = ['required', 'numeric', 'min:0'];
         }
 
         $validated = $request->validate($rules);
 
-        if (! array_key_exists('preferred_genres', $validated)) {
+        if (!array_key_exists('preferred_genres', $validated)) {
             $validated['preferred_genres'] = [];
         }
 
-        if ($eventType) {
-            $validated['compensation_type'] = $eventType->compensation_type;
-            $this->clearUnusedCompensationFields($validated, $eventType->compensation_type);
-        }
+        $this->clearUnusedCompensationFields($validated, $validated['compensation_type']);
+        $this->ensureOrganizerScheduleAvailable($validated, $event);
 
         return $validated;
+    }
+
+    private function ensureOrganizerScheduleAvailable(array $eventDetails, ?Event $event): void
+    {
+        $eventDate = $eventDetails['event_date'];
+
+        if ($eventDate < today()->toDateString()) {
+            return;
+        }
+
+        if (array_key_exists('status', $eventDetails)) {
+            $status = $eventDetails['status'];
+
+            if (in_array($status, ['Cancelled', 'Completed', 'Ended'], true)) {
+                return;
+            }
+        }
+
+        $scheduledEvents = Event::where('organizer_id', Auth::id())
+            ->whereDate('event_date', $eventDate)
+            ->whereIn('status', ['Open', 'open', 'Ongoing', 'ongoing']);
+
+        if ($event) {
+            $scheduledEvents->where('id', '!=', $event->id);
+        }
+
+        $scheduledEvents = $scheduledEvents->get();
+
+        if ($scheduledEvents->count() >= self::MAX_EVENTS_PER_DAY) {
+            throw ValidationException::withMessages([
+                'event_date' => 'You can schedule up to 3 active events on one day.',
+            ]);
+        }
+
+        $newStart = $this->eventDateTime($eventDate, $eventDetails['start_time']);
+        $newEnd = $this->eventDateTime($eventDate, $eventDetails['end_time']);
+
+        if ($newEnd->lessThanOrEqualTo($newStart)) {
+            $newEnd->addDay();
+        }
+
+        foreach ($scheduledEvents as $scheduledEvent) {
+            $scheduledStart = $this->eventDateTime($eventDate, $scheduledEvent->start_time);
+            $scheduledEndTime = $scheduledEvent->end_time;
+
+            if (! $scheduledEndTime) {
+                $scheduledEndTime = $scheduledEvent->start_time;
+            }
+
+            $scheduledEnd = $this->eventDateTime($eventDate, $scheduledEndTime);
+
+            if ($scheduledEnd->lessThanOrEqualTo($scheduledStart)) {
+                $scheduledEnd->addDay();
+            }
+
+            if (!$this->hasRequiredGap($newStart, $newEnd, $scheduledStart, $scheduledEnd)) {
+                throw ValidationException::withMessages([
+                    'start_time' => 'Leave at least a 3-hour gap from "'.$scheduledEvent->title.'".',
+                ]);
+            }
+        }
+
+        $this->ensureGoogleCalendarGap($eventDate, $newStart, $newEnd);
+    }
+
+    private function ensureGoogleCalendarGap(string $eventDate, Carbon $newStart, Carbon $newEnd): void
+    {
+        $profile = OrganizerProfile::where('user_id', Auth::id())->first();
+
+        if (!$profile || !$profile->google_calendar_connected) {
+            return;
+        }
+
+        $busyDates = $profile->googleCalendarBusyDates()
+            ->whereDate('date', $eventDate)
+            ->get();
+
+        foreach ($busyDates as $busyDate) {
+            if (!$busyDate->start_time || !$busyDate->end_time) {
+                throw ValidationException::withMessages([
+                    'event_date' => 'Your Google Calendar has an all-day busy entry on this date.',
+                ]);
+            }
+
+            $busyStart = $this->eventDateTime($eventDate, $busyDate->start_time);
+            $busyEnd = $this->eventDateTime($eventDate, $busyDate->end_time);
+
+            if ($busyEnd->lessThanOrEqualTo($busyStart)) {
+                $busyEnd->addDay();
+            }
+
+            if (! $this->hasRequiredGap($newStart, $newEnd, $busyStart, $busyEnd)) {
+                $summary = 'a Google Calendar event';
+
+                if ($busyDate->summary) {
+                    $summary = '"'.$busyDate->summary.'" in Google Calendar';
+                }
+
+                throw ValidationException::withMessages([
+                    'start_time' => 'Leave at least a 3-hour gap from '.$summary.'.',
+                ]);
+            }
+        }
+    }
+
+    private function hasRequiredGap(Carbon $firstStart, Carbon $firstEnd, Carbon $secondStart, Carbon $secondEnd): bool
+    {
+        $firstStartsAfterGap = $firstStart->greaterThanOrEqualTo(
+            $secondEnd->copy()->addHours(self::REQUIRED_GAP_HOURS)
+        );
+        $secondStartsAfterGap = $secondStart->greaterThanOrEqualTo(
+            $firstEnd->copy()->addHours(self::REQUIRED_GAP_HOURS)
+        );
+
+        return $firstStartsAfterGap || $secondStartsAfterGap;
+    }
+
+    private function eventDateTime(string $date, string $time): Carbon
+    {
+        return Carbon::parse($date.' '.$time);
     }
 
     private function clearUnusedCompensationFields(array &$eventDetails, string $compensationType): void
@@ -348,7 +478,7 @@ class EventController extends Controller
         $firstPath = null;
 
         foreach ($media as $file) {
-            if (! $file->isValid()) {
+            if (!$file->isValid()) {
                 continue;
             }
 
@@ -370,7 +500,7 @@ class EventController extends Controller
             }
         }
 
-        if (! $event->cover_photo && $firstPath) {
+        if (!$event->cover_photo && $firstPath) {
             $event->update(['cover_photo' => $firstPath]);
         }
     }
@@ -399,7 +529,7 @@ class EventController extends Controller
 
     private function syncLegacyCoverPhoto(Event $event): void
     {
-        if ($event->cover_photo && ! $event->photos()->exists()) {
+        if ($event->cover_photo && !$event->photos()->exists()) {
             $event->photos()->create([
                 'file_path' => $event->cover_photo,
                 'sort_order' => 0,
@@ -412,12 +542,12 @@ class EventController extends Controller
         $supabase = new SupabaseStorageService();
 
         foreach ($event->photos as $photo) {
-            if (! str_starts_with($photo->file_path, 'http')) {
+            if (!str_starts_with($photo->file_path, 'http')) {
                 $supabase->delete('organizer-files', $photo->file_path);
             }
         }
 
-        if ($event->cover_photo && ! str_starts_with($event->cover_photo, 'http')) {
+        if ($event->cover_photo && !str_starts_with($event->cover_photo, 'http')) {
             $supabase->delete('organizer-files', $event->cover_photo);
         }
     }
@@ -437,7 +567,7 @@ class EventController extends Controller
         }
 
         foreach ($savedGenres as $genre) {
-            if (! isset($genreCategories[$genre]) && $savedCategoryIds !== []) {
+            if (!isset($genreCategories[$genre]) && $savedCategoryIds !== []) {
                 $genreCategories[$genre] = array_map('strval', $savedCategoryIds);
             }
         }

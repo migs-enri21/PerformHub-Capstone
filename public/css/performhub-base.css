@@ -92,6 +92,33 @@ a:hover { color: var(--ph-purple-hover); }
 }
 
 /* --- Forms & inputs --- */
+.btn[data-password-toggle],
+.btn[data-password-toggle]:hover,
+.btn[data-password-toggle]:focus,
+.btn[data-password-toggle]:active {
+    background-color: transparent !important;
+    border: none;
+    box-shadow: none;
+    color: var(--ph-text) !important;
+}
+
+.password-input-group {
+    position: relative;
+}
+
+.password-input-group .ph-input {
+    border-radius: 10px !important;
+    padding-right: 3.5rem;
+}
+
+.password-input-group [data-password-toggle] {
+    height: 100%;
+    position: absolute;
+    right: 0;
+    top: 0;
+    z-index: 2;
+}
+
 .ph-input:not(.form-select) {
     background: var(--ph-bg-input);
     border: 1px solid var(--ph-border);

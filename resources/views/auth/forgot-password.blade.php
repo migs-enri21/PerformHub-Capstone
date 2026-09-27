@@ -21,7 +21,7 @@
             <a href="{{ route('login') }}" class="text-muted small mb-4 d-inline-block">
                 <i class="fas fa-chevron-left me-1"></i> Back to Sign In
             </a>
-            <h2 class="fw-bold mb-1">Forgot your password?</h2>
+            
             <p class="text-muted mb-4">Enter your email and we will send you a reset link.</p>
 
             @if(session('status'))<div class="alert alert-success py-2">{{ session('status') }}</div>@endif

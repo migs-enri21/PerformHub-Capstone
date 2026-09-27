@@ -22,22 +22,28 @@
         <div class="org-panel mb-4">
             <h5 class="fw-bold mb-3">Quick Overview</h5>
             <div class="row g-3">
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <a href="{{ route('organizer.events.index') }}" class="org-stat">
                         <i class="fas fa-calendar-plus"></i>
                         <div><strong>{{ $upcomingEvents->count() }}</strong><small>Upcoming Events</small></div>
                     </a>
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <a href="{{ route('organizer.events.index') }}" class="org-stat">
                         <i class="fas fa-clock"></i>
                         <div><strong>{{ $pendingBookings }}</strong><small>Pending Bookings</small></div>
                     </a>
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <a href="{{ route('organizer.events.index') }}" class="org-stat">
                         <i class="fas fa-check-circle"></i>
                         <div><strong>{{ $activeBookings }}</strong><small>Accepted Bookings</small></div>
+                    </a>
+                </div>
+                <div class="col-md-3">
+                    <a href="{{ route('organizer.cancellation-requests.index') }}" class="org-stat">
+                        <i class="fas fa-ban"></i>
+                        <div><strong>{{ $cancelRequests }}</strong><small>Cancel Requests</small></div>
                     </a>
                 </div>
             </div>
@@ -55,16 +61,19 @@
                     <p class="text-muted small mb-3">Required categories are matched first. Preferred genres are shown first within those matches.</p>
                 @endif
 
+                <div class="organizer-suggested-performers">
                 @forelse($recommendedPerformers as $performer)
-                    <a href="{{ route('organizer.performers.show', $performer) }}" class="org-list-item">
+                    <a href="{{ route('organizer.performers.show', $performer) }}" class="organizer-suggested-performer">
                         @if($performer->profilePhotoUrl())
                             <img src="{{ $performer->profilePhotoUrl() }}" alt="{{ $performer->stage_name }}" class="rounded-circle" width="48" height="48">
                         @else
                             <img src="https://ui-avatars.com/api/?name={{ urlencode($performer->stage_name) }}&background=6d3df5&color=fff" alt="{{ $performer->stage_name }}" class="rounded-circle" width="48" height="48">
                         @endif
-                        <div class="flex-grow-1">
-                            <strong>{{ $performer->stage_name }}</strong>
-                            <span class="badge bg-success ms-1">Verified</span>
+                        <div class="organizer-suggested-performer-info">
+                            <div>
+                                <strong>{{ $performer->stage_name }}</strong>
+                                <span class="badge bg-success ms-1">Verified</span>
+                            </div>
                             @if($performer->categoryNames())
                                 <small class="text-muted d-block">{{ $performer->categoryNames() }}</small>
                             @else
@@ -84,6 +93,7 @@
                 @empty
                     <p class="text-muted mb-0">No verified performers match this event's categories yet.</p>
                 @endforelse
+                </div>
             @else
                 <p class="text-muted mb-0">Create an upcoming event to receive performer suggestions.</p>
             @endif

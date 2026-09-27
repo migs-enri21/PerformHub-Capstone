@@ -14,6 +14,7 @@ use App\Http\Controllers\TalentProfileController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\Organizer\BookingController as OrganizerBookingController;
+use App\Http\Controllers\Organizer\CancellationRequestController;
 use App\Http\Controllers\Organizer\DashboardController as OrganizerDashboardController;
 use App\Http\Controllers\Organizer\PerformerSearchController;
 use App\Http\Controllers\Organizer\ProfileController as OrganizerProfileController;
@@ -84,7 +85,6 @@ Route::middleware(['auth', 'role:performer'])->prefix('performer')->name('perfor
         Route::post('/bookings/{booking}/accept', [PerformerBookingController::class, 'accept'])->name('bookings.accept');
         Route::post('/bookings/{booking}/reject', [PerformerBookingController::class, 'reject'])->name('bookings.reject');
         Route::post('/bookings/{booking}/cancel-request', [PerformerBookingController::class, 'requestCancel'])->name('bookings.cancel-request');
-        Route::post('/bookings/{booking}/signed-contract', [PerformerBookingController::class, 'uploadSignedContract'])->name('bookings.signed-contract');
         Route::post('/bookings/{booking}/signature-status', [PerformerBookingController::class, 'syncElectronicSignature'])->name('bookings.signature.sync');
         Route::post('/events/{event}/apply', [EventApplicationController::class, 'store'])->name('events.apply');
         Route::delete('/events/{event}/apply', [EventApplicationController::class, 'destroy'])->name('events.apply.cancel');
@@ -103,6 +103,7 @@ Route::middleware(['auth', 'role:organizer'])->prefix('organizer')->name('organi
     Route::get('/performers', [PerformerSearchController::class, 'index'])->name('performers.index');
     Route::get('/performers/{performer}', [PerformerSearchController::class, 'show'])->name('performers.show');
     Route::get('/bookings/{booking}', [OrganizerBookingController::class, 'show'])->name('bookings.show');
+    Route::get('/cancellation-requests', [CancellationRequestController::class, 'index'])->name('cancellation-requests.index');
     Route::get('/events', [OrganizerEventController::class, 'index'])->name('events.index');
     Route::post('/feature-requests', [OrganizerFeatureRequestController::class, 'store'])->name('feature-requests.store');
     Route::get('/events/create', [OrganizerEventController::class, 'create'])->name('events.create');
@@ -121,6 +122,8 @@ Route::middleware(['auth', 'role:organizer'])->prefix('organizer')->name('organi
         Route::post('/bookings/{booking}/send-signature', [OrganizerBookingController::class, 'sendForSignature'])->name('bookings.signwell.send');
         Route::post('/bookings/{booking}/sync-signature', [OrganizerBookingController::class, 'syncSignatureStatus'])->name('bookings.signwell.sync');
         Route::post('/bookings/{booking}/complete', [OrganizerBookingController::class, 'complete'])->name('bookings.complete');
+        Route::post('/bookings/{booking}/approve-cancel', [OrganizerBookingController::class, 'approveCancel'])->name('bookings.cancel.approve');
+        Route::post('/bookings/{booking}/decline-cancel', [OrganizerBookingController::class, 'declineCancel'])->name('bookings.cancel.decline');
         Route::post('/events/{event}/applications/{application}/decline', [OrganizerEventApplicationController::class, 'decline'])->name('events.applications.decline');
     });
     Route::prefix('calendar')->name('calendar.')->group(function () {
@@ -180,8 +183,3 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::get('/events', [\App\Http\Controllers\Admin\EventController::class, 'index'])->name('events.index');
     Route::get('/events/{booking}', [\App\Http\Controllers\Admin\EventController::class, 'show'])->name('events.show');
 });
-
-Route::middleware(['auth', 'role:performer'])->prefix('performer')->name('performer.')->group(function () {
-    Route::get('/click-me', [PerformerDashboardController::class, 'clickMe'])->name('click-me');
-});
-Route::get('click-me', [PerformerDashboardController::class, 'clickMe'])->name('click-me');

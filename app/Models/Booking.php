@@ -114,7 +114,7 @@ class Booking extends Model
 
     public function contractUrl(): ?string
     {
-        if (! $this->hasContract()) {
+        if (!$this->hasContract()) {
             return null;
         }
 
@@ -154,7 +154,7 @@ class Booking extends Model
             return true;
         }
 
-        if ($this->status !== 'accepted' || ! $this->isSigned()) {
+        if ($this->status !== 'accepted' || !$this->isSigned()) {
             return false;
         }
 
@@ -162,9 +162,15 @@ class Booking extends Model
             return false;
         }
 
+        $confirmedAt = $this->contract_confirmed_at;
+
+        if ($confirmedAt === null) {
+            $confirmedAt = now();
+        }
+
         $this->update([
             'status' => 'completed',
-            'contract_confirmed_at' => $this->contract_confirmed_at ?? now(),
+            'contract_confirmed_at' => $confirmedAt,
             'performer_confirmed_contract' => true,
         ]);
 
@@ -175,7 +181,7 @@ class Booking extends Model
 
     public function signedContractUrl(): ?string
     {
-        if (! $this->hasSignedContract()) {
+        if (!$this->hasSignedContract()) {
             return null;
         }
 
