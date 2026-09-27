@@ -9,7 +9,9 @@ use App\Models\FeatureRequest;
 use App\Models\Genre;
 use App\Models\Notification;
 use App\Models\Specialty;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -17,13 +19,48 @@ use Illuminate\View\View;
 
 class FeatureRequestController extends Controller
 {
-    public function index(): View
+    public function index(Request $request): View
     {
-        $requests = FeatureRequest::with(['requester', 'category'])
-            ->latest()
-            ->paginate(20);
+        $search = trim((string) $request->query('search', ''));
+        $type = $request->query('type');
+        $status = $request->query('status');
+        $types = [
+            FeatureRequest::TYPE_CATEGORY,
+            FeatureRequest::TYPE_EVENT_TYPE,
+            FeatureRequest::TYPE_GENRE,
+            FeatureRequest::TYPE_SPECIALTY,
+        ];
+        $statuses = [
+            FeatureRequest::STATUS_PENDING,
+            FeatureRequest::STATUS_APPROVED,
+            FeatureRequest::STATUS_REJECTED,
+        ];
 
-        return view('admin.feature-requests.index', compact('requests'));
+        if (! in_array($type, $types, true)) {
+            $type = '';
+        }
+
+        if (! in_array($status, $statuses, true)) {
+            $status = '';
+        }
+
+        $requestsQuery = FeatureRequest::with(['requester', 'category'])
+            ->when($search !== '', function (Builder $query) use ($search): void {
+                $query->where(function (Builder $query) use ($search): void {
+                    $query->where('name', 'like', "%{$search}%")
+                        ->orWhere('description', 'like', "%{$search}%")
+                        ->orWhereHas('requester', function (Builder $requesterQuery) use ($search): void {
+                            $requesterQuery->where('first_name', 'like', "%{$search}%")
+                                ->orWhere('last_name', 'like', "%{$search}%");
+                        });
+                });
+            })
+            ->when($type !== '', fn (Builder $query) => $query->where('type', $type))
+            ->when($status !== '', fn (Builder $query) => $query->where('status', $status));
+
+        $requests = $requestsQuery->latest()->paginate(20)->withQueryString();
+
+        return view('admin.feature-requests.index', compact('requests', 'search', 'type', 'status'));
     }
 
     public function approve(FeatureRequest $featureRequest): RedirectResponse
@@ -93,11 +130,15 @@ class FeatureRequestController extends Controller
         return back()->with('success', "{$featureRequest->typeLabel()} created and the requester was notified.");
     }
 
-    public function reject(FeatureRequest $featureRequest): RedirectResponse
+    public function reject(Request $request, FeatureRequest $featureRequest): RedirectResponse
     {
         if ($featureRequest->status !== FeatureRequest::STATUS_PENDING) {
             return back()->with('warning', 'This request has already been reviewed.');
         }
+
+        $validated = $request->validate([
+            'reason' => ['required', 'string', 'max:1000'],
+        ]);
 
         $featureRequest->update([
             'status' => FeatureRequest::STATUS_REJECTED,
@@ -109,7 +150,7 @@ class FeatureRequestController extends Controller
             $featureRequest->requester,
             'feature.rejected',
             "{$featureRequest->typeLabel()} Request Declined",
-            "Your requested {$featureRequest->typeLabel()} '{$featureRequest->name}' was not approved.",
+            "Your requested {$featureRequest->typeLabel()} '{$featureRequest->name}' was not approved. Reason: {$validated['reason']}",
             $this->reviewerNotificationUrl($featureRequest)
         );
 

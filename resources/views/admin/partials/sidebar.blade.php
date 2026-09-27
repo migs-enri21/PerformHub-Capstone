@@ -13,7 +13,7 @@
 <nav class="nav flex-column">
     <a class="nav-link {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}" href="{{ route('admin.dashboard') }}"><i class="fas fa-home me-2"></i> Dashboard</a>
     <a class="nav-link {{ request()->routeIs('admin.users.*') ? 'active' : '' }}" href="{{ route('admin.users.index') }}"><i class="fas fa-users me-2"></i> Users</a>
-    <a class="nav-link {{ request()->routeIs('admin.categories.*', 'admin.event-types.*') ? 'active' : '' }}" href="{{ route('admin.categories.index') }}"><i class="fas fa-tags me-2"></i> Categories</a>
+    <a class="nav-link {{ request()->routeIs('admin.categories.*', 'admin.event-types.*') ? 'active' : '' }}" href="{{ route('admin.categories.index') }}"><i class="fas fa-tags me-2"></i> Categories &amp; Event</a>
     <a class="nav-link {{ request()->routeIs('admin.genres.*', 'admin.specialties.*') ? 'active' : '' }}" href="{{ route('admin.genres.index') }}"><i class="fas fa-music me-2"></i> Genres & Specialties</a>
     <a class="nav-link {{ request()->routeIs('admin.monitoring.bookings') ? 'active' : '' }}" href="{{ route('admin.monitoring.bookings') }}"><i class="fas fa-ticket me-2"></i> Bookings</a>
     <a class="nav-link {{ request()->routeIs('admin.feature-requests.*') ? 'active' : '' }}" href="{{ route('admin.feature-requests.index') }}"><i class="fas fa-lightbulb me-2"></i> Feature Requests</a>

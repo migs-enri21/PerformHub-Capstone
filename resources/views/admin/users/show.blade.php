@@ -161,7 +161,7 @@
 
 <div class="modal fade" id="onboardingProgressModal" tabindex="-1" aria-labelledby="onboardingProgressModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-sm">
-        <div class="modal-content" style="min-height: 320px;">
+        <div class="modal-content admin-onboarding-modal-content">
             <div class="modal-header">
                 <h5 class="modal-title fw-bold" id="onboardingProgressModalLabel">Onboarding Progress</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
