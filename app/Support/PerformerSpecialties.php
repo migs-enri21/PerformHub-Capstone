@@ -12,17 +12,6 @@ class PerformerSpecialties
         return Specialty::activeNames();
     }
 
-    public static function validationRule(?string $current = null): array
-    {
-        $allowed = self::all();
-
-        if ($current && ! in_array($current, $allowed, true)) {
-            $allowed[] = $current;
-        }
-
-        return ['nullable', 'string', 'max:100', Rule::in($allowed)];
-    }
-
     /**
      * @param  array<int, string>  $extraAllowed
      * @return array<int, mixed>

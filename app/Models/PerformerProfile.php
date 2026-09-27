@@ -96,38 +96,6 @@ class PerformerProfile extends Model
         return $this->hasMany(Booking::class, 'performer_id', 'user_id');
     }
 
-    public function isAvailableOnDate(string $date): bool
-    {
-        $hasActiveBooking = $this->bookings()
-            ->whereDate('event_date', $date)
-            ->lockingDate()
-            ->exists();
-
-        if ($hasActiveBooking) {
-            return false;
-        }
-
-        if ($this->google_calendar_connected) {
-            $hasGoogleBusyDate = $this->googleCalendarBusyDates()
-                ->whereDate('date', $date)
-                ->exists();
-
-            if ($hasGoogleBusyDate) {
-                return false;
-            }
-        }
-
-        $schedule = $this->availabilitySchedules()
-            ->whereDate('date', $date)
-            ->first();
-
-        if (! $schedule) {
-            return true;
-        }
-
-        return (bool) $schedule->is_available;
-    }
-
     public function portfolioVisibleTo(?User $viewer): bool
     {
         if ($viewer && ($viewer->id === $this->user_id || $viewer->isAdmin())) {
@@ -143,19 +111,6 @@ class PerformerProfile extends Model
         return $owner->hasCompletedOnboarding()
             && $owner->is_verified
             && $this->is_verified_badge;
-    }
-
-    public function averageRating(): float
-    {
-        $average = Review::query()
-            ->where('reviewee_id', $this->user_id)
-            ->avg('rating');
-
-        if ($average === null) {
-            return 0;
-        }
-
-        return (float) $average;
     }
 
     public function socialLinks(): array
@@ -242,11 +197,6 @@ class PerformerProfile extends Model
     public function specialtyLabel(): string
     {
         return implode(' · ', $this->specialtyList());
-    }
-
-    public function displayTags(): array
-    {
-            return $this->categories->pluck('name')->all();
     }
 
     public function categoryNames(): string

@@ -63,7 +63,7 @@
                             && $booking->hasContract()
                             && ! $booking->isSigned();
                     @endphp
-                    <tr data-status="{{ $booking->status }}" data-cancel="{{ $booking->hasCancelRequest() ? '1' : '0' }}">
+                    <tr>
                         <td>{{ $booking->event_name }}</td>
                         <td>{{ $booking->organizer->organizerProfile?->organization_name ?? $booking->organizer->name }}</td>
                         <td>{{ $booking->event_date->format('M d, Y') }}</td>

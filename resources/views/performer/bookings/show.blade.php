@@ -97,8 +97,10 @@
                 @endif
             </p>
         @endif
+        
      {{--   <a href="{{ route('performer.availability.index') }}" class="btn ph-btn-outline btn-sm" >  
         <i class="fas fa-calendar me-1"></i> View on calendar</a> --}}
+        
 
         @if($booking->canRequestCancel())
             <div class="border-top pt-3 mt-3">
