@@ -24,18 +24,17 @@
 
 <div
     class="portfolio-preview-collage portfolio-feed-collage event-feed-collage {{ $layout }}"
-    @if($hasMore)
-        role="button"
-        tabindex="0"
-        data-bs-toggle="modal"
-        data-bs-target="#{{ $modalId }}"
-        aria-label="View all {{ $count }} photos"
-    @endif
+    role="button"
+    tabindex="0"
+    data-bs-toggle="modal"
+    data-bs-target="#{{ $modalId }}"
+    aria-label="View all {{ $count }} event media items"
 >
     @foreach($visible as $index => $photo)
         <div class="portfolio-collage-tile event-feed-collage-tile">
             @if($photo->isVideo())
-                <video controls preload="metadata"><source src="{{ $photo->fileUrl() }}"></video>
+                <video muted playsinline preload="metadata"><source src="{{ $photo->fileUrl() }}"></video>
+                <span class="portfolio-collage-badge"><i class="fas fa-play me-1"></i>Video</span>
             @else
                 <img src="{{ $photo->fileUrl() }}" alt="{{ $title }}" loading="lazy">
             @endif
@@ -46,28 +45,26 @@
     @endforeach
 </div>
 
-@if($hasMore)
-    <div class="modal fade" id="{{ $modalId }}" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">All {{ $count }} photos</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="portfolio-gallery-grid">
-                        @foreach($photos as $photo)
-                            <div class="portfolio-gallery-item">
-                                @if($photo->isVideo())
-                                    <video controls preload="metadata"><source src="{{ $photo->fileUrl() }}"></video>
-                                @else
-                                    <img src="{{ $photo->fileUrl() }}" alt="{{ $title }}">
-                                @endif
-                            </div>
-                        @endforeach
-                    </div>
+<div class="modal fade" id="{{ $modalId }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">{{ $title }} Media</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="portfolio-lightbox">
+                    @foreach($photos as $photo)
+                        <div class="portfolio-lightbox-item">
+                            @if($photo->isVideo())
+                                <video controls playsinline preload="metadata"><source src="{{ $photo->fileUrl() }}"></video>
+                            @else
+                                <img src="{{ $photo->fileUrl() }}" alt="{{ $title }}">
+                            @endif
+                        </div>
+                    @endforeach
                 </div>
             </div>
         </div>
     </div>
-@endif
+</div>

@@ -1,23 +1,6 @@
-@php
-    $hasReviewedRequests = false;
-
-    foreach($requests as $featureRequest) {
-        if ($featureRequest->status === 'approved' || $featureRequest->status === 'rejected') {
-            $hasReviewedRequests = true;
-        }
-    }
-@endphp
-
 @if($requests->isEmpty())
     <p class="text-muted mb-0">You have not sent any requests yet.</p>
 @else
-    @if($hasReviewedRequests)
-        <form method="POST" action="{{ route('organizer.feature-requests.clear-reviewed', $requestType) }}" class="mb-3 text-end">
-            @csrf
-            @method('DELETE')
-            <button type="submit" class="btn btn-sm btn-outline-secondary">Clear approved and rejected</button>
-        </form>
-    @endif
     <div class="list-group list-group-flush">
         @foreach($requests as $featureRequest)
             <div class="list-group-item px-0">
@@ -37,11 +20,21 @@
                         <span class="badge text-bg-warning">Pending</span>
                     @endif
                 </div>
+                @if($featureRequest->status === 'rejected')
+                    <div class="small text-danger mt-2">
+                        <strong>Decline reason:</strong>
+                        @if($featureRequest->rejection_reason)
+                            {{ $featureRequest->rejection_reason }}
+                        @else
+                            No reason was saved for this request.
+                        @endif
+                    </div>
+                @endif
                 @if($featureRequest->status === 'pending')
                     <form method="POST" action="{{ route('organizer.feature-requests.destroy', $featureRequest) }}" class="mt-2">
                         @csrf
                         @method('DELETE')
-                        <button type="submit" class="btn btn-sm btn-outline-danger">Retract request</button>
+                        <button type="submit" class="btn btn-sm btn-outline-danger">Cancel Request</button>
                     </form>
                 @endif
             </div>

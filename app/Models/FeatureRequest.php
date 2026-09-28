@@ -28,6 +28,7 @@ class FeatureRequest extends Model
         'description',
         'category_id',
         'status',
+        'rejection_reason',
         'reviewed_by',
         'reviewed_at',
     ];

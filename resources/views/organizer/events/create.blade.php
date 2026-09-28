@@ -231,6 +231,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title fw-bold" id="eventTypeRequestsModalLabel">My Event Type Requests</h5>
+                @include('organizer.events.partials.feature-request-clear-button', ['requests' => $eventTypeRequests, 'requestType' => 'event_type'])
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
@@ -245,6 +246,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title fw-bold" id="categoryRequestsModalLabel">My Category Requests</h5>
+                @include('organizer.events.partials.feature-request-clear-button', ['requests' => $categoryRequests, 'requestType' => 'category'])
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">

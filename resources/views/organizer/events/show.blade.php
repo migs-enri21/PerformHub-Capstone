@@ -9,9 +9,18 @@
 @section('content')
 @php
     $eventTypeName = 'Not set';
+    $singleImageUrl = null;
 
     if ($event->eventType) {
         $eventTypeName = $event->eventType->name;
+    }
+
+    if ($event->photos->count() === 1 && ! $event->photos->first()->isVideo()) {
+        $singleImageUrl = $event->photos->first()->fileUrl();
+    }
+
+    if ($event->photos->isEmpty() && $event->coverPhotoUrl()) {
+        $singleImageUrl = $event->coverPhotoUrl();
     }
 @endphp
 
@@ -44,12 +53,16 @@
                 @if($event->photos->first()->isVideo())
                     <video controls preload="metadata"><source src="{{ $event->photos->first()->fileUrl() }}"></video>
                 @else
-                    <img src="{{ $event->photos->first()->fileUrl() }}" alt="{{ $event->title }}">
+                    <button type="button" class="organizer-media-preview-button" data-bs-toggle="modal" data-bs-target="#eventImagePreviewModal">
+                        <img src="{{ $event->photos->first()->fileUrl() }}" alt="{{ $event->title }}">
+                    </button>
                 @endif
             </div>
         @elseif($event->coverPhotoUrl())
             <div class="organizer-event-cover organizer-event-detail-cover">
-                <img src="{{ $event->coverPhotoUrl() }}" alt="{{ $event->title }}">
+                <button type="button" class="organizer-media-preview-button" data-bs-toggle="modal" data-bs-target="#eventImagePreviewModal">
+                    <img src="{{ $event->coverPhotoUrl() }}" alt="{{ $event->title }}">
+                </button>
             </div>
         @endif
 
@@ -130,7 +143,23 @@
                 @endif
             </div>
         </div>
+</div>
+
+@if($singleImageUrl)
+    <div class="modal fade" id="eventImagePreviewModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">{{ $event->title }}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-center">
+                    <img src="{{ $singleImageUrl }}" alt="{{ $event->title }}" class="img-fluid">
+                </div>
+            </div>
+        </div>
     </div>
+@endif
 
     <hr class="my-4">
 

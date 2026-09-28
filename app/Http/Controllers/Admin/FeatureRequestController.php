@@ -142,6 +142,7 @@ class FeatureRequestController extends Controller
 
         $featureRequest->update([
             'status' => FeatureRequest::STATUS_REJECTED,
+            'rejection_reason' => $validated['reason'],
             'reviewed_by' => Auth::id(),
             'reviewed_at' => now(),
         ]);
