@@ -17,11 +17,6 @@
 
 <div class="performer-profile-card ph-card mb-4">
     <div class="performer-profile-banner" style="{{ $bannerStyle }}">
-        @if($editable)
-            <a href="{{ route('performer.profile.edit') }}#banner" class="btn btn-sm performer-profile-banner-edit">
-                <i class="fas fa-pen me-1"></i> Edit Banner
-            </a>
-        @endif
     </div>
 
     <div class="performer-profile-body">

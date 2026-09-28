@@ -72,6 +72,7 @@ Route::middleware(['auth', 'role:performer'])->prefix('performer')->name('perfor
     Route::get('/profile/edit', [PerformerProfileController::class, 'edit'])->name('profile.edit');
     Route::put('/profile', [PerformerProfileController::class, 'update'])->name('profile.update');
     Route::post('/feature-requests', [PerformerFeatureRequestController::class, 'store'])->name('feature-requests.store');
+    Route::delete('/feature-requests/{featureRequest}', [PerformerFeatureRequestController::class, 'destroy'])->name('feature-requests.destroy');
     Route::get('/portfolio', [PortfolioController::class, 'index'])->name('portfolio.index');
     Route::post('/portfolio', [PortfolioController::class, 'store'])->name('portfolio.store');
     Route::post('/portfolio/update', [PortfolioController::class, 'update'])->name('portfolio.update');

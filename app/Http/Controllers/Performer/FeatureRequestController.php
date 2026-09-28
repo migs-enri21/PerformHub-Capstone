@@ -55,5 +55,18 @@ class FeatureRequestController extends Controller
         }
 
         return back()->with('success', "{$typeLabel} request sent to the admin for review.");
+        
     }
+
+        public function destroy(FeatureRequest $featureRequest): RedirectResponse
+        {
+            abort_unless($featureRequest->requester_id === Auth::id(), 403);
+            abort_unless($featureRequest->status === FeatureRequest::STATUS_PENDING, 400);
+
+            $featureRequest->delete();
+
+            return back()->with('success', 'Request cancelled.');
+        }
+    
+
 }

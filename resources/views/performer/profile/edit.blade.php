@@ -237,14 +237,24 @@
                                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                                 </div>
                                 <div class="modal-body">
-                                    @foreach($pendingSpecialtyRequests as $request)
-                                        <div class="mb-3">
-                                            <p class="fw-semibold mb-1">{{ $request->name }}</p>
-                                            <p class="text-muted small mb-0">
-                                                {{ $request->description ?: 'No reason given.' }}
-                                            </p>
-                                        </div>
-                                    @endforeach
+                                @foreach($pendingSpecialtyRequests as $request)
+                                    <div class="mb-3">
+                                        <p class="fw-semibold mb-1">{{ $request->name }}</p>
+                                        <p class="text-muted small mb-0">
+                                            {{ $request->description ?: 'No reason given.' }}
+                                        </p>
+                                        <!-- Time stamp -->
+                                        <p class="text-muted small mt-3 mb-2">
+                                            {{ $request->created_at->format('M d, Y g:i A') }}
+                                        </p>
+
+                                        <form method="POST" action="{{ route('performer.feature-requests.destroy', $request) }}" class="mt-2">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="btn btn-outline-danger btn-sm">Cancel request</button>
+                                        </form>
+                                    </div>
+                                @endforeach
                                 </div>
                             </div>
                         </div>
@@ -258,14 +268,23 @@
                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
                     <div class="modal-body">
-                        @foreach($pendingGenreRequests as $request)
-                            <div class="mb-3">
-                                <p class="fw-semibold mb-1">{{ $request->name }}</p>
-                                <p class="text-muted small mb-0">
-                                    {{ $request->description ?: 'No reason given.' }}
-                                </p>
-                            </div>
-                        @endforeach
+                    @foreach($pendingGenreRequests as $request)
+                        <div class="mb-3">
+                            <p class="fw-semibold mb-1">{{ $request->name }}</p>
+                            <p class="text-muted small mb-0">
+                                {{ $request->description ?: 'No reason given.' }}
+                            </p>
+                            <!-- time stamp -->
+                            <p class="text-muted small mt-3 mb-2">
+                                {{ $request->created_at->format('M d, Y g:i A') }}
+                            </p>
+                            <form method="POST" action="{{ route('performer.feature-requests.destroy', $request) }}" class="mt-2">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="btn btn-outline-danger btn-sm">Cancel request</button>
+                            </form>
+                        </div>
+                    @endforeach
                     </div>
                 </div>
             </div>

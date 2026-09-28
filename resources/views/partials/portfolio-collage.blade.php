@@ -73,7 +73,7 @@
                         @endforeach
                     </div>
                     @if($performanceTypes)
-                        <div class="portfolio-type-badges mb-2">
+                       <div class="portfolio-type-badges mt-3 mb-2">
                             @foreach($performanceTypes as $typeName)
                                 <span class="portfolio-type-badge">{{ $typeName }}</span>
                             @endforeach

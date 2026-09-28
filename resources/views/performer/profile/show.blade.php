@@ -7,7 +7,7 @@
 @endsection
 
 @section('content')
-<div class="d-flex justify-content-end mb-2">
+<div class="d-flex justify-content-end mb-2 pe-3">
     <a href="{{ route('performer.profile.edit') }}" class="btn ph-btn-outline btn-sm">
         <i class="fas fa-pen me-1"></i> Edit Profile
     </a>
