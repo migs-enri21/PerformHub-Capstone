@@ -61,7 +61,7 @@
             <input type="date" id="availableDate" name="available_date" class="form-control ph-input" value="{{ request('available_date') }}">
         </div>
         <div class="col-md-6 col-lg-1 d-flex align-items-end">
-            <button class="btn ph-btn-primary w-100">Search</button>
+            <button type="submit" class="btn ph-btn-primary w-100 organizer-performer-search-button">Search</button>
         </div>
     </form>
 </div>
@@ -108,9 +108,9 @@
                     <p class="small mb-3"><strong>Rate:</strong> {{ implode(' · ', $rateLines) }}</p>
                 @endif
 
-                <div class="d-flex gap-2 mt-auto">
-                    <a href="{{ route('organizer.performers.show', $performer) }}" class="btn ph-btn-outline btn-sm flex-fill">View Profile</a>
-                    <a href="{{ route('organizer.bookings.create', ['performer' => $performer, 'event' => request('event')]) }}" class="btn ph-btn-primary btn-sm flex-fill">Book</a>
+                <div class="organizer-performer-card-actions mt-auto">
+                    <a href="{{ route('organizer.performers.show', $performer) }}" class="btn ph-btn-outline btn-sm">View Profile</a>
+                    <a href="{{ route('organizer.bookings.create', ['performer' => $performer, 'event' => request('event')]) }}" class="btn ph-btn-primary btn-sm">Book</a>
                 </div>
             </div>
         </div>

@@ -106,11 +106,14 @@ Route::middleware(['auth', 'role:organizer'])->prefix('organizer')->name('organi
     Route::get('/cancellation-requests', [CancellationRequestController::class, 'index'])->name('cancellation-requests.index');
     Route::get('/events', [OrganizerEventController::class, 'index'])->name('events.index');
     Route::post('/feature-requests', [OrganizerFeatureRequestController::class, 'store'])->name('feature-requests.store');
+    Route::delete('/feature-requests/reviewed/{type}', [OrganizerFeatureRequestController::class, 'clearReviewed'])->name('feature-requests.clear-reviewed');
+    Route::delete('/feature-requests/{featureRequest}', [OrganizerFeatureRequestController::class, 'destroy'])->name('feature-requests.destroy');
     Route::get('/events/create', [OrganizerEventController::class, 'create'])->name('events.create');
     Route::post('/events', [OrganizerEventController::class, 'store'])->name('events.store');
     Route::get('/events/{event}', [OrganizerEventController::class, 'show'])->name('events.show');
     Route::get('/events/{event}/edit', [OrganizerEventController::class, 'edit'])->name('events.edit');
     Route::put('/events/{event}', [OrganizerEventController::class, 'update'])->name('events.update');
+    Route::delete('/events/{event}/media/{photo}', [OrganizerEventController::class, 'destroyMedia'])->name('events.media.destroy');
     Route::patch('/events/{event}/complete', [OrganizerEventController::class, 'complete'])->name('events.complete');
     Route::delete('/events/{event}', [OrganizerEventController::class, 'destroy'])->name('events.destroy');
     Route::get('/calendar', [CalendarController::class, 'index'])->name('calendar.index');

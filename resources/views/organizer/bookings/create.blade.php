@@ -10,45 +10,33 @@
 @php
     $eventDetails = [
         'id' => null,
-        'title' => null,
-        'date' => null,
-        'start_time' => null,
-        'end_time' => null,
-        'venue' => null,
         'budget' => null,
-        'description' => null,
     ];
 
     if ($selectedEvent) {
         $eventDetails = [
             'id' => $selectedEvent->id,
-            'title' => $selectedEvent->title,
-            'date' => $selectedEvent->event_date,
-            'start_time' => $selectedEvent->start_time,
-            'end_time' => $selectedEvent->end_time,
-            'venue' => $selectedEvent->venue,
             'budget' => $selectedEvent->budget,
-            'description' => $selectedEvent->description,
         ];
     }
 
     $selectedEventBudget = $eventDetails['budget'];
     $fromApplicationValue = 0;
 
-    if (! empty($fromApplication)) {
+    if (!empty($fromApplication)) {
         $fromApplicationValue = 1;
     }
 @endphp
 
 <h2 class="fw-bold mb-2">
-    @if(! empty($fromApplication))
+    @if(!empty($fromApplication))
         Accept Application: {{ $performer->stage_name }}
     @else
         Book {{ $performer->stage_name }}
     @endif
 </h2>
 
-@if(! empty($fromApplication))
+@if(!empty($fromApplication))
     <p class="text-muted mb-4">This performer already applied. Submitting this form marks the application as accepted.</p>
 @endif
 @if($existingBooking)
@@ -68,13 +56,33 @@
         <div class="row g-3">
             <div class="mb-4">
 
-    <label class="form-label">Select Event to Book</label>
+    <label class="form-label fw-semibold" for="eventSelector">Choose an Active Event</label>
 
     <select id="eventSelector" class="form-select ph-input">
 
-        <option value=""> -- Select an Event --</option>
+        <option value="">Select an active event</option>
 
         @foreach($events as $event)
+            @php
+                $eventTypeName = 'Event type not set';
+                $compensationLabel = 'Compensation not set';
+
+                if ($event->eventType) {
+                    $eventTypeName = $event->eventType->name;
+                }
+
+                if ($event->compensation_type === 'fixed') {
+                    $compensationLabel = 'Fixed Budget';
+                }
+
+                if ($event->compensation_type === 'hourly') {
+                    $compensationLabel = 'Rate per Hour';
+                }
+
+                if ($event->compensation_type === 'contest') {
+                    $compensationLabel = 'Contest Prizes';
+                }
+            @endphp
 
             <option
                 value="{{ $event->id }}"
@@ -86,30 +94,51 @@
                 data-venue="{{ $event->venue }}"
                 data-description="{{ $event->description }}"
                 data-budget="{{ $event->budget }}"
+                data-compensation-type="{{ $event->compensation_type }}"
+                data-first-prize="{{ $event->first_prize }}"
+                data-second-prize="{{ $event->second_prize }}"
+                data-third-prize="{{ $event->third_prize }}"
+                data-date-label="{{ \Illuminate\Support\Carbon::parse($event->event_date)->format('M d, Y') }}"
+                data-time-label="{{ \Illuminate\Support\Carbon::parse($event->start_time)->format('g:i A') }} - {{ \Illuminate\Support\Carbon::parse($event->end_time)->format('g:i A') }}"
+                data-event-type="{{ $eventTypeName }}"
+                data-compensation="{{ $compensationLabel }}"
                 @selected($eventDetails['id'] == $event->id)>
 
-                {{ $event->title }}
+                {{ $event->title }} — {{ \Illuminate\Support\Carbon::parse($event->event_date)->format('M d') }}, {{ \Illuminate\Support\Carbon::parse($event->start_time)->format('g:i A') }}
 
             </option>
         @endforeach
 
             </select>
+            <small class="text-muted d-block mt-2">Only today’s and upcoming active events are shown.</small>
             <input type="hidden" name="event_id" id="event_id" value="{{ $eventDetails['id'] }}">
             @error('event_id')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
             </div>
 
-            <div class="col-md-6"><label class="form-label text-muted small">Event Name</label><input type="text" name="event_name" class="form-control ph-input @error('event_name') is-invalid @enderror" id="event_name" value="{{ old('event_name', $eventDetails['title']) }}">@error('event_name')<div class="invalid-feedback">{{ $message }}</div>@enderror</div>
-            <div class="col-md-3"><label class="form-label text-muted small">Event Date</label><input type="date" name="event_date" class="form-control ph-input @error('event_date') is-invalid @enderror" id="event_date" value="{{ old('event_date', $eventDetails['date']) }}">@error('event_date')<div class="invalid-feedback">{{ $message }}</div>@enderror</div>
-            <div class="col-md-3"><label class="form-label text-muted small">Event Time</label><input type="time" name="event_time" class="form-control ph-input @error('event_time') is-invalid @enderror" id="event_time" value="{{ old('event_time', $eventDetails['start_time']) }}">@error('event_time')<div class="invalid-feedback">{{ $message }}</div>@enderror</div>
-            <div class="col-md-6"><label class="form-label text-muted small">Venue</label><input type="text" name="venue" class="form-control ph-input @error('venue') is-invalid @enderror" id="venue" value="{{ old('venue', $eventDetails['venue']) }}">@error('venue')<div class="invalid-feedback">{{ $message }}</div>@enderror</div>
+            <div id="selectedEventSummary" class="organizer-booking-event-summary d-none">
+                <div class="organizer-booking-event-summary-title">Selected Event</div>
+                <div class="organizer-booking-event-summary-name" id="summaryEventName"></div>
+                <div class="organizer-booking-event-summary-details">
+                    <span id="summaryEventDate"></span>
+                    <span id="summaryEventTime"></span>
+                    <span id="summaryEventVenue"></span>
+                    <span id="summaryEventType"></span>
+                    <span id="summaryEventCompensation"></span>
+                </div>
+            </div>
+
+            <div class="col-12 d-none" id="contestPrizeNotice">
+                <div class="alert alert-info mb-0">
+                    <strong>Prize-based contest entry.</strong> Contestants do not receive a guaranteed booking fee. Only the winners receive prizes.
+                    <div class="small mt-1" id="contestPrizeDetails"></div>
+                </div>
+            </div>
             <div class="col-md-4"><label class="form-label text-muted small">Budget Offer (₱)</label><input type="number" name="budget" id="budget" class="form-control ph-input @error('budget') is-invalid @enderror" value="{{ old('budget', $selectedEventBudget) }}" step="0.01">@error('budget')<div class="invalid-feedback">{{ $message }}</div>@enderror</div>
-            <div class="col-md-3"><label class="form-label text-muted small">End Time</label><input type="time" name="end_time" id="end_time" class="form-control ph-input @error('end_time') is-invalid @enderror" value="{{ old('end_time', $eventDetails['end_time']) }}">@error('end_time')<div class="invalid-feedback">{{ $message }}</div>@enderror</div>
-            <div class="col-12"><label class="form-label text-muted small">Requirements</label><textarea id="requirements" name="requirements" class="form-control ph-input">{{ old('requirements', $eventDetails['description']) }}</textarea></div>
-            <div class="col-12"><label class="form-label text-muted small">Notes</label><textarea name="notes" class="form-control ph-input" rows="2"></textarea></div>
+            <div class="col-12"><label class="form-label text-muted small">Notes for Performer (Optional)</label><textarea name="notes" class="form-control ph-input" rows="2">{{ old('notes') }}</textarea></div>
 
         </div>
         <button type="submit" class="btn ph-btn-primary mt-4">
-            @if(! empty($fromApplication))
+            @if(!empty($fromApplication))
                 Accept Application
             @else
                 Send Booking Request
@@ -120,36 +149,68 @@
 @endif
 
     <script>
-    document.addEventListener('DOMContentLoaded', () => {
+    document.addEventListener('DOMContentLoaded', function () {
 
     const selector = document.getElementById('eventSelector');
-    const eventTimeInput = document.getElementById('event_time');
-    const endTimeInput = document.getElementById('end_time');
+    const selectedEventSummary = document.getElementById('selectedEventSummary');
+    const budgetInput = document.getElementById('budget');
+    const budgetOfferField = budgetInput.closest('.col-md-4');
+    const contestPrizeNotice = document.getElementById('contestPrizeNotice');
+    const contestPrizeDetails = document.getElementById('contestPrizeDetails');
 
-    function removeSeconds(time) {
-        if (time) {
-            return time.substring(0, 5);
-        }
+    function updateSelectedEvent() {
 
-        return '';
+            const selected = selector.options[selector.selectedIndex];
+
+            if (!selected.dataset.id) {
+                document.getElementById('event_id').value = '';
+                selectedEventSummary.classList.add('d-none');
+                return;
+            }
+
+            document.getElementById('event_id').value = selected.dataset.id || '';
+            document.getElementById('summaryEventName').textContent = selected.dataset.title;
+            document.getElementById('summaryEventDate').textContent = selected.dataset.dateLabel;
+            document.getElementById('summaryEventTime').textContent = selected.dataset.timeLabel;
+            document.getElementById('summaryEventVenue').textContent = selected.dataset.venue;
+            document.getElementById('summaryEventType').textContent = selected.dataset.eventType;
+            document.getElementById('summaryEventCompensation').textContent = selected.dataset.compensation;
+
+            if (selected.dataset.compensationType === 'contest') {
+                budgetInput.value = '';
+                budgetInput.disabled = true;
+                budgetOfferField.classList.add('d-none');
+                contestPrizeNotice.classList.remove('d-none');
+                showContestPrizes(selected);
+            } else {
+                budgetInput.value = selected.dataset.budget || '';
+                budgetInput.disabled = false;
+                budgetOfferField.classList.remove('d-none');
+                contestPrizeNotice.classList.add('d-none');
+            }
+            selectedEventSummary.classList.remove('d-none');
     }
 
-    eventTimeInput.value = removeSeconds(eventTimeInput.value);
-    endTimeInput.value = removeSeconds(endTimeInput.value);
+    function showContestPrizes(selected) {
+        const prizes = [];
 
-    selector.addEventListener('change', function () {
+        if (selected.dataset.firstPrize) {
+            prizes.push('1st: ₱' + Number(selected.dataset.firstPrize).toLocaleString());
+        }
 
-            const selected = this.options[this.selectedIndex];
+        if (selected.dataset.secondPrize) {
+            prizes.push('2nd: ₱' + Number(selected.dataset.secondPrize).toLocaleString());
+        }
 
-            document.getElementById('event_name').value = selected.dataset.title || '';
-            document.getElementById('event_id').value = selected.dataset.id || '';
-            document.getElementById('event_date').value = selected.dataset.date || '';
-            eventTimeInput.value = removeSeconds(selected.dataset.start);
-            endTimeInput.value = removeSeconds(selected.dataset.end);
-            document.getElementById('venue').value = selected.dataset.venue || '';
-            document.getElementById('budget').value = selected.dataset.budget || '';
-            document.getElementById('requirements').value = selected.dataset.description || '';;
-        });
+        if (selected.dataset.thirdPrize) {
+            prizes.push('3rd: ₱' + Number(selected.dataset.thirdPrize).toLocaleString());
+        }
+
+        contestPrizeDetails.textContent = prizes.join(' · ');
+    }
+
+    selector.addEventListener('change', updateSelectedEvent);
+    updateSelectedEvent();
 
     });
     </script>

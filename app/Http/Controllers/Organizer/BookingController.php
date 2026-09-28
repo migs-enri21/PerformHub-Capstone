@@ -10,6 +10,7 @@ use App\Models\Notification;
 use App\Models\PerformerProfile;
 use App\Services\SupabaseStorageService;
 use App\Services\SignWellService;
+use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -20,7 +21,10 @@ class BookingController extends Controller
 {
     public function create(Request $request, PerformerProfile $performer): View
     {
-        $events = Event::where('organizer_id', Auth::id())->latest()->get();
+        $events = $this->activeEvents()
+            ->orderBy('event_date')
+            ->orderBy('start_time')
+            ->get();
         $selectedEvent = $this->getSelectedEvent($request);
         $existingBooking = $this->findActiveBooking($performer, $selectedEvent);
         $fromApplication = $request->boolean('from_application');
@@ -30,9 +34,19 @@ class BookingController extends Controller
 
     public function store(Request $request, PerformerProfile $performer): RedirectResponse
     {
-        $validated = $this->validateBooking($request);
+        $event = $this->activeEvents()->find($request->input('event_id'));
 
-        $event = Event::find($validated['event_id']);
+        if (! $event) {
+            return back()->with('error', 'Select an active event before sending a booking request.');
+        }
+
+        $validated = $this->validateBooking($request, $event);
+        $validated = $this->bookingDetailsFromEvent($event, $validated);
+
+        if ($event->compensation_type === 'contest') {
+            $validated['budget'] = null;
+        }
+
         $existingBooking = $this->findActiveBooking($performer, $event);
 
         if ($existingBooking) {
@@ -148,13 +162,19 @@ class BookingController extends Controller
         $this->ensureBookingOwner($booking);
 
         try {
-            $isNewlyCompleted = $signWell->syncStatus($booking);
+            $isNewlySigned = $signWell->syncStatus($booking);
         } catch (\RuntimeException $exception) {
             return back()->with('error', $exception->getMessage());
         }
 
-        if ($isNewlyCompleted) {
-            return back()->with('success', 'The signed contract was received from SignWell. This date is now booked.');
+        $booking->refresh();
+
+        if ($isNewlySigned) {
+            return back()->with('success', 'The signed contract was received from SignWell. Review it, then confirm the booking.');
+        }
+
+        if ($booking->isSigned()) {
+            return back()->with('info', 'The signed contract is ready. Confirm the booking when you are ready.');
         }
 
         return back()->with('warning', 'The performer has not finished signing yet.');
@@ -228,22 +248,30 @@ class BookingController extends Controller
 
     private function getSelectedEvent(Request $request): ?Event
     {
-        if (! $request->filled('event')) {
+        $eventId = $request->input('event');
+
+        if (! $eventId) {
+            $eventId = $request->old('event_id');
+        }
+
+        if (! $eventId) {
             return null;
         }
 
-        return Event::where('organizer_id', Auth::id())->find($request->event);
+        return $this->activeEvents()->find($eventId);
     }
 
-    private function validateBooking(Request $request): array
+    private function activeEvents()
     {
-        return $request->validate([
-            'event_name' => ['required', 'string', 'max:255'],
-            'event_date' => ['required', 'date', 'after_or_equal:today'],
-            'event_time' => ['required', 'date_format:H:i'],
-            'end_time' => ['required', 'date_format:H:i'],
-            'venue' => ['required', 'string', 'max:255'],
-            'requirements' => ['nullable', 'string', 'max:2000'],
+        return Event::with('eventType')
+            ->where('organizer_id', Auth::id())
+            ->whereIn('status', ['Open', 'open', 'Ongoing', 'ongoing'])
+            ->whereDate('event_date', '>=', today());
+    }
+
+    private function validateBooking(Request $request, Event $event): array
+    {
+        $rules = [
             'notes' => ['nullable', 'string', 'max:1000'],
             'budget' => ['required', 'numeric', 'min:0'],
             'event_id' => [
@@ -252,7 +280,25 @@ class BookingController extends Controller
                     return $query->where('organizer_id', Auth::id());
                 }),
             ],
-        ]);
+        ];
+
+        if ($event->compensation_type === 'contest') {
+            $rules['budget'] = ['nullable', 'numeric', 'min:0'];
+        }
+
+        return $request->validate($rules);
+    }
+
+    private function bookingDetailsFromEvent(Event $event, array $bookingDetails): array
+    {
+        $bookingDetails['event_name'] = $event->title;
+        $bookingDetails['event_date'] = $event->event_date;
+        $bookingDetails['event_time'] = Carbon::parse($event->start_time)->format('H:i');
+        $bookingDetails['end_time'] = Carbon::parse($event->end_time)->format('H:i');
+        $bookingDetails['venue'] = $event->venue;
+        $bookingDetails['requirements'] = $event->description;
+
+        return $bookingDetails;
     }
 
     private function findActiveBooking(PerformerProfile $performer, ?Event $event): ?Booking

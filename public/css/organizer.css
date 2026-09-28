@@ -35,6 +35,20 @@
     color: #ffffff;
 }
 
+.ph-btn-success {
+    background: #198754;
+    border: none;
+    border-radius: 10px;
+    color: #ffffff;
+    font-weight: 600;
+    padding: 0.75rem 1.5rem;
+}
+
+.ph-btn-success:hover {
+    background: #157347;
+    color: #ffffff;
+}
+
 .ph-card .form-control,
 .ph-card .form-select,
 .ph-card textarea{
@@ -153,6 +167,18 @@
     object-fit: cover;
 }
 
+.organizer-event-activity-post .event-feed-collage.portfolio-collage--2 {
+    aspect-ratio: 32 / 9;
+    max-height: none;
+    min-height: 0;
+}
+
+.organizer-event-activity-post .event-feed-collage .portfolio-collage-tile img,
+.organizer-event-activity-post .event-feed-collage .portfolio-collage-tile video {
+    background: transparent;
+    object-fit: cover;
+}
+
 .organizer-event-detail-cover {
     background: #fff;
     height: 330px;
@@ -170,6 +196,48 @@
     max-height: 120px;
     object-fit: contain;
     background: #000;
+}
+
+.organizer-media-preview-button {
+    display: block;
+    width: 100%;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+}
+
+.organizer-edit-media-item {
+    position: relative;
+}
+
+.organizer-edit-media-remove,
+.organizer-selected-media-remove {
+    position: absolute;
+    right: 0.35rem;
+    top: 0.35rem;
+    z-index: 2;
+}
+
+.organizer-edit-media-remove button,
+.organizer-selected-media-remove {
+    align-items: center;
+    background: rgba(31, 41, 55, 0.82);
+    border: 0;
+    border-radius: 50%;
+    color: #fff;
+    display: flex;
+    font-size: 1.15rem;
+    height: 1.8rem;
+    justify-content: center;
+    line-height: 1;
+    padding: 0;
+    width: 1.8rem;
+}
+
+.organizer-edit-media-remove button:hover,
+.organizer-selected-media-remove:hover {
+    background: #dc3545;
 }
 
 .organizer-events-header {
@@ -490,6 +558,11 @@
     padding: 1.25rem;
 }
 
+.organizer-performer-search-button {
+    min-height: calc(1.5em + 0.75rem + 2px);
+    padding: 0.375rem 0.75rem;
+}
+
 .organizer-performer-card {
     background: #fff;
     border: 1px solid #e3dcf7;
@@ -524,6 +597,19 @@
     color: #5b35c8;
     font-size: 0.75rem;
     padding: 0.25rem 0.55rem;
+}
+
+.organizer-performer-card-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.organizer-performer-card-actions .btn {
+    align-items: center;
+    display: flex;
+    flex: 1;
+    justify-content: center;
+    min-height: 48px;
 }
 
 .organizer-performers-empty {
@@ -604,6 +690,37 @@
     justify-content: flex-end;
 }
 
+.organizer-booking-event-summary {
+    background: #f8f6ff;
+    border: 1px solid #e3dcf7;
+    border-radius: 12px;
+    margin-bottom: 1rem;
+    padding: 1rem;
+}
+
+.organizer-booking-event-summary-title {
+    color: #6d3df5;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.organizer-booking-event-summary-name {
+    color: var(--ph-text);
+    font-size: 1.05rem;
+    font-weight: 700;
+    margin: 0.2rem 0 0.5rem;
+}
+
+.organizer-booking-event-summary-details {
+    color: #5d6177;
+    display: flex;
+    flex-wrap: wrap;
+    font-size: 0.88rem;
+    gap: 0.45rem 1rem;
+}
+
 @media (max-width: 1199px) {
     .org-right-column { position: static; }
 }
@@ -633,4 +750,30 @@
     .organizer-applicant-actions {
         width: 100%;
     }
+}
+.organizer-request-title {
+    border: 0;
+    background: transparent;
+    padding: 0;
+    color: inherit;
+    font-weight: 600;
+}
+
+.organizer-request-title:hover {
+    color: #6f42f5;
+    text-decoration: underline;
+}
+
+.organizer-request-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 18px;
+    height: 18px;
+    margin-left: 3px;
+    border-radius: 50%;
+    background: #dc3545;
+    color: #ffffff;
+    font-size: 0.7rem;
+    font-weight: 700;
 }

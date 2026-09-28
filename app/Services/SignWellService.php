@@ -126,6 +126,8 @@ class SignWellService
             return false;
         }
 
+        $wasSigned = $booking->isSigned();
+
         $documentUrl = 'https://www.signwell.com/api/v1/documents/'.$booking->signwell_document_id;
         $response = Http::acceptJson()
             ->withHeaders(['X-Api-Key' => config('services.signwell.api_key')])
@@ -171,6 +173,6 @@ class SignWellService
             }
         }
 
-        return $booking->markCompletedFromSignature();
+        return ! $wasSigned;
     }
 }

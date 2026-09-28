@@ -5,7 +5,9 @@ namespace App\Http\Controllers\Organizer;
 use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Models\Event;
+use App\Models\EventPhoto;
 use App\Models\EventType;
+use App\Models\FeatureRequest;
 use App\Models\Booking;
 use App\Models\Genre;
 use App\Models\OrganizerProfile;
@@ -54,8 +56,16 @@ class EventController extends Controller
         $eventTypes = EventType::where('is_active', true)->orderBy('name')->get();
         $categories = Category::orderBy('name')->get();
         $genreCategories = $this->getGenreCategories();
+        $eventTypeRequests = $this->featureRequestsFor(FeatureRequest::TYPE_EVENT_TYPE);
+        $categoryRequests = $this->featureRequestsFor(FeatureRequest::TYPE_CATEGORY);
 
-        return view('organizer.events.create', compact('eventTypes', 'categories', 'genreCategories'));
+        return view('organizer.events.create', compact(
+            'eventTypes',
+            'categories',
+            'genreCategories',
+            'eventTypeRequests',
+            'categoryRequests'
+        ));
     }
 
     public function store(Request $request): RedirectResponse
@@ -129,6 +139,7 @@ class EventController extends Controller
     {
         $this->authorizeEvent($event);
 
+        $this->syncLegacyCoverPhoto($event);
         $event->load(['photos', 'categories']);
         $eventTypes = EventType::where('is_active', true)->orderBy('name')->get();
         $categories = Category::orderBy('name')->get();
@@ -136,8 +147,17 @@ class EventController extends Controller
             OptionList::wrap($event->preferred_genres),
             $event->categories->pluck('id')->all()
         );
+        $eventTypeRequests = $this->featureRequestsFor(FeatureRequest::TYPE_EVENT_TYPE);
+        $categoryRequests = $this->featureRequestsFor(FeatureRequest::TYPE_CATEGORY);
 
-        return view('organizer.events.edit', compact('event', 'eventTypes', 'categories', 'genreCategories'));
+        return view('organizer.events.edit', compact(
+            'event',
+            'eventTypes',
+            'categories',
+            'genreCategories',
+            'eventTypeRequests',
+            'categoryRequests'
+        ));
     }
 
     public function update(Request $request, Event $event): RedirectResponse
@@ -183,6 +203,37 @@ class EventController extends Controller
         return redirect()
             ->route('organizer.events.index')
             ->with('success', 'Event deleted successfully.');
+    }
+
+    public function destroyMedia(Event $event, EventPhoto $photo): RedirectResponse
+    {
+        $this->authorizeEvent($event);
+
+        if ($photo->event_id !== $event->id) {
+            abort(404);
+        }
+
+        $wasCoverPhoto = $event->cover_photo === $photo->file_path;
+
+        if (!str_starts_with($photo->file_path, 'http')) {
+            $supabase = new SupabaseStorageService();
+            $supabase->delete('organizer-files', $photo->file_path);
+        }
+
+        $photo->delete();
+
+        if ($wasCoverPhoto) {
+            $nextPhoto = $event->photos()->first();
+            $newCoverPhoto = null;
+
+            if ($nextPhoto) {
+                $newCoverPhoto = $nextPhoto->file_path;
+            }
+
+            $event->update(['cover_photo' => $newCoverPhoto]);
+        }
+
+        return back()->with('success', 'Event media removed.');
     }
 
     public function complete(Event $event): RedirectResponse
@@ -253,11 +304,7 @@ class EventController extends Controller
             $allowedGenres = array_values($allowedGenres);
         }
 
-        $eventDateRules = ['required', 'date'];
-
-        if (! $updating) {
-            $eventDateRules[] = 'after_or_equal:today';
-        }
+        $eventDateRules = ['required', 'date', 'after_or_equal:today'];
 
         $rules = [
             'event_type_id' => ['required', 'exists:event_types,id'],
@@ -303,6 +350,8 @@ class EventController extends Controller
 
         $validated = $request->validate($rules);
 
+        $this->validateContestPrizeOrder($validated);
+
         if (!array_key_exists('preferred_genres', $validated)) {
             $validated['preferred_genres'] = [];
         }
@@ -311,6 +360,25 @@ class EventController extends Controller
         $this->ensureOrganizerScheduleAvailable($validated, $event);
 
         return $validated;
+    }
+
+    private function validateContestPrizeOrder(array $eventDetails): void
+    {
+        if ($eventDetails['compensation_type'] !== 'contest') {
+            return;
+        }
+
+        if ($eventDetails['first_prize'] <= $eventDetails['second_prize']) {
+            throw ValidationException::withMessages([
+                'first_prize' => 'First prize must be higher than second prize.',
+            ]);
+        }
+
+        if ($eventDetails['second_prize'] <= $eventDetails['third_prize']) {
+            throw ValidationException::withMessages([
+                'second_prize' => 'Second prize must be higher than third prize.',
+            ]);
+        }
     }
 
     private function ensureOrganizerScheduleAvailable(array $eventDetails, ?Event $event): void
@@ -575,5 +643,13 @@ class EventController extends Controller
         ksort($genreCategories);
 
         return $genreCategories;
+    }
+
+    private function featureRequestsFor(string $type)
+    {
+        return FeatureRequest::where('requester_id', Auth::id())
+            ->where('type', $type)
+            ->latest()
+            ->get();
     }
 }

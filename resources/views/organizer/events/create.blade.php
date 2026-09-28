@@ -10,6 +10,8 @@
 @php
     $selectedCategoryIds = old('category_ids', []);
     $selectedPreferredGenres = old('preferred_genres', []);
+    $pendingEventTypeRequests = $eventTypeRequests->where('status', 'pending')->count();
+    $pendingCategoryRequests = $categoryRequests->where('status', 'pending')->count();
 @endphp
 
 <div class="container organizer-event-form">
@@ -20,21 +22,24 @@
 
     <div class="ph-card p-4 p-lg-5">
         <form method="POST" action="{{ route('organizer.events.store') }}" enctype="multipart/form-data">
+
             @csrf
 
             <div class="row g-4">
                 <div class="col-12">
                     <label class="form-label fw-semibold">Event Photos</label>
-                    <input type="file" name="photos[]" class="form-control ph-input" multiple>
+                    <input type="file" name="photos[]" id="eventPhotos" class="form-control ph-input" multiple>
                     <small class="text-muted d-block">Photos can be JPG, PNG, or WEBP, up to 5 MB each.</small>
+                    <div class="row g-2 mt-1" id="eventPhotoPreview"></div>
                     @error('photos')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
                     @error('photos.*')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
                 </div>
 
                 <div class="col-12">
                     <label class="form-label fw-semibold">Event Videos</label>
-                    <input type="file" name="videos[]" class="form-control ph-input" multiple>
+                    <input type="file" name="videos[]" id="eventVideos" class="form-control ph-input" multiple>
                     <small class="text-muted">Videos can be MP4 or WEBM, up to 25 MB each. You can upload up to 3 photos and videos combined.</small>
+                    <div class="row g-2 mt-1" id="eventVideoPreview"></div>
                     @error('videos')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
                     @error('videos.*')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
                 </div>
@@ -47,10 +52,17 @@
 
                 <div class="col-md-6">
                     <div class="d-flex justify-content-between align-items-center mb-1">
-                        <label class="form-label mb-0">Event Type</label>
-                        <button type="button" class="organizer-request-option" data-bs-toggle="modal" data-bs-target="#featureRequestModal" data-request-type="event_type">
-                            <i class="fas fa-plus-circle"></i> Request event type
+                        <button type="button" class="form-label mb-0 organizer-request-title" data-bs-toggle="modal" data-bs-target="#eventTypeRequestsModal">
+                            Event Type
+                            @if($pendingEventTypeRequests > 0)
+                                <span class="organizer-request-count">{{ $pendingEventTypeRequests }}</span>
+                            @endif
                         </button>
+                        <div class="d-flex align-items-center gap-2">
+                            <button type="button" class="organizer-request-option" data-bs-toggle="modal" data-bs-target="#featureRequestModal" data-request-type="event_type">
+                                <i class="fas fa-plus-circle"></i> Request event type
+                            </button>
+                        </div>
                     </div>
                     <select class="form-select ph-input @error('event_type_id') is-invalid @enderror" name="event_type_id" id="event_type_id">
                         <option value="">Select Event Type</option>
@@ -76,10 +88,17 @@
 
                 <div class="col-12">
                     <div class="d-flex justify-content-between align-items-center mb-1">
-                        <label class="form-label mb-0">Required Performer Categories</label>
-                        <button type="button" class="organizer-request-option" data-bs-toggle="modal" data-bs-target="#featureRequestModal" data-request-type="category">
-                            <i class="fas fa-plus-circle"></i> Request category
+                        <button type="button" class="form-label mb-0 organizer-request-title" data-bs-toggle="modal" data-bs-target="#categoryRequestsModal">
+                            Required Performer Categories
+                            @if($pendingCategoryRequests > 0)
+                                <span class="organizer-request-count">{{ $pendingCategoryRequests }}</span>
+                            @endif
                         </button>
+                        <div class="d-flex align-items-center gap-2">
+                            <button type="button" class="organizer-request-option" data-bs-toggle="modal" data-bs-target="#featureRequestModal" data-request-type="category">
+                                <i class="fas fa-plus-circle"></i> Request category
+                            </button>
+                        </div>
                     </div>
                     <div class="organizer-category-list @error('category_ids') organizer-category-list-error @enderror">
                         <div class="row row-cols-2 row-cols-md-3 g-2">
@@ -118,7 +137,7 @@
 
                 <div class="col-md-4">
                     <label class="form-label">Event Date</label>
-                    <input type="date" class="form-control ph-input @error('event_date') is-invalid @enderror" name="event_date" value="{{ old('event_date') }}">
+                    <input type="date" class="form-control ph-input @error('event_date') is-invalid @enderror" name="event_date" value="{{ old('event_date') }}" min="{{ now()->toDateString() }}">
                     @error('event_date')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     <small class="text-muted d-block mt-1">Up to 3 active events may be scheduled on one day, with a 3-hour gap between them.</small>
                 </div>
@@ -165,21 +184,22 @@
                             <div class="row g-4">
                                 <div class="col-md-4">
                                     <label class="form-label">First Prize (&#8369;)</label>
-                                    <input type="number" class="form-control ph-input" name="first_prize" value="{{ old('first_prize') }}" step="0.01">
+                                    <input type="number" class="form-control ph-input" name="first_prize" id="first_prize" value="{{ old('first_prize') }}" step="0.01">
                                     @error('first_prize')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
                                 </div>
                                 <div class="col-md-4">
                                     <label class="form-label">Second Prize (&#8369;)</label>
-                                    <input type="number" class="form-control ph-input" name="second_prize" value="{{ old('second_prize') }}" step="0.01">
+                                    <input type="number" class="form-control ph-input" name="second_prize" id="second_prize" value="{{ old('second_prize') }}" step="0.01">
                                     @error('second_prize')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
                                 </div>
                                 <div class="col-md-4">
                                     <label class="form-label">Third Prize (&#8369;)</label>
-                                    <input type="number" class="form-control ph-input" name="third_prize" value="{{ old('third_prize') }}" step="0.01">
+                                    <input type="number" class="form-control ph-input" name="third_prize" id="third_prize" value="{{ old('third_prize') }}" step="0.01">
                                     @error('third_prize')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
                                 </div>
                             </div>
                         </div>
+                        <div class="text-danger small mt-2 d-none" id="contestPrizeOrderError"></div>
                     </div>
                 </div>
             </div>
@@ -189,6 +209,48 @@
                 <button type="submit" class="btn ph-btn-primary">Create Event</button>
             </div>
         </form>
+    </div>
+</div>
+
+<div class="modal fade" id="eventImagePreviewModal" tabindex="-1" aria-labelledby="eventImagePreviewModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="eventImagePreviewModalLabel">Event Photo</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center">
+                <img src="" alt="Event photo preview" class="img-fluid" id="eventImagePreview">
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="eventTypeRequestsModal" tabindex="-1" aria-labelledby="eventTypeRequestsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold" id="eventTypeRequestsModalLabel">My Event Type Requests</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                @include('organizer.events.partials.feature-request-list', ['requests' => $eventTypeRequests, 'requestType' => 'event_type'])
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="categoryRequestsModal" tabindex="-1" aria-labelledby="categoryRequestsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold" id="categoryRequestsModalLabel">My Category Requests</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                @include('organizer.events.partials.feature-request-list', ['requests' => $categoryRequests, 'requestType' => 'category'])
+            </div>
+        </div>
     </div>
 </div>
 
@@ -228,6 +290,109 @@ document.addEventListener('DOMContentLoaded', function () {
     const featureRequestType = document.getElementById('featureRequestType');
     const featureRequestName = document.getElementById('featureRequestName');
     const featureRequestModalLabel = document.getElementById('featureRequestModalLabel');
+    const eventPhotos = document.getElementById('eventPhotos');
+    const eventPhotoPreview = document.getElementById('eventPhotoPreview');
+    const eventVideos = document.getElementById('eventVideos');
+    const eventVideoPreview = document.getElementById('eventVideoPreview');
+    const eventImagePreviewModal = document.getElementById('eventImagePreviewModal');
+    const eventImagePreview = document.getElementById('eventImagePreview');
+    const firstPrize = document.getElementById('first_prize');
+    const secondPrize = document.getElementById('second_prize');
+    const thirdPrize = document.getElementById('third_prize');
+    const contestPrizeOrderError = document.getElementById('contestPrizeOrderError');
+
+    function openImagePreview(imageUrl) {
+        eventImagePreview.src = imageUrl;
+        bootstrap.Modal.getOrCreateInstance(eventImagePreviewModal).show();
+    }
+
+    function showSelectedPhotos() {
+        eventPhotoPreview.innerHTML = '';
+
+        Array.from(eventPhotos.files).forEach(function (file, index) {
+            if (!file.type.startsWith('image/')) {
+                return;
+            }
+
+            const imageUrl = URL.createObjectURL(file);
+            const column = document.createElement('div');
+            const mediaItem = document.createElement('div');
+            const button = document.createElement('button');
+            const image = document.createElement('img');
+            const removeButton = document.createElement('button');
+
+            column.className = 'col-4 col-md-3';
+            mediaItem.className = 'organizer-edit-media-item';
+            button.type = 'button';
+            button.className = 'organizer-media-preview-button';
+            image.src = imageUrl;
+            image.alt = 'Selected event photo';
+            image.className = 'rounded w-100 organizer-event-thumb';
+            button.appendChild(image);
+            button.addEventListener('click', function () {
+                openImagePreview(imageUrl);
+            });
+            removeButton.type = 'button';
+            removeButton.className = 'organizer-selected-media-remove';
+            removeButton.setAttribute('aria-label', 'Remove selected photo');
+            removeButton.textContent = '×';
+            removeButton.addEventListener('click', function () {
+                removeSelectedFile(eventPhotos, index);
+                showSelectedPhotos();
+            });
+            mediaItem.appendChild(button);
+            mediaItem.appendChild(removeButton);
+            column.appendChild(mediaItem);
+            eventPhotoPreview.appendChild(column);
+        });
+    }
+
+    function showSelectedVideos() {
+        eventVideoPreview.innerHTML = '';
+
+        Array.from(eventVideos.files).forEach(function (file, index) {
+            if (!file.type.startsWith('video/')) {
+                return;
+            }
+
+            const videoUrl = URL.createObjectURL(file);
+            const column = document.createElement('div');
+            const mediaItem = document.createElement('div');
+            const video = document.createElement('video');
+            const removeButton = document.createElement('button');
+
+            column.className = 'col-4 col-md-3';
+            mediaItem.className = 'organizer-edit-media-item';
+            video.src = videoUrl;
+            video.controls = true;
+            video.className = 'rounded w-100 organizer-event-thumb';
+            removeButton.type = 'button';
+            removeButton.className = 'organizer-selected-media-remove';
+            removeButton.setAttribute('aria-label', 'Remove selected video');
+            removeButton.textContent = '×';
+            removeButton.addEventListener('click', function () {
+                removeSelectedFile(eventVideos, index);
+                showSelectedVideos();
+            });
+            mediaItem.appendChild(video);
+            mediaItem.appendChild(removeButton);
+            column.appendChild(mediaItem);
+            eventVideoPreview.appendChild(column);
+        });
+    }
+
+    function removeSelectedFile(input, index) {
+        const selectedFiles = Array.from(input.files);
+        const updatedFiles = new DataTransfer();
+
+        selectedFiles.forEach(function (file, fileIndex) {
+            if (fileIndex !== index) {
+                updatedFiles.items.add(file);
+            }
+        });
+
+        input.files = updatedFiles.files;
+    }
 
     featureRequestModal.addEventListener('show.bs.modal', function (event) {
         const trigger = event.relatedTarget;
@@ -258,6 +423,50 @@ document.addEventListener('DOMContentLoaded', function () {
                 input.disabled = !isSelectedType;
             });
         });
+
+        checkPrizeOrder();
+    }
+
+    function checkPrizeOrder() {
+        const prizeInputs = [firstPrize, secondPrize, thirdPrize];
+        let message = '';
+
+        prizeInputs.forEach(function (input) {
+            if (input.dataset.prizeOrderError === 'true') {
+                input.classList.remove('is-invalid');
+                input.setCustomValidity('');
+                delete input.dataset.prizeOrderError;
+            }
+        });
+
+        if (compensationType.value !== 'contest') {
+            contestPrizeOrderError.classList.add('d-none');
+            return;
+        }
+
+        if (firstPrize.value !== '' && secondPrize.value !== '' && Number(firstPrize.value) <= Number(secondPrize.value)) {
+            message = 'First prize must be higher than second prize.';
+            firstPrize.classList.add('is-invalid');
+            firstPrize.setCustomValidity(message);
+            firstPrize.dataset.prizeOrderError = 'true';
+        }
+
+        if (message === '' && secondPrize.value !== '' && thirdPrize.value !== '' && Number(secondPrize.value) <= Number(thirdPrize.value)) {
+            message = 'Second prize must be higher than third prize.';
+            secondPrize.classList.add('is-invalid');
+            secondPrize.setCustomValidity(message);
+            secondPrize.dataset.prizeOrderError = 'true';
+        }
+
+        if (message === '' && firstPrize.value !== '' && thirdPrize.value !== '' && Number(firstPrize.value) <= Number(thirdPrize.value)) {
+            message = 'First prize must be higher than third prize.';
+            firstPrize.classList.add('is-invalid');
+            firstPrize.setCustomValidity(message);
+            firstPrize.dataset.prizeOrderError = 'true';
+        }
+
+        contestPrizeOrderError.textContent = message;
+        contestPrizeOrderError.classList.toggle('d-none', message === '');
     }
 
     function showRelevantGenres() {
@@ -296,9 +505,14 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     compensationType.addEventListener('change', showCompensationFields);
+    eventPhotos.addEventListener('change', showSelectedPhotos);
+    eventVideos.addEventListener('change', showSelectedVideos);
     categoryCheckboxes.forEach(function (checkbox) {
         checkbox.addEventListener('change', showRelevantGenres);
     });
+    firstPrize.addEventListener('input', checkPrizeOrder);
+    secondPrize.addEventListener('input', checkPrizeOrder);
+    thirdPrize.addEventListener('input', checkPrizeOrder);
     showCompensationFields();
     showRelevantGenres();
 });

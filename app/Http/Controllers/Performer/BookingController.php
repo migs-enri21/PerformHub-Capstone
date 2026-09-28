@@ -165,27 +165,27 @@ public function index(Request $request): View
     {
         abort_unless($booking->performer_id === Auth::id(), 403);
 
-        $wasAlreadyCompleted = $booking->status === 'completed';
-
         try {
-            $bookingConfirmed = $signWell->syncStatus($booking);
+            $isNewlySigned = $signWell->syncStatus($booking);
         } catch (\RuntimeException $exception) {
             return redirect()
                 ->route('performer.bookings.show', $booking)
                 ->with('warning', 'Your signature was completed. The signed PDF is still being prepared, so check the booking again shortly.');
         }
 
-        if ($bookingConfirmed && ! $wasAlreadyCompleted) {
+        $booking->refresh();
+
+        if ($isNewlySigned) {
             Notification::send(
                 $booking->organizer,
                 'contract',
                 'Contract Electronically Signed',
-                Auth::user()->name.' signed the contract for '.$booking->event_name.'. The date is now booked.',
+                Auth::user()->name.' signed the contract for '.$booking->event_name.'. Review and confirm the booking.',
                 route('organizer.bookings.show', $booking)
             );
         }
 
-        if (! $bookingConfirmed) {
+        if (! $booking->isSigned()) {
             return redirect()
                 ->route('performer.bookings.show', $booking)
                 ->with('warning', 'Your signature is still being processed. Please check the booking again shortly.');
@@ -193,6 +193,6 @@ public function index(Request $request): View
 
         return redirect()
             ->route('performer.bookings.show', $booking)
-            ->with('success', 'Electronic signature completed. This date is now booked.');
+            ->with('success', 'Electronic signature completed. The organizer will now review and confirm the booking.');
     }
 }

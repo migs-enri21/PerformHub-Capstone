@@ -26,7 +26,7 @@
                 <form method="POST" action="{{ route('organizer.events.complete', $event) }}" class="organizer-confirm-form" data-confirm-title="Mark Event Completed" data-confirm-message="Mark this event as completed? This means the event has finished." data-confirm-button="Mark Completed">
                     @csrf
                     @method('PATCH')
-                    <button type="submit" class="btn btn-success btn-sm">Mark Event Completed</button>
+                    <button type="submit" class="btn ph-btn-success btn-sm">Mark Event Completed</button>
                 </form>
             @endif
             <a href="{{ route('organizer.events.edit', $event) }}" class="btn ph-btn-primary btn-sm">Edit</a>

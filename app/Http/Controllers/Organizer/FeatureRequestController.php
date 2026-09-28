@@ -49,4 +49,38 @@ class FeatureRequestController extends Controller
 
         return back()->with('success', "{$typeLabel} request sent to the admin for review.");
     }
+
+    public function destroy(FeatureRequest $featureRequest): RedirectResponse
+    {
+        if ($featureRequest->requester_id !== Auth::id()) {
+            abort(403);
+        }
+
+        if ($featureRequest->status !== FeatureRequest::STATUS_PENDING) {
+            return back()->with('warning', 'Only pending requests can be retracted.');
+        }
+
+        $typeLabel = $featureRequest->typeLabel();
+        $featureRequest->delete();
+
+        return back()->with('success', "{$typeLabel} request retracted.");
+    }
+
+    public function clearReviewed(string $type): RedirectResponse
+    {
+        if ($type !== FeatureRequest::TYPE_CATEGORY && $type !== FeatureRequest::TYPE_EVENT_TYPE) {
+            abort(404);
+        }
+
+        $cleared = FeatureRequest::where('requester_id', Auth::id())
+            ->where('type', $type)
+            ->whereIn('status', [FeatureRequest::STATUS_APPROVED, FeatureRequest::STATUS_REJECTED])
+            ->delete();
+
+        if ($cleared === 0) {
+            return back()->with('info', 'There are no reviewed requests to clear.');
+        }
+
+        return back()->with('success', 'Reviewed requests cleared.');
+    }
 }

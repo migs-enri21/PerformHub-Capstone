@@ -72,7 +72,7 @@ class PerformerSearchController extends Controller
         }
         $this->applyAvailabilityFilter($query, $date);
 
-        return $query->latest()->paginate(12)->withQueryString();
+        return $query->orderBy('stage_name')->paginate(12)->withQueryString();
     }
 
     private function applySearchFilter($query, ?string $search): void

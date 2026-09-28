@@ -33,7 +33,7 @@
     }
 @endphp
 
-<article class="event-feed-post mb-3">
+<article class="event-feed-post organizer-event-activity-post mb-3">
     <div class="event-feed-post-header">
         <img src="{{ $photoUrl }}" alt="" class="rounded-circle event-feed-avatar" width="44" height="44">
         <div>
