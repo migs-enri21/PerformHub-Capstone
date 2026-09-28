@@ -1,7 +1,11 @@
-/**
- * PerformHub — Admin module
- * Owner: Admin teammate
- * Users, categories, monitoring dashboards
- */
+.admin-description-truncate {
+	max-width: 350px;
+}
 
-/* Add admin-only styles below */
+.admin-action-form {
+	display: inline-block;
+}
+
+.admin-onboarding-modal-content {
+	min-height: 320px;
+}

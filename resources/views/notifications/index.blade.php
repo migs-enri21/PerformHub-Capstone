@@ -9,9 +9,17 @@
 @section('content')
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h2 class="fw-bold mb-0">Notifications</h2>
-    @if($notifications->total() > 0)
-        <span class="badge bg-primary">{{ $notifications->total() }} total</span>
-    @endif
+    <div class="d-flex align-items-center gap-2">
+        @if($notifications->contains(fn ($n) => ! $n->is_read))
+            <form method="POST" action="{{ route('notifications.read-all') }}">
+                @csrf
+                <button type="submit" class="btn ph-btn-outline btn-sm">Mark all as read</button>
+            </form>
+        @endif
+        @if($notifications->total() > 0)
+            <span class="badge bg-primary">{{ $notifications->total() }} total</span>
+        @endif
+    </div>
 </div>
 
 @forelse($notifications as $n)

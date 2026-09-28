@@ -1,13 +1,47 @@
 @extends('layouts.app')
 
-@section('title', 'Bookings')
+@section('title', ($listFilter ?? null) === 'cancel' ? 'Cancel Requests' : 'Bookings')
 
 @section('sidebar')
 @include('performer.partials.sidebar')
 @endsection
 
 @section('content')
-<h2 class="fw-bold mb-4">Booking History</h2>
+@php
+    $heading = match ($listFilter ?? null) {
+        'cancel' => 'Cancel Requests',
+        'pending' => 'Pending Requests',
+        'accepted' => 'Upcoming Bookings',
+        'completed' => 'Booked',
+        'cancelled' => 'Cancelled',
+        default => 'Booking History',
+    };
+@endphp
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-bold mb-0">{{ $heading }}</h2>
+</div>
+
+ {{-- <div class="ph-card p-4 mb-4">
+    <form method="GET" action="{{ route('performer.bookings.index') }}" class="row g-3 align-items-end">
+        <div class="col-md-4">
+            <label class="form-label" for="bookingStatusFilter">Status</label>
+            <select name="status" id="bookingStatusFilter" class="form-select ph-input">
+                <option value="" @selected(($listFilter ?? '') === '')>All</option>
+                <option value="pending" @selected(($listFilter ?? '') === 'pending')>Pending</option>
+                <option value="accepted" @selected(($listFilter ?? '') === 'accepted')>Upcoming</option>
+                <option value="completed" @selected(($listFilter ?? '') === 'completed')>Booked</option>
+                <option value="cancel" @selected(($listFilter ?? '') === 'cancel')>Cancel requests</option>
+                <option value="cancelled" @selected(($listFilter ?? '') === 'cancelled')>Cancelled</option>
+            </select>
+        </div>
+        <div class="col-md-4 d-flex gap-2">
+            <button type="submit" class="btn ph-btn-primary flex-grow-1">Filter</button>
+            <a href="{{ route('performer.bookings.index') }}" class="btn btn-outline-secondary flex-grow-1">Reset</a>
+        </div>
+    </form>
+</div>
+--}}
 
 <div class="ph-card p-0 overflow-hidden">
     <div class="table-responsive">
@@ -35,6 +69,9 @@
                         <td>{{ $booking->event_date->format('M d, Y') }}</td>
                         <td>
                             <span class="badge {{ $booking->statusBadgeClass() }}">{{ $booking->statusLabel() }}</span>
+                            @if($booking->hasCancelRequest())
+                                <span class="badge bg-warning text-dark">Cancel pending</span>
+                            @endif
                         </td>
                         <td>
                             @if($booking->hasSignedContract())
@@ -58,7 +95,9 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="6" class="text-center text-muted py-4">No bookings yet.</td>
+                        <td colspan="6" class="text-center text-muted py-4">
+                            {{ ($listFilter ?? null) === 'cancel' ? 'No cancel requests.' : 'No bookings yet.' }}
+                        </td>
                     </tr>
                 @endforelse
             </tbody>

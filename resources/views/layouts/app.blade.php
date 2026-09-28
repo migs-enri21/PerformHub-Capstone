@@ -13,6 +13,10 @@
     @stack('styles')
 </head>
 <body>
+    @php
+        $unreadNotificationCount = $stats['unread_notifications']
+            ?? auth()->user()->notifications()->where('is_read', false)->count();
+    @endphp
     <nav class="navbar navbar-expand-lg navbar-dark navbar-ph sticky-top">
         <div class="container-fluid px-4">
             <a class="navbar-brand fw-bold d-flex align-items-center" href="{{ route('home') }}">
@@ -26,8 +30,8 @@
                     <li class="nav-item">
                         <a class="nav-link" href="{{ route('notifications.index') }}">
                         <i class="fas fa-bell fs-4"></i>
-                            @if(auth()->user()->notifications()->where('is_read', false)->count())
-                                <span class="badge bg-danger rounded-pill">{{ auth()->user()->notifications()->where('is_read', false)->count() }}</span>
+                            @if($unreadNotificationCount)
+                                <span class="badge bg-danger rounded-pill">{{ $unreadNotificationCount }}</span>
                             @endif
                         </a>
                     </li>

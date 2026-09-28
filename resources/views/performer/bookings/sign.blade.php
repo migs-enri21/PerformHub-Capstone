@@ -21,6 +21,7 @@
     <form id="signature-complete-form" method="POST" action="{{ route('performer.bookings.signature.sync', $booking) }}">
         @csrf
     </form>
+    
 </div>
 @endsection
 

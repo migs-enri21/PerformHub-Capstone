@@ -1,0 +1,292 @@
+﻿/* Performer availability calendar */
+/* --- Availability / calendar --- */
+#availability {
+    caret-color: transparent;
+}
+
+#availability h5,
+#availability p {
+    cursor: default;
+    user-select: none;
+}
+
+.availability-calendar-toolbar {
+    width: 100%;
+}
+
+.availability-calendar-nav {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.av-cal-nav {
+    line-height: 1;
+}
+
+.calendar-prev-btn,
+.calendar-next-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    min-width: 2rem;
+    padding: 0 !important;
+    flex-shrink: 0;
+}
+
+.calendar-prev-btn i,
+.calendar-next-btn i {
+    color: var(--ph-text);
+    font-size: 0.7rem;
+    line-height: 1;
+    pointer-events: none;
+}
+
+.calendar-prev-btn:hover,
+.calendar-next-btn:hover {
+    color: #ffffff;
+    background: var(--ph-purple);
+    border-color: var(--ph-purple);
+}
+
+.calendar-prev-btn:hover i,
+.calendar-next-btn:hover i {
+    color: #ffffff;
+}
+
+/* Month title between arrows */
+.av-cal-month-label {
+    text-align: center;
+    min-width: 9rem;
+    white-space: nowrap;
+}
+
+/* Calendar grid layout */
+.availability-calendar-weekdays,
+.availability-calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 0.5rem;
+}
+
+/* Weekday header label */
+.availability-calendar-weekdays span {
+    text-align: center;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--ph-text-muted);
+    padding: 0.35rem 0;
+}
+
+/* Calendar day cell */
+.av-day {
+    min-height: 72px;
+    border: 1px solid var(--ph-border);
+    border-radius: 10px;
+    background: var(--ph-bg-input);
+    color: var(--ph-text);
+    padding: 0.45rem;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.15rem;
+    transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+/* Clickable day  */
+button.av-day:not(:disabled) {
+    cursor: pointer;
+}
+
+/* Day hover highlight */
+button.av-day:not(:disabled):hover {
+    border-color: var(--ph-purple);
+}
+
+/* Empty padding cell */
+.av-day--empty {
+    border: none;
+    background: transparent;
+    min-height: 0;
+    padding: 0;
+}
+
+/* Past day dimming */
+.av-day--past {
+    opacity: 0.45;
+}
+
+/* Today outline highlight */
+.av-day--today {
+    box-shadow: inset 0 0 0 2px var(--ph-purple);
+}
+
+/* Available day (green) */
+.av-day--available {
+    background: rgba(34, 197, 94, 0.12);
+    border-color: rgba(34, 197, 94, 0.35);
+}
+
+/* Default available shade */
+.av-day--default {
+    background: rgba(34, 197, 94, 0.06);
+}
+
+/* Day off / blocked */
+.av-day--blocked {
+    background: rgba(139, 147, 167, 0.12);
+    border-color: rgba(139, 147, 167, 0.35);
+}
+
+/* Booked event (red) */
+.av-day--booked {
+    background: rgba(239, 68, 68, 0.12);
+    border-color: rgba(239, 68, 68, 0.4);
+}
+
+/* Pending booking (yellow) */
+.av-day--pending {
+    background: rgba(234, 179, 8, 0.14);
+    border-color: rgba(230, 176, 14, 0.773);
+}
+
+/* Google Calendar busy */
+.av-day--google-busy {
+    background: rgba(156, 163, 175, 0.18);
+    border-color: rgba(156, 163, 175, 0.45);
+}
+
+/* Day number text */
+.av-day-number {
+    font-weight: 700;
+    font-size: 0.95rem;
+    line-height: 1;
+}
+
+/* Time range text */
+.av-day-time {
+    font-size: 0.65rem;
+    color: var(--ph-text-muted);
+    line-height: 1.2;
+}
+
+/* Booked event name */
+.av-day-event {
+    font-size: 0.62rem;
+    color: #fca5a5;
+    line-height: 1.2;
+}
+
+/* Pending status label */
+.av-day-pending-label {
+    font-size: 0.62rem;
+    color: #fbbf24;
+    font-weight: 600;
+    line-height: 1.2;
+}
+
+/* Google busy label */
+.av-day-google-label {
+    font-size: 0.62rem;
+    color: #d1d5db;
+    font-weight: 600;
+    line-height: 1.2;
+}
+
+/* Calendar legend row */
+.availability-calendar-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    font-size: 0.8rem;
+    color: var(--ph-text-muted);
+}
+
+/* Legend item wrapper */
+.availability-calendar-legend span {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+/* Legend color dot */
+.av-legend-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+/* Available legend color */
+.av-legend-dot--available {
+    background: #22c55e;
+}
+
+/* Booked legend color */
+.av-legend-dot--booked {
+    background: #ef4444;
+}
+
+/* Pending legend color */
+.av-legend-dot--pending {
+    background: #eab308;
+}
+
+/* Google busy legend color */
+.av-legend-dot--google {
+    background: #9ca3af;
+}
+
+/* Mobile calendar sizing */
+@media (max-width: 767px) {
+    .av-day {
+        min-height: 56px;
+        padding: 0.35rem;
+    }
+
+    .av-day-time {
+        display: none;
+    }
+
+    .av-day-event {
+        display: none;
+    }
+}
+
+/* Availability mode option (radio) */
+.av-status-option {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.65rem;
+    padding: 0.75rem 0.9rem;
+    border: 1px solid var(--ph-border);
+    border-radius: 10px;
+    background: var(--ph-bg-input);
+    cursor: pointer;
+    margin: 0;
+}
+
+/* Selected option highlight */
+.av-status-option:has(input:disabled) {
+    opacity: 0.65;
+    cursor: not-allowed;
+}
+
+/* Radio input styling */
+.av-status-option input {
+    margin-top: 0.2rem;
+    accent-color: var(--ph-purple);
+}
+
+/* Option label text */
+.av-status-option span {
+    font-size: 0.9rem;
+    color: var(--ph-text-muted);
+}
+
+/* Option title text */
+.av-status-option span strong {
+    color: var(--ph-text);
+}
+

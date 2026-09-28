@@ -245,4 +245,10 @@ class Booking extends Model
     {
         return in_array($this->status, ['accepted', 'completed'], true) && $this->cancel_requested_at !== null;
     }
+
+    public function scopeCancelRequested($query)
+    {
+        return $query->whereNotNull('cancel_requested_at')
+            ->whereIn('status', ['accepted', 'completed']);
+    }
 }

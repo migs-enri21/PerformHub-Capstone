@@ -44,7 +44,6 @@
                 <div class="mb-4">
                     <div class="d-flex justify-content-between align-items-center">
                         <label class="form-label text-muted small">Password</label>
-                        <a href="{{ route('password.request') }}" class="small mb-2">Forgot password?</a>
                     </div>
                     <div class="input-group password-input-group">
                         <input type="password" name="password" id="loginPassword" class="form-control ph-input" placeholder="••••••••" required>

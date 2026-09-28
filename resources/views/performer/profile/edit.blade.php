@@ -87,7 +87,17 @@
                         </div>
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label text-muted small">Specialty / Instrument</label>
+                        <label class="form-label text-muted small">
+                            Specialty / Instrument
+                            @if($pendingSpecialtyRequests->isNotEmpty())
+                                <button type="button"
+                                    class="badge bg-danger rounded-pill border-0"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#pendingSpecialtyModal">
+                                    {{ $pendingSpecialtyRequests->count() }}
+                                </button>
+                            @endif
+                        </label>
                         <p class="profile-field-copy text-muted small">You can pick more than one.</p>
                         @include('partials.specialty-select', [
                             'value' => $profile->specialtyList(),
@@ -95,7 +105,18 @@
                         ])
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label text-muted small">Genre</label>
+                        <label class="form-label text-muted small">
+                            Genre
+                            @if($pendingGenreRequests->isNotEmpty())
+                                <button type="button"
+                                    class="badge bg-danger rounded-pill border-0"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#pendingGenreModal">
+                                    {{ $pendingGenreRequests->count() }}
+                                </button>
+                            @endif
+                        </label>
+
                         <p class="profile-field-copy text-muted small">Matches the roles you checked.</p>
                         @include('partials.genre-select', [
                             'value' => $profile->genreList(),
@@ -109,14 +130,14 @@
                         <label class="form-label text-muted small">Rate per hour</label>
                         <div class="input-group profile-rate-group">
                             <span class="input-group-text">₱</span>
-                            <input type="number" step="1" min="0" name="rate_per_hour" class="form-control ph-input" value="{{ $hourRate }}" placeholder="0">
+                            <input type="text" inputmode="numeric" name="rate_per_hour" class="form-control ph-input" value="{{ $hourRate }}" placeholder="0">
                         </div>
                     </div>
                     <div class="col-md-6">
                         <label class="form-label text-muted small">Rate per day</label>
                         <div class="input-group profile-rate-group">
                             <span class="input-group-text">₱</span>
-                            <input type="number" step="1" min="0" name="rate_per_day" class="form-control ph-input" value="{{ $dayRate }}" placeholder="0">
+                            <input type="text" inputmode="numeric" name="rate_per_day" class="form-control ph-input" value="{{ $dayRate }}" placeholder="0">
                         </div>
                     </div>
                     <div class="col-12">
@@ -204,7 +225,51 @@
             </div>
         </form>
     </div>
-</div>
+    </div>
+
+        {{-- - modal for pending specialty requests --}}
+        
+                    <div class="modal fade" id="pendingSpecialtyModal" tabindex="-1" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title fw-bold">Pending specialty requests</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                </div>
+                                <div class="modal-body">
+                                    @foreach($pendingSpecialtyRequests as $request)
+                                        <div class="mb-3">
+                                            <p class="fw-semibold mb-1">{{ $request->name }}</p>
+                                            <p class="text-muted small mb-0">
+                                                {{ $request->description ?: 'No reason given.' }}
+                                            </p>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="modal fade" id="pendingGenreModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title fw-bold">Pending genre requests</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        @foreach($pendingGenreRequests as $request)
+                            <div class="mb-3">
+                                <p class="fw-semibold mb-1">{{ $request->name }}</p>
+                                <p class="text-muted small mb-0">
+                                    {{ $request->description ?: 'No reason given.' }}
+                                </p>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+            </div>
+        </div>
 
 @push('scripts')
 <script>

@@ -140,7 +140,7 @@ class AuthController extends Controller
             'role' => $validated['role'],
             'is_verified' => false,
             'is_active' => true,
-            'onboarding_step' => User::ONBOARDING_PROFILE,
+            'onboarding_step' => User::ONBOARDING_COMPLETE,
         ]);
 
         if ($user->isPerformer()) {
@@ -172,13 +172,8 @@ class AuthController extends Controller
             Notification::send($admin, $type, $title, $message, $link);
         }
 
-        if ($user->isOrganizer()) {
-            return redirect()->route('onboarding.profile')
-                ->with('success', 'Account created. Complete your profile details to continue.');
-        }
-
-        return redirect()->route('onboarding.profile')
-            ->with('success', 'Account created. Complete your profile details to continue.');
+        return redirect($user->dashboardRoute())
+            ->with('success', 'Account created. Welcome to PerformHub.');
     }
 
     public function logout(Request $request): RedirectResponse

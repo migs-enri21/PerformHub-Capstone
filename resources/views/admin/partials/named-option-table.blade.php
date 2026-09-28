@@ -20,16 +20,16 @@
                         @if($showCategory ?? false)
                             <td class="align-middle">{{ $item->category?->name ?? '—' }}</td>
                         @endif
-                        <td class="align-middle"><p class="mb-0 text-truncate" style="max-width: 350px;">{{ $item->description ?? '—' }}</p></td>
+                        <td class="align-middle"><p class="mb-0 text-truncate admin-description-truncate">{{ $item->description ?? '—' }}</p></td>
                         <td class="align-middle"><span class="badge {{ $item->is_active ? 'bg-success' : 'bg-secondary' }}">{{ $item->is_active ? 'Active' : 'Inactive' }}</span></td>
                         <td class="align-middle text-end">
                             <a href="{{ route('admin.'.$prefix.'.show', $item) }}" class="btn btn-sm btn-outline-info" title="View"><i class="fas fa-eye"></i></a>
                             <a href="{{ route('admin.'.$prefix.'.edit', $item) }}" class="btn btn-sm btn-outline-warning" title="Edit"><i class="fas fa-edit"></i></a>
-                            <form method="POST" action="{{ route('admin.'.$prefix.'.toggle', $item) }}" class="d-inline" style="display:inline-block;">
+                            <form method="POST" action="{{ route('admin.'.$prefix.'.toggle', $item) }}" class="admin-action-form">
                                 @csrf @method('PATCH')
                                 <button type="submit" class="btn btn-sm {{ $item->is_active ? 'btn-outline-secondary' : 'btn-outline-success' }}" title="{{ $item->is_active ? 'Deactivate' : 'Activate' }}"><i class="fas {{ $item->is_active ? 'fa-toggle-on' : 'fa-toggle-off' }}"></i></button>
                             </form>
-                            <form method="POST" action="{{ route('admin.'.$prefix.'.destroy', $item) }}" class="d-inline" onsubmit="return confirm('Delete this {{ $itemLabel }}?');" style="display:inline-block;">
+                            <form method="POST" action="{{ route('admin.'.$prefix.'.destroy', $item) }}" class="admin-action-form" onsubmit="return confirm('Delete this {{ $itemLabel }}?');">
                                 @csrf @method('DELETE')
                                 <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete"><i class="fas fa-trash"></i></button>
                             </form>

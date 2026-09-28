@@ -15,7 +15,7 @@ class EnsureFullAccess
         if ($user && $user->hasLimitedAccess()) {
             return redirect()
                 ->route($user->isPerformer() ? 'performer.dashboard' : 'organizer.dashboard')
-                ->with('warning', 'Complete your sign-up to unlock this feature. You can continue anytime from your dashboard.');
+                ->with('warning', 'Wait for admin verification to unlock this feature.');
         }
 
         if ($user && $user->isAwaitingVerification()) {

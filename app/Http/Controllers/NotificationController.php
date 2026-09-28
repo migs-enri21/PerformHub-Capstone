@@ -25,4 +25,10 @@ class NotificationController extends Controller
         ? redirect($notification->link . '?from=notifications')
         : back();
     }
+    public function markAllRead(): RedirectResponse
+{
+    Auth::user()->notifications()->where('is_read', false)->update(['is_read' => true]);
+
+    return back();
+}
 }
