@@ -47,6 +47,10 @@ class UserController extends Controller
     {
         abort_unless(in_array($user->role, ['performer', 'organizer']), 400);
 
+        if ($user->isPerformer() && $user->onboarding_step < User::ONBOARDING_VERIFICATION) {
+            return back()->with('warning', 'Complete Profile Details before admin verification.');
+        }
+
         $user->update(['is_verified' => true]);
 
         if ($user->isPerformer() && $user->performerProfile) {

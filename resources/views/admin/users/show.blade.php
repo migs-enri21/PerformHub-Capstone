@@ -92,10 +92,10 @@
                 </div>
                 @endunless
                 <div class="d-flex align-items-center gap-2">
-                    <i class="fas {{ $verificationComplete ? 'fa-circle-check text-success' : 'fa-circle-xmark text-danger' }}"></i>
+                    <i class="fas {{ $verificationComplete ? 'fa-circle-check text-success' : (!$profileComplete ? 'fa-lock text-muted' : 'fa-circle-xmark text-danger') }}"></i>
                     <div>
-                        <div class="fw-semibold">{{ $isOrganizer ? '1' : '2' }}. Admin Verification</div>
-                        <small class="text-muted">{{ $verificationComplete ? 'Complete' : 'Incomplete' }}</small>
+                        <div class="fw-semibold {{ !$profileComplete && !$verificationComplete ? 'text-muted' : '' }}">{{ $isOrganizer ? '1' : '2' }}. Admin Verification</div>
+                        <small class="text-muted">{{ $verificationComplete ? 'Complete' : (!$profileComplete ? 'Locked until Profile Details are complete' : 'Incomplete') }}</small>
                     </div>
                 </div>
             </div>
@@ -185,10 +185,10 @@
                 </div>
                 @endunless
                 <div class="d-flex align-items-center gap-2">
-                    <i class="fas {{ $verificationComplete ? 'fa-circle-check text-success' : 'fa-circle-xmark text-danger' }}"></i>
+                    <i class="fas {{ $verificationComplete ? 'fa-circle-check text-success' : (!$profileComplete ? 'fa-lock text-muted' : 'fa-circle-xmark text-danger') }}"></i>
                     <div>
-                        <div class="fw-semibold">{{ $isOrganizer ? '1' : '2' }}. Admin Verification</div>
-                        <small class="text-muted">{{ $verificationComplete ? 'Complete' : 'Incomplete' }}</small>
+                        <div class="fw-semibold {{ !$profileComplete && !$verificationComplete ? 'text-muted' : '' }}">{{ $isOrganizer ? '1' : '2' }}. Admin Verification</div>
+                        <small class="text-muted">{{ $verificationComplete ? 'Complete' : (!$profileComplete ? 'Locked until Profile Details are complete' : 'Incomplete') }}</small>
                     </div>
                 </div>
             </div>
@@ -254,7 +254,7 @@
     @if(!$user->is_verified)
         <form method="POST" action="{{ route('admin.users.verify', $user) }}">
             @csrf
-            <button class="btn btn-success">Verify User</button>
+            <button class="btn btn-success" @if(!$profileComplete) disabled title="Complete Profile Details before verification." @endif>Verify User</button>
         </form>
     @endif
     <form method="POST" action="{{ route('admin.users.toggle', $user) }}">
