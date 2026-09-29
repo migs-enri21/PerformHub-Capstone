@@ -140,7 +140,7 @@ class AuthController extends Controller
             'role' => $validated['role'],
             'is_verified' => false,
             'is_active' => true,
-            'onboarding_step' => User::ONBOARDING_COMPLETE,
+            'onboarding_step' => User::ONBOARDING_PROFILE,
         ]);
 
         if ($user->isPerformer()) {
