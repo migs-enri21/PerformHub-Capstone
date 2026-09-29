@@ -159,8 +159,9 @@
                 </div>
 
                 <div class="col-12">
-                    <label class="form-label">Special Requirements</label>
-                    <textarea class="form-control ph-input" rows="4" name="description">{{ old('description') }}</textarea>
+                    <label class="form-label">Event Description</label>
+                    <textarea class="form-control ph-input @error('description') is-invalid @enderror" rows="4" name="description" placeholder="Describe the event, performer needs, or other important details.">{{ old('description') }}</textarea>
+                    @error('description')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
 
                 <div class="col-12 organizer-compensation-section">

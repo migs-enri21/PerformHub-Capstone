@@ -75,12 +75,16 @@
 }
 
 .organizer-event-form input[type="number"]::-webkit-inner-spin-button,
-.organizer-event-form input[type="number"]::-webkit-outer-spin-button {
+.organizer-event-form input[type="number"]::-webkit-outer-spin-button,
+.organizer-booking-form input[type="number"]::-webkit-inner-spin-button,
+.organizer-booking-form input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
     appearance: none;
     margin: 0;
 }
 
-.organizer-event-form input[type="number"] {
+.organizer-event-form input[type="number"],
+.organizer-booking-form input[type="number"] {
     -moz-appearance: textfield;
 }
 

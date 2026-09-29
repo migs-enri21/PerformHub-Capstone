@@ -49,7 +49,7 @@
         <a href="{{ route('organizer.bookings.show', $existingBooking) }}" class="alert-link ms-2">View Booking</a>
     </div>
 @else
-<form method="POST" action="{{ route('organizer.bookings.store', $performer) }}">
+<form method="POST" action="{{ route('organizer.bookings.store', $performer) }}" class="organizer-booking-form">
     @csrf
     <input type="hidden" name="from_application" value="{{ $fromApplicationValue }}">
     <div class="ph-card p-4">

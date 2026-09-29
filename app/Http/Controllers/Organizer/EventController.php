@@ -378,7 +378,7 @@ class EventController extends Controller
             'photos.*' => ['image', 'max:5120'],
             'videos' => ['nullable', 'array', 'max:3'],
             'videos.*' => ['file', 'mimes:mp4,webm', 'max:25600'],
-            'description' => ['nullable', 'string'],
+            'description' => ['required', 'string', 'max:2000'],
             'event_date' => $eventDateRules,
             'start_time' => ['required', 'date_format:H:i'],
             'end_time' => ['required', 'date_format:H:i'],
