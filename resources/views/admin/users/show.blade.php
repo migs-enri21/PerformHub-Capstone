@@ -112,7 +112,10 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <h5 class="fw-bold mb-3">{{ $user->fullName() }}</h5>
+                <div class="d-flex align-items-center gap-3 mb-3">
+                    <img src="{{ $user->avatarUrl(128) }}" alt="{{ $user->fullName() }}" width="80" height="80" class="rounded-circle flex-shrink-0" style="object-fit: cover;">
+                    <h5 class="fw-bold mb-0">{{ $user->fullName() }}</h5>
+                </div>
                 <dl class="row mb-0">
                     <dt class="col-5 text-muted">Email</dt>
                     <dd class="col-7">{{ $user->email }}</dd>
@@ -131,11 +134,15 @@
                         <dd class="col-7">{{ $user->performerProfile->specialtyLabel() ?: '—' }}</dd>
                         <dt class="col-5 text-muted">Genre</dt>
                         <dd class="col-7">{{ $user->performerProfile->genreLabel() ?: '—' }}</dd>
-                        <dt class="col-5 text-muted">Rate</dt>
-                        <dd class="col-7">{{ $user->performerProfile->rate !== null ? '₱'.number_format((float) $user->performerProfile->rate, 2) : '—' }}</dd>
+                        <dt class="col-5 text-muted">Rate per hour</dt>
+                        <dd class="col-7">{{ $user->performerProfile->rate_per_hour !== null ? '₱'.number_format((float) $user->performerProfile->rate_per_hour, 0) : '—' }}</dd>
+                        <dt class="col-5 text-muted">Rate per day</dt>
+                        <dd class="col-7">{{ $user->performerProfile->rate_per_day !== null ? '₱'.number_format((float) $user->performerProfile->rate_per_day, 0) : '—' }}</dd>
                     @elseif($user->isOrganizer() && $user->organizerProfile)
-                        <dt class="col-5 text-muted">Organization</dt>
+                        <dt class="col-5 text-muted">Organization Name</dt>
                         <dd class="col-7">{{ $user->organizerProfile->organization_name ?: '—' }}</dd>
+                        <dt class="col-5 text-muted">Phone</dt>
+                        <dd class="col-7">{{ $user->organizerProfile->phone ?: '—' }}</dd>
                     @endif
                     <dt class="col-5 text-muted">Location</dt>
                     <dd class="col-7">{{ $user->isPerformer() ? $user->performerProfile?->shortLocation() : $user->organizerProfile?->shortLocation() }}</dd>
@@ -148,7 +155,7 @@
                         @csrf
                         <button type="submit" class="btn ph-btn-primary">Check Profile</button>
                     </form>
-                @else
+                @elseif(!$isOrganizer)
                     <form method="POST" action="{{ route('admin.users.uncheck-profile', $user) }}" class="d-inline">
                         @csrf
                         <button type="submit" class="btn btn-outline-warning">Uncheck Profile</button>
