@@ -95,6 +95,7 @@
                             'region' => $profile->region,
                             'city' => $profile->city,
                             'barangay' => $profile->barangay,
+                            'address' => $profile->location,
                         ])
                     </div>
                     <div class="col-12">

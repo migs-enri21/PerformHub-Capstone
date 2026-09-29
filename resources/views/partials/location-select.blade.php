@@ -2,6 +2,7 @@
     'region' => '',
     'city' => '',
     'barangay' => '',
+    'address' => '',
     'required' => false,
 ])
 
@@ -9,7 +10,8 @@
     $selectedRegion = old('region', $region);
     $selectedCity = old('city', $city);
     $selectedBarangay = old('barangay', $barangay);
-    $initialAddress = old('location_search', implode(', ', array_filter([$selectedBarangay, $selectedCity, $selectedRegion])));
+    $fallbackAddress = implode(', ', array_filter([$selectedBarangay, $selectedCity, $selectedRegion]));
+    $initialAddress = old('location_search', $address !== '' && $address !== null ? $address : $fallbackAddress);
     $mapsKey = config('services.google_maps.key');
 @endphp
 
