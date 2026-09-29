@@ -61,7 +61,7 @@ class UserController extends Controller
         abort_unless(in_array($user->role, ['performer', 'organizer']), 400);
 
         $profile = $user->isPerformer() ? $user->performerProfile()->with('categories')->first() : $user->organizerProfile;
-        $hasLocation = filled($profile?->region) && filled($profile?->city) && filled($profile?->barangay);
+        $hasLocation = filled($profile?->region) && filled($profile?->city);
         $profileIsComplete = filled($user->first_name)
             && filled($user->last_name)
             && filled($user->phone)
