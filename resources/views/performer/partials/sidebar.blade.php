@@ -22,7 +22,6 @@
     @if(auth()->user()->hasLimitedAccess())
         <a class="nav-link" href="{{ route('performer.bookings.index') }}"><i class="fas fa-ticket me-2"></i> Bookings</a>
         <a class="nav-link {{ request()->routeIs('performer.availability.*') ? 'active' : '' }}" href="{{ route('performer.availability.index') }}"><i class="fas fa-calendar me-2"></i> Calendar</a>
-        <a class="nav-link text-warning" href="{{ auth()->user()->onboardingRoute() }}"><i class="fas fa-arrow-right me-2"></i> Complete Sign-up</a>
     @else
         <a class="nav-link {{ request()->routeIs('performer.bookings.*') ? 'active' : '' }}" href="{{ route('performer.bookings.index') }}"><i class="fas fa-ticket me-2"></i> Bookings</a>
         <a class="nav-link {{ request()->routeIs('performer.availability.*') ? 'active' : '' }}" href="{{ route('performer.availability.index') }}"><i class="fas fa-calendar me-2"></i> Calendar</a>
