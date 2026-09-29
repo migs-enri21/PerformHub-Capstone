@@ -5,11 +5,13 @@ namespace App\Http\Controllers\Organizer;
 use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Models\Event;
+use App\Models\EventApplication;
 use App\Models\EventPhoto;
 use App\Models\EventType;
 use App\Models\FeatureRequest;
 use App\Models\Booking;
 use App\Models\Genre;
+use App\Models\Notification;
 use App\Models\OrganizerProfile;
 use App\Services\SupabaseStorageService;
 use App\Support\OptionList;
@@ -97,6 +99,7 @@ class EventController extends Controller
     public function show(Event $event): View
     {
         Event::markPastEventsEnded();
+        Booking::sweepPastBookings();
         $event->refresh();
 
         $this->authorizeEvent($event);
@@ -185,6 +188,10 @@ class EventController extends Controller
 
         $event->update($validated);
 
+        if ($event->wasChanged(['title', 'description', 'event_date', 'start_time', 'end_time', 'venue'])) {
+            $this->syncActiveBookingsAndNotifyPerformers($event);
+        }
+
         $this->syncEventCategories($event, $categoryIds);
         $this->storeUploadedMedia($event, $request);
 
@@ -265,6 +272,58 @@ class EventController extends Controller
     {
         if ($event->organizer_id !== Auth::id()) {
             abort(403);
+        }
+    }
+
+    private function syncActiveBookingsAndNotifyPerformers(Event $event): void
+    {
+        $message = 'The details for "'.$event->title.'" have been updated. Please review the event information.';
+        $notifiedPerformerIds = [];
+        $bookings = Booking::where('event_id', $event->id)
+            ->whereIn('status', ['pending', 'accepted'])
+            ->with('performer')
+            ->get();
+
+        foreach ($bookings as $booking) {
+            $booking->update([
+                'event_name' => $event->title,
+                'event_date' => $event->event_date,
+                'event_time' => Carbon::parse($event->start_time)->format('H:i'),
+                'end_time' => Carbon::parse($event->end_time)->format('H:i'),
+                'venue' => $event->venue,
+                'requirements' => $event->description,
+            ]);
+
+            if ($booking->performer) {
+                Notification::send(
+                    $booking->performer,
+                    'event',
+                    'Event Details Updated',
+                    $message,
+                    route('performer.bookings.show', $booking)
+                );
+
+                $notifiedPerformerIds[] = $booking->performer_id;
+            }
+        }
+
+        $applications = EventApplication::where('event_id', $event->id)
+            ->whereIn('status', ['pending', 'accepted'])
+            ->with('performer')
+            ->get();
+
+        foreach ($applications as $application) {
+            if (! $application->performer || in_array($application->performer_id, $notifiedPerformerIds, true)) {
+                continue;
+            }
+
+            Notification::send(
+                $application->performer,
+                'event',
+                'Event Details Updated',
+                $message,
+                route('performer.organizers.show', $event->organizer_id)
+            );
         }
     }
 

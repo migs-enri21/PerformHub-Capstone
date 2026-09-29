@@ -53,19 +53,6 @@ class OrganizerGoogleCalendarService
         return $response->json();
     }
 
-    public function shouldSync(OrganizerProfile $profile): bool
-    {
-        if (! $profile->google_calendar_connected || blank($this->refreshToken($profile))) {
-            return false;
-        }
-
-        if ($profile->google_calendar_synced_at === null) {
-            return true;
-        }
-
-        return $profile->google_calendar_synced_at->lte(now()->subMinutes(15));
-    }
-
     public function connect(OrganizerProfile $profile, array $tokenPayload): void
     {
         if (empty($tokenPayload['refresh_token'])) {

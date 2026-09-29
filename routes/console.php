@@ -37,11 +37,10 @@ Artisan::command('events:mark-ended', function () {
 })->purpose('Mark past open events as ended');
 
 Artisan::command('bookings:expire-past', function () {
-    $booked = Booking::completePastSigned();
     $expired = Booking::expirePastUnsigned();
 
-    $this->info($booked.' past signed booking(s) marked as booked, '.$expired.' unsigned booking(s) expired.');
-})->purpose('Expire unsigned past bookings and book signed ones');
+    $this->info($expired.' unsigned past booking(s) expired.');
+})->purpose('Expire unsigned past bookings');
 
 Schedule::command('events:mark-ended')->dailyAt('00:05');
 Schedule::command('bookings:expire-past')->dailyAt('00:05');

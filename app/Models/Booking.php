@@ -149,27 +149,7 @@ class Booking extends Model
 
     public static function sweepPastBookings(): void
     {
-        static::completePastSigned();
         static::expirePastUnsigned();
-    }
-
-    public static function completePastSigned(): int
-    {
-        $bookings = static::query()
-            ->where('status', 'accepted')
-            ->whereDate('event_date', '<', today())
-            ->get()
-            ->filter(fn (self $booking) => $booking->isSigned());
-
-        $count = 0;
-
-        foreach ($bookings as $booking) {
-            if ($booking->markCompletedFromSignature()) {
-                $count++;
-            }
-        }
-
-        return $count;
     }
 
     public static function expirePastUnsigned(): int
@@ -178,12 +158,15 @@ class Booking extends Model
             ->with(['organizer', 'performer'])
             ->whereIn('status', ['pending', 'accepted'])
             ->whereDate('event_date', '<', today())
-            ->get()
-            ->reject(fn (self $booking) => $booking->isSigned());
+            ->get();
 
         $count = 0;
 
         foreach ($bookings as $booking) {
+            if ($booking->isSigned()) {
+                continue;
+            }
+
             $booking->update([
                 'status' => 'expired',
                 'cancel_requested_at' => null,

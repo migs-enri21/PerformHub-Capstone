@@ -198,7 +198,10 @@
             if ($application->status === 'accepted' && isset($bookings[$application->performer_id])) {
                 $booking = $bookings[$application->performer_id];
 
-                if ($booking->status === 'completed') {
+                if ($booking->status === 'expired') {
+                    $bookingMessage = 'Booking expired — event date passed before the contract was signed.';
+                    $bookingMessageClass = 'text-danger';
+                } elseif ($booking->status === 'completed') {
                     $bookingMessage = 'Booking confirmed';
                     $bookingMessageClass = 'text-success';
                 } elseif ($booking->hasSignedContract()) {

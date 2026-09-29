@@ -45,6 +45,12 @@
             <p class="mb-0"><strong>Requirements:</strong> {{ $requirements }}</p>
         </div>
 
+        @if($booking->status === 'expired')
+            <div class="alert alert-secondary mb-4">
+                This booking expired because the event date passed before the contract was signed.
+            </div>
+        @endif
+
         <div class="ph-card p-4">
             <h5 class="fw-semibold mb-1">Contract Management</h5>
             <p class="text-muted small mb-3">Upload the contract, then send it to the performer for electronic signature.</p>
@@ -139,7 +145,7 @@
             <h5 class="fw-semibold mb-3">Booking Progress</h5>
             <p><span class="badge bg-success">Done</span> Booking Request Sent</p>
             <p>
-                @if(in_array($booking->status, ['accepted', 'completed']))
+                @if(in_array($booking->status, ['accepted', 'completed', 'expired']))
                     <span class="badge bg-success">Done</span>
                 @else
                     <span class="badge bg-secondary">Pending</span>
