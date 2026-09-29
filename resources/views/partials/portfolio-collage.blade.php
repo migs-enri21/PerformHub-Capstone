@@ -72,6 +72,8 @@
                             </div>
                         @endforeach
                     </div>
+
+                    <!-- singer badges -->
                     @if($performanceTypes)
                        <div class="portfolio-type-badges mt-3 mb-2">
                             @foreach($performanceTypes as $typeName)
