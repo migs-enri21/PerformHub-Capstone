@@ -14,6 +14,7 @@
         'accepted' => 'Upcoming Bookings',
         'completed' => 'Booked',
         'cancelled' => 'Cancelled',
+        'expired' => 'Expired',
         default => 'Booking History',
     };
 @endphp
@@ -61,7 +62,8 @@
                     @php
                         $needsSignature = $booking->status === 'accepted'
                             && $booking->hasContract()
-                            && ! $booking->isSigned();
+                            && ! $booking->isSigned()
+                            && ! $booking->eventDateHasPassed();
                     @endphp
                     <tr>
                         <td>{{ $booking->event_name }}</td>

@@ -18,20 +18,30 @@ class BookingController extends Controller
 
     public function index(Request $request): View
     {
+        Booking::sweepPastBookings();
+
         $status = $request->query('status');
 
         $query = Booking::where('performer_id', Auth::id())
-            ->with('organizer.organizerProfile')
-            ->latest();
+            ->with('organizer.organizerProfile');
 
         if ($status === 'cancel') {
             $query->cancelRequested();
             $listFilter = 'cancel';
-        } elseif (in_array($status, ['pending', 'accepted', 'completed', 'rejected', 'cancelled'], true)) {
+        } elseif ($status === 'accepted') {
+            $query->where('status', 'accepted')->whereDate('event_date', '>=', today());
+            $listFilter = 'accepted';
+        } elseif (in_array($status, ['pending', 'completed', 'rejected', 'cancelled', 'expired'], true)) {
             $query->where('status', $status);
             $listFilter = $status;
         } else {
             $listFilter = null;
+        }
+
+        if (in_array($listFilter, ['accepted', 'pending', 'cancel'], true)) {
+            $query->orderBy('event_date')->orderBy('event_time')->orderBy('id');
+        } else {
+            $query->orderByDesc('event_date')->orderByDesc('event_time')->orderByDesc('id');
         }
 
         $bookings = $query->paginate(10)->withQueryString();
@@ -42,6 +52,8 @@ class BookingController extends Controller
     public function show(Booking $booking): View
     {
         abort_unless($booking->performer_id === Auth::id(), 403);
+        Booking::sweepPastBookings();
+        $booking->refresh();
         $booking->load('organizer.organizerProfile');
         $dayConflict = $booking->status === 'pending'
             ? $booking->sameDayConfirmedConflict()
@@ -54,6 +66,10 @@ class BookingController extends Controller
     {
         abort_unless($booking->performer_id === Auth::id(), 403);
         abort_unless($booking->status === 'pending', 400);
+
+        if ($booking->eventDateHasPassed()) {
+            return back()->with('warning', 'This booking date has already passed.');
+        }
 
         $conflict = $booking->sameDayConfirmedConflict();
 
@@ -150,6 +166,12 @@ class BookingController extends Controller
     {
         abort_unless($booking->performer_id === Auth::id(), 403);
         abort_unless($booking->status === 'accepted' && $booking->signwell_document_id, 400);
+
+        if ($booking->eventDateHasPassed()) {
+            return redirect()
+                ->route('performer.bookings.show', $booking)
+                ->with('warning', 'This booking date has already passed, so it can no longer be signed.');
+        }
 
         try {
             $signingUrl = $signWell->signingUrl($booking);

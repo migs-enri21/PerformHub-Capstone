@@ -25,6 +25,7 @@
                 <option value="accepted" @selected(request('status') === 'accepted')>Accepted</option>
                 <option value="rejected" @selected(request('status') === 'rejected')>Rejected</option>
                 <option value="completed" @selected(request('status') === 'completed')>Completed</option>
+                <option value="expired" @selected(request('status') === 'expired')>Expired</option>
             </select>
         </div>
         <div class="col-md-3">

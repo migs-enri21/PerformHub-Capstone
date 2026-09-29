@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Booking;
 use App\Models\Event;
 use App\Models\User;
 use Illuminate\Foundation\Inspiring;
@@ -35,4 +36,12 @@ Artisan::command('events:mark-ended', function () {
     $this->info($updated . ' past event(s) marked as ended.');
 })->purpose('Mark past open events as ended');
 
+Artisan::command('bookings:expire-past', function () {
+    $booked = Booking::completePastSigned();
+    $expired = Booking::expirePastUnsigned();
+
+    $this->info($booked.' past signed booking(s) marked as booked, '.$expired.' unsigned booking(s) expired.');
+})->purpose('Expire unsigned past bookings and book signed ones');
+
 Schedule::command('events:mark-ended')->dailyAt('00:05');
+Schedule::command('bookings:expire-past')->dailyAt('00:05');

@@ -94,6 +94,8 @@ class BookingController extends Controller
     public function show(Booking $booking): View
     {
         $this->ensureBookingOwner($booking);
+        Booking::sweepPastBookings();
+        $booking->refresh();
         $booking->load('performer.performerProfile');
 
         return view('organizer.bookings.show', compact('booking'));
@@ -105,6 +107,10 @@ class BookingController extends Controller
 
         if (! in_array($booking->status, ['pending', 'accepted'], true)) {
             return back()->with('warning', 'Only an active booking can receive a contract.');
+        }
+
+        if ($booking->eventDateHasPassed()) {
+            return back()->with('warning', 'This booking date has already passed.');
         }
 
         if (! $signWell->isConfigured()) {
@@ -142,6 +148,10 @@ class BookingController extends Controller
     {
         $this->ensureBookingOwner($booking);
         abort_unless($booking->status === 'accepted' && $booking->hasContract(), 400);
+
+        if ($booking->eventDateHasPassed()) {
+            return back()->with('warning', 'This booking date has already passed.');
+        }
 
         if ($booking->signwell_document_id) {
             return back()->with('warning', 'This contract was already sent through SignWell.');

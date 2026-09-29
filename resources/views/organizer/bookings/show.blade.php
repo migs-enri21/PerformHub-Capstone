@@ -64,6 +64,7 @@
                     </form>
                 </div>
             @else
+                @if(in_array($booking->status, ['pending', 'accepted'], true) && ! $booking->eventDateHasPassed())
                 <form method="POST" action="{{ route('organizer.bookings.contract', $booking) }}" enctype="multipart/form-data" class="border-top pt-3">
                     @csrf
                     @if($booking->hasContract())
@@ -89,6 +90,7 @@
                     @else
                         <p class="text-muted small mt-2 mb-0">SignWell must be configured before this contract can be prepared for e-signature.</p>
                     @endif
+                @endif
                 @endif
             @endif
 

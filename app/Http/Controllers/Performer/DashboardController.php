@@ -15,9 +15,11 @@ class DashboardController extends Controller
     {
         $user = Auth::user();
         $profile = $user->performerProfile;
+        Booking::sweepPastBookings();
         $pendingBookings = Booking::where('performer_id', $user->id)->where('status', 'pending')->count();
         $upcomingBookings = Booking::where('performer_id', $user->id)
             ->where('status', 'accepted')
+            ->whereDate('event_date', '>=', today())
             ->count();
 
         $categoryIds = [];

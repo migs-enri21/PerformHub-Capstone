@@ -84,6 +84,8 @@ class Booking extends Model
                 return 'Rejected';
             case 'completed':
                 return 'Booked';
+            case 'expired':
+                return 'Expired';
             default:
                 return ucfirst($this->status);
         }
@@ -102,6 +104,8 @@ class Booking extends Model
                 return 'bg-danger';
             case 'completed':
                 return 'bg-secondary';
+            case 'expired':
+                return 'bg-danger';
             default:
                 return 'bg-secondary';
         }
@@ -136,6 +140,81 @@ class Booking extends Model
     public function isSigned(): bool
     {
         return $this->hasSignedContract() || $this->isSignWellCompleted();
+    }
+
+    public function eventDateHasPassed(): bool
+    {
+        return $this->event_date->toDateString() < now()->toDateString();
+    }
+
+    public static function sweepPastBookings(): void
+    {
+        static::completePastSigned();
+        static::expirePastUnsigned();
+    }
+
+    public static function completePastSigned(): int
+    {
+        $bookings = static::query()
+            ->where('status', 'accepted')
+            ->whereDate('event_date', '<', today())
+            ->get()
+            ->filter(fn (self $booking) => $booking->isSigned());
+
+        $count = 0;
+
+        foreach ($bookings as $booking) {
+            if ($booking->markCompletedFromSignature()) {
+                $count++;
+            }
+        }
+
+        return $count;
+    }
+
+    public static function expirePastUnsigned(): int
+    {
+        $bookings = static::query()
+            ->with(['organizer', 'performer'])
+            ->whereIn('status', ['pending', 'accepted'])
+            ->whereDate('event_date', '<', today())
+            ->get()
+            ->reject(fn (self $booking) => $booking->isSigned());
+
+        $count = 0;
+
+        foreach ($bookings as $booking) {
+            $booking->update([
+                'status' => 'expired',
+                'cancel_requested_at' => null,
+            ]);
+
+            $message = '"'.$booking->event_name.'" expired because the event date passed without a signed contract.';
+
+            if ($booking->performer) {
+                \App\Models\Notification::send(
+                    $booking->performer,
+                    'booking',
+                    'Booking Expired',
+                    $message,
+                    route('performer.bookings.show', $booking)
+                );
+            }
+
+            if ($booking->organizer) {
+                \App\Models\Notification::send(
+                    $booking->organizer,
+                    'booking',
+                    'Booking Expired',
+                    $message,
+                    route('organizer.bookings.show', $booking)
+                );
+            }
+
+            $count++;
+        }
+
+        return $count;
     }
 
     public function locksTheDate(): bool
