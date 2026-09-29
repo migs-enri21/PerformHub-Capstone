@@ -9,7 +9,7 @@
     <div class="sidebar-profile-name">{{ auth()->user()->name }}</div>
     <div class="sidebar-profile-role text-muted small">
         Performer
-        @if(auth()->user()->performerProfile?->is_verified_badge)
+        @if(auth()->user()->isPerformerVerified())
             <i class="fas fa-circle-check text-success ms-1" title="Verified"></i>
         @endif
     </div>
@@ -19,14 +19,8 @@
     <a class="nav-link {{ request()->routeIs('performer.dashboard') ? 'active' : '' }}" href="{{ route('performer.dashboard') }}"><i class="fas fa-home me-2"></i> Dashboard</a>
     <a class="nav-link {{ request()->routeIs('performer.profile.*') ? 'active' : '' }}" href="{{ route('performer.profile.show') }}"><i class="fas fa-user me-2"></i> Profile</a>
     <a class="nav-link {{ request()->routeIs('performer.portfolio.*') ? 'active' : '' }}" href="{{ route('performer.portfolio.index') }}"><i class="fas fa-images me-2"></i> Portfolio</a>
-    @if(auth()->user()->hasLimitedAccess())
-        <a class="nav-link" href="{{ route('performer.bookings.index') }}"><i class="fas fa-ticket me-2"></i> Bookings</a>
-        <a class="nav-link {{ request()->routeIs('performer.availability.*') ? 'active' : '' }}" href="{{ route('performer.availability.index') }}"><i class="fas fa-calendar me-2"></i> Calendar</a>
-        <a class="nav-link text-warning" href="{{ auth()->user()->onboardingRoute() }}"><i class="fas fa-arrow-right me-2"></i> Complete Sign-up</a>
-    @else
-        <a class="nav-link {{ request()->routeIs('performer.bookings.*') ? 'active' : '' }}" href="{{ route('performer.bookings.index') }}"><i class="fas fa-ticket me-2"></i> Bookings</a>
-        <a class="nav-link {{ request()->routeIs('performer.availability.*') ? 'active' : '' }}" href="{{ route('performer.availability.index') }}"><i class="fas fa-calendar me-2"></i> Calendar</a>
-    @endif
+    <a class="nav-link {{ request()->routeIs('performer.bookings.*') ? 'active' : '' }}" href="{{ route('performer.bookings.index') }}"><i class="fas fa-ticket me-2"></i> Bookings</a>
+    <a class="nav-link {{ request()->routeIs('performer.availability.*') ? 'active' : '' }}" href="{{ route('performer.availability.index') }}"><i class="fas fa-calendar me-2"></i> Calendar</a>
 </nav>
 
 <form action="{{ route('logout') }}" method="POST" class="mt-auto">

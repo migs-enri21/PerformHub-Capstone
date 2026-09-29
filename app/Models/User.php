@@ -137,11 +137,20 @@ class User extends Authenticatable implements CanResetPassword
 
     public function hasLimitedAccess(): bool
     {
-        if ($this->isAdmin()) {
+        if ($this->isAdmin() || $this->isPerformerVerified()) {
+            return false;
+        }
+
+        if ($this->isOrganizer() && $this->is_verified) {
             return false;
         }
 
         return ! $this->hasCompletedOnboarding();
+    }
+
+    public function isPerformerVerified(): bool
+    {
+        return $this->isPerformer() && (bool) $this->performerProfile?->is_verified_badge;
     }
 
     public function isAwaitingVerification(): bool
@@ -150,8 +159,7 @@ class User extends Authenticatable implements CanResetPassword
             return false;
         }
 
-        return $this->hasCompletedOnboarding()
-            && ! ($this->is_verified && $this->performerProfile?->is_verified_badge);
+        return ! $this->isPerformerVerified();
     }
 
     public function canUseBookingFeatures(): bool
