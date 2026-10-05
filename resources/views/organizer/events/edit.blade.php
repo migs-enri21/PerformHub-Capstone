@@ -195,7 +195,7 @@
                 <div class="col-md-4"><label class="form-label">End Time</label><input type="time" class="form-control ph-input @error('end_time') is-invalid @enderror" name="end_time" value="{{ $endTime }}">@error('end_time')<div class="invalid-feedback">{{ $message }}</div>@enderror</div>
 
                 <div class="col-12"><label class="form-label">Venue / Location</label><input type="text" class="form-control ph-input @error('venue') is-invalid @enderror" name="venue" value="{{ old('venue', $event->venue) }}">@error('venue')<div class="invalid-feedback">{{ $message }}</div>@enderror</div>
-                <div class="col-12"><label class="form-label">Special Requirements</label><textarea class="form-control ph-input @error('description') is-invalid @enderror" rows="4" name="description">{{ old('description', $event->description) }}</textarea>@error('description')<div class="invalid-feedback">{{ $message }}</div>@enderror</div>
+                <div class="col-12"><label class="form-label">Event Description</label><textarea class="form-control ph-input @error('description') is-invalid @enderror" rows="4" name="description" placeholder="Describe the event, performer needs, or other important details.">{{ old('description', $event->description) }}</textarea>@error('description')<div class="invalid-feedback">{{ $message }}</div>@enderror</div>
 
                 <div class="col-12 organizer-compensation-section">
                     <h5>Compensation Details</h5>
