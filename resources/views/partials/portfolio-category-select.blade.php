@@ -11,7 +11,7 @@
 @endphp
 
 <div class="portfolio-sketch-field">
-    <span class="portfolio-sketch-label">What are you doing in this sample? <span class="text-danger">*</span></span>
+    <span class="portfolio-sketch-label">What are you doing in this sample? </span>
     <p class="text-muted small mb-2">Choose this first. Organizers need to know if you are singing, dancing, hosting, or another role in these photos or videos.</p>
     <div class="category-checkbox-grid">
         @foreach($categories as $cat)

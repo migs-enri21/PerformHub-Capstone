@@ -1,7 +1,7 @@
 @php
     $user = auth()->user();
     $isFullyVerified = $user->isPerformer()
-        ? (bool) $user->performerProfile?->is_verified_badge
+        ? $user->isPerformerVerified()
         : (bool) $user->is_verified;
     $awaitingVerification = ! $user->isAdmin() && ! $isFullyVerified;
 @endphp

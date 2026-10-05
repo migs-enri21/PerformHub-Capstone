@@ -47,7 +47,11 @@ class UserController extends Controller
     {
         abort_unless(in_array($user->role, ['performer', 'organizer']), 400);
 
-        $user->update(['is_verified' => true]);
+        $user->loadMissing('performerProfile');
+        $user->update([
+            'is_verified' => true,
+            'onboarding_step' => User::ONBOARDING_COMPLETE,
+        ]);
 
         if ($user->isPerformer() && $user->performerProfile) {
             $user->performerProfile->update(['is_verified_badge' => true]);

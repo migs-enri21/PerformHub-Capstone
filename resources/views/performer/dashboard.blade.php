@@ -12,7 +12,7 @@
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
         <h2 class="fw-bold mb-1">Welcome, {{ $profile?->stage_name ?? auth()->user()->name }}</h2>
-        @if($profile?->is_verified_badge)
+        @if(auth()->user()->isPerformerVerified())
             <p class="text-muted mb-0">
                 <span class="verified-badge"><i class="fas fa-circle-check"></i> Verified Performer</span>
             </p>
