@@ -51,17 +51,22 @@
         <div class="col-lg-8">
             <div class="ph-card p-4">
                 <div class="row g-3">
-                    <div class="col-md-4">
-                        <label class="form-label text-muted small">First Name</label>
+                    <div class="col-md-3">
+                        <label class="form-label text-muted small mb-1">First Name</label>
                         <input type="text" name="first_name" class="form-control ph-input" value="{{ old('first_name', auth()->user()->first_name) }}" required>
                     </div>
-                    <div class="col-md-4">
-                        <label class="form-label text-muted small">Last Name</label>
+                    <div class="col-md-3">
+                        <label class="form-label text-muted small mb-1">Last Name</label>
                         <input type="text" name="last_name" class="form-control ph-input" value="{{ old('last_name', auth()->user()->last_name) }}" required>
                     </div>
-                    <div class="col-md-4">
-                        <label class="form-label text-muted small">Stage Name</label>
+                    <div class="col-md-3">
+                        <label class="form-label text-muted small mb-1">Stage Name</label>
                         <input type="text" name="stage_name" class="form-control ph-input" value="{{ old('stage_name', $profile->stage_name) }}" required>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label text-muted small mb-1">Phone</label>
+                        <input type="tel" name="phone" class="form-control ph-input @error('phone') is-invalid @enderror" value="{{ old('phone', auth()->user()->phone) }}" placeholder="0917 123 4567" inputmode="tel" autocomplete="tel" pattern="^(\+63|0|63)?[\s\-]*9\d{2}[\s\-]*\d{3}[\s\-]*\d{4}$" title="Enter a valid Philippine mobile number (e.g. 09XX XXX XXXX or +63 9XX XXX XXXX)." required>
+                        @error('phone')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
                     </div>
                     @php
                         $selectedCategoryIds = collect(old('category_ids', $profile->categories->pluck('id')->all()))

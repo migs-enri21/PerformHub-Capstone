@@ -160,7 +160,7 @@
                         </div>
                         <div class="col-md-6">
                             <label class="form-label text-muted small mb-1">Phone Number</label>
-                            <input type="text" name="phone" class="form-control ph-input @error('phone') is-invalid @enderror" value="{{ old('phone') }}" placeholder="+63 9XX XXX XXXX" required>
+                            <input type="tel" name="phone" class="form-control ph-input @error('phone') is-invalid @enderror" value="{{ old('phone') }}" placeholder="0917 123 4567" inputmode="tel" autocomplete="tel" pattern="^(\+63|0|63)?[\s\-]*9\d{2}[\s\-]*\d{3}[\s\-]*\d{4}$" title="Enter a valid Philippine mobile number (e.g. 09XX XXX XXXX or +63 9XX XXX XXXX)." required>
                             @error('phone')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
                         </div>
                     </div>

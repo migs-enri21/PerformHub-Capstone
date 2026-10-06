@@ -82,8 +82,9 @@
                         @error('organization_type')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label text-muted small">Phone</label>
-                        <input type="text" name="phone" class="form-control ph-input" value="{{ old('phone', $profile->phone) }}">
+                        <label class="form-label text-muted small mb-1">Phone</label>
+                        <input type="tel" name="phone" class="form-control ph-input @error('phone') is-invalid @enderror" value="{{ old('phone', $profile->phone) }}" placeholder="0917 123 4567" inputmode="tel" autocomplete="tel" pattern="^(\+63|0|63)?[\s\-]*9\d{2}[\s\-]*\d{3}[\s\-]*\d{4}$" title="Enter a valid Philippine mobile number (e.g. 09XX XXX XXXX or +63 9XX XXX XXXX).">
+                        @error('phone')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
                     </div>
                     <div class="col-md-6">
                         <label class="form-label text-muted small">Website</label>

@@ -8,6 +8,7 @@ use App\Models\OrganizerProfile;
 use App\Models\PerformerProfile;
 use App\Models\User;
 use App\Models\Notification;
+use App\Support\PhoneNumbers;
 use App\Support\PhilippineLocations;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -116,7 +117,7 @@ class AuthController extends Controller
             'last_name' => ['required', 'string', 'max:100'],
             'email' => ['required', 'email', 'max:255', 'unique:users,email'],
             'password' => ['required', 'confirmed', Password::min(8)],
-            'phone' => ['required', 'string', 'max:30'],
+            'phone' => PhoneNumbers::rules(required: true),
             'role' => ['required', 'in:performer,organizer'],
             'terms_accepted' => ['accepted'],
             'government_id' => ['required', 'array', 'min:1', 'max:5'],
@@ -126,6 +127,7 @@ class AuthController extends Controller
             'terms_accepted.accepted' => 'You must agree to the Terms & Agreement before continuing.',
             'password.confirmed' => 'Password and confirm password do not match.',
             'password.min' => 'Password must be at least 8 characters.',
+            'phone.regex' => PhoneNumbers::message(),
             'government_id.required' => 'Please upload at least one valid government ID file.',
         ]);
 

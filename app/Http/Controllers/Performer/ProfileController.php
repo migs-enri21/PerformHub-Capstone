@@ -7,6 +7,7 @@ use App\Models\Category;
 use App\Services\SupabaseStorageService;
 use App\Support\PerformerOptionGuide;
 use App\Support\PerformerSpecialties;
+use App\Support\PhoneNumbers;
 use App\Support\PhilippineLocations;
 use App\Support\SocialMedia;
 use Illuminate\Http\RedirectResponse;
@@ -21,8 +22,8 @@ class ProfileController extends Controller
 {
     public function show(): View
     {
-        $profile = Auth::user()->performerProfile()->with('categories')->firstOrFail();
-    
+        $profile = Auth::user()->performerProfile()->with(['categories', 'user'])->firstOrFail();
+
         return view('performer.profile.show', compact('profile'));
     }
 
@@ -69,6 +70,7 @@ class ProfileController extends Controller
         $validated = $request->validate(array_merge([
             'first_name' => ['required', 'string', 'max:100'],
             'last_name' => ['required', 'string', 'max:100'],
+            'phone' => PhoneNumbers::rules(required: true),
             'stage_name' => ['required', 'string', 'max:255'],
             'bio' => ['nullable', 'string', 'max:2000'],
             'genre' => ['nullable', 'array', 'max:8'],
@@ -92,7 +94,9 @@ class ProfileController extends Controller
             'profile_photo' => ['nullable', 'image', 'max:5120'], // 5MB
             'banner_photo' => ['nullable', 'image', 'max:5120'],
             'banner_position_y' => ['nullable', 'integer', 'min:0', 'max:100'],
-        ], PhilippineLocations::locationFieldsRules(required: false)));
+        ], PhilippineLocations::locationFieldsRules(required: false)), [
+            'phone.regex' => PhoneNumbers::message(),
+        ]);
 
         $validated['genre'] = array_values($validated['genre'] ?? []);
         $validated['specialty'] = array_values($validated['specialty'] ?? []);
@@ -124,9 +128,10 @@ class ProfileController extends Controller
         Auth::user()->update([
             'first_name' => $validated['first_name'],
             'last_name' => $validated['last_name'],
+            'phone' => $validated['phone'],
         ]);
 
-        $profile->update(collect($validated)->except(['first_name', 'last_name', 'region', 'city', 'barangay', 'category_ids'])->all());
+        $profile->update(collect($validated)->except(['first_name', 'last_name', 'phone', 'region', 'city', 'barangay', 'category_ids'])->all());
 
         $profile->categories()->sync($validated['category_ids'] ?? []);
 
