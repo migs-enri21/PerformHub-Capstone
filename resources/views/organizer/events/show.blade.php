@@ -38,6 +38,13 @@
                     <button type="submit" class="btn ph-btn-success btn-sm">Mark Event Completed</button>
                 </form>
             @endif
+            @if($canCancelEvent)
+                <form method="POST" action="{{ route('organizer.events.cancel', $event) }}" class="organizer-confirm-form" data-confirm-title="Cancel Event" data-confirm-message="Cancel this event? Affected performers will be notified and active bookings will be cancelled." data-confirm-button="Cancel Event">
+                    @csrf
+                    @method('PATCH')
+                    <button type="submit" class="btn btn-outline-danger btn-sm">Cancel Event</button>
+                </form>
+            @endif
             <a href="{{ route('organizer.events.edit', $event) }}" class="btn ph-btn-primary btn-sm">Edit</a>
             <a href="{{ route('organizer.events.index') }}" class="btn ph-btn-secondary btn-sm">Back</a>
         </div>
@@ -191,6 +198,10 @@
                 $applicationStatusLabel = 'Declined';
             }
 
+            if ($application->status === 'cancelled') {
+                $applicationStatusLabel = 'Event cancelled';
+            }
+
             if ($application->status === 'invited') {
                 $bookingMessage = 'Booking request sent - waiting for performer';
             }
@@ -247,6 +258,8 @@
                                 bg-success
                             @elseif($application->status == 'declined')
                                 bg-danger
+                            @elseif($application->status == 'cancelled')
+                                bg-secondary
                             @endif">
                             {{ $applicationStatusLabel }}
                         </span>
@@ -265,13 +278,17 @@
 
                 <div class="organizer-applicant-actions">
                     @if($application->status === 'pending')
-                        <a href="{{ route('organizer.bookings.create', ['performer' => $application->performer->performerProfile, 'event' => $event->id, 'from_application' => 1]) }}" class="btn ph-btn-primary btn-sm">
-                            Accept Application
-                        </a>
-                        <form method="POST" action="{{ route('organizer.events.applications.decline', [$event, $application]) }}" class="organizer-confirm-form" data-confirm-title="Decline Applicant" data-confirm-message="Decline this applicant?" data-confirm-button="Decline Applicant">
-                            @csrf
-                            <button type="submit" class="btn btn-outline-danger btn-sm">Decline</button>
-                        </form>
+                        @if(auth()->user()->hasLimitedAccess())
+                            <span class="btn ph-btn-secondary btn-sm disabled"><i class="fas fa-lock me-1"></i>Pending Verification</span>
+                        @else
+                            <a href="{{ route('organizer.bookings.create', ['performer' => $application->performer->performerProfile, 'event' => $event->id, 'from_application' => 1]) }}" class="btn ph-btn-primary btn-sm">
+                                Accept Application
+                            </a>
+                            <form method="POST" action="{{ route('organizer.events.applications.decline', [$event, $application]) }}" class="organizer-confirm-form" data-confirm-title="Decline Applicant" data-confirm-message="Decline this applicant?" data-confirm-button="Decline Applicant">
+                                @csrf
+                                <button type="submit" class="btn btn-outline-danger btn-sm">Decline</button>
+                            </form>
+                        @endif
                     @elseif($application->status === 'accepted' && isset($bookings[$application->performer_id]))
                         @php($booking = $bookings[$application->performer_id])
                         @if($booking->hasCancelRequest())

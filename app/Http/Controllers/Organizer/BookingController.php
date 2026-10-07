@@ -21,6 +21,8 @@ class BookingController extends Controller
 {
     public function create(Request $request, PerformerProfile $performer): View
     {
+        $this->ensurePerformerCanBeBooked($performer);
+
         $events = $this->activeEvents()
             ->orderBy('event_date')
             ->orderBy('start_time')
@@ -34,6 +36,8 @@ class BookingController extends Controller
 
     public function store(Request $request, PerformerProfile $performer): RedirectResponse
     {
+        $this->ensurePerformerCanBeBooked($performer);
+
         $event = $this->activeEvents()->find($request->input('event_id'));
 
         if (! $event) {
@@ -366,6 +370,21 @@ class BookingController extends Controller
     private function ensureBookingOwner(Booking $booking): void
     {
         abort_unless($booking->organizer_id === Auth::id(), 403);
+    }
+
+    private function ensurePerformerCanBeBooked(PerformerProfile $performer): void
+    {
+        $performer->loadMissing('user');
+
+        if (
+            !$performer->user
+            || !$performer->user->is_active
+            || !$performer->user->is_verified
+            || !$performer->user->hasCompletedOnboarding()
+            || !$performer->is_verified_badge
+        ) {
+            abort(404);
+        }
     }
 
     private function saveContract(Booking $booking, $file): void

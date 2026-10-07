@@ -128,6 +128,7 @@ Route::middleware(['auth', 'role:organizer'])->prefix('organizer')->name('organi
         Route::post('/bookings/{booking}/approve-cancel', [OrganizerBookingController::class, 'approveCancel'])->name('bookings.cancel.approve');
         Route::post('/bookings/{booking}/decline-cancel', [OrganizerBookingController::class, 'declineCancel'])->name('bookings.cancel.decline');
         Route::post('/events/{event}/applications/{application}/decline', [OrganizerEventApplicationController::class, 'decline'])->name('events.applications.decline');
+        Route::patch('/events/{event}/cancel', [OrganizerEventController::class, 'cancel'])->name('events.cancel');
     });
     Route::prefix('calendar')->name('calendar.')->group(function () {
     Route::get('/connect', [OrganizerGoogleCalendarController::class, 'connect'])->name('connect');

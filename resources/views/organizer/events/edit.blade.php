@@ -45,11 +45,21 @@
             <h2 class="fw-bold mb-1">Edit Event</h2>
             <p class="text-muted mb-0">Update your event details and performer requirements.</p>
         </div>
-        <form method="POST" action="{{ route('organizer.events.destroy', $event) }}" class="organizer-confirm-form" data-confirm-title="Delete Event" data-confirm-message="Delete this event permanently? This cannot be undone." data-confirm-button="Delete Event">
-            @csrf
-            @method('DELETE')
-            <button type="submit" class="btn btn-outline-danger">Delete Event</button>
-        </form>
+        @if($hasParticipants)
+            @if($canCancelEvent)
+                <form method="POST" action="{{ route('organizer.events.cancel', $event) }}" class="organizer-confirm-form" data-confirm-title="Cancel Event" data-confirm-message="Cancel this event? Affected performers will be notified and active bookings will be cancelled." data-confirm-button="Cancel Event">
+                    @csrf
+                    @method('PATCH')
+                    <button type="submit" class="btn btn-outline-danger">Cancel Event</button>
+                </form>
+            @endif
+        @elseif(in_array(strtolower($event->status), ['open', 'ongoing'], true))
+            <form method="POST" action="{{ route('organizer.events.destroy', $event) }}" class="organizer-confirm-form" data-confirm-title="Delete Event" data-confirm-message="Delete this unused event permanently? This cannot be undone." data-confirm-button="Delete Event">
+                @csrf
+                @method('DELETE')
+                <button type="submit" class="btn btn-outline-danger">Delete Event</button>
+            </form>
+        @endif
     </div>
 
     <div class="ph-card p-4 p-lg-5">
