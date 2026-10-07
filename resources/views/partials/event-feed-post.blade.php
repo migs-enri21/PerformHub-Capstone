@@ -137,6 +137,10 @@
             <button type="button" class="event-feed-footer-btn event-feed-footer-btn--declined w-100" disabled>
                 <i class="fas fa-times me-1"></i>Declined
             </button>
+        @elseif($applicationStatus === 'cancelled')
+            <button type="button" class="event-feed-footer-btn event-feed-footer-btn--declined w-100" disabled>
+                <i class="fas fa-ban me-1"></i>Event cancelled
+            </button>
         @elseif($applicationStatus === 'pending')
             <form method="POST" action="{{ route('performer.events.apply.cancel', $event) }}" class="m-0 w-100">
                 @csrf

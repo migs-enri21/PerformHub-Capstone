@@ -12,7 +12,6 @@
     $bannerStyle = $performer->bannerPhotoUrl()
         ? "background-image: url('".$performer->bannerPhotoUrl()."'); background-position: center ".($performer->banner_position_y ?? 50)."%;"
         : '';
-    $rating = 0; // reviews/ratings not implemented yet
 @endphp
 
 <div class="performer-profile-card ph-card mb-4">
@@ -85,13 +84,6 @@
                                     <span class="text-success small fw-semibold">{{ $bookingMessage }}</span>
                                 @endif
                             </div>
-                        @endif
-                    </div>
-                    <div class="d-flex flex-wrap align-items-center gap-2">
-                        @if($rating > 0)
-                            <span class="profile-rating-pill">
-                                <i class="fas fa-star me-1"></i> {{ number_format($rating, 1) }}
-                            </span>
                         @endif
                     </div>
                 </div>

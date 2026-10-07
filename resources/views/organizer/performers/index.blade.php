@@ -110,7 +110,11 @@
 
                 <div class="organizer-performer-card-actions mt-auto">
                     <a href="{{ route('organizer.performers.show', $performer) }}" class="btn ph-btn-outline btn-sm">View Profile</a>
-                    <a href="{{ route('organizer.bookings.create', ['performer' => $performer, 'event' => request('event')]) }}" class="btn ph-btn-primary btn-sm">Book</a>
+                    @if(auth()->user()->hasLimitedAccess())
+                        <span class="btn ph-btn-primary btn-sm disabled"><i class="fas fa-lock me-1"></i>Pending Verification</span>
+                    @else
+                        <a href="{{ route('organizer.bookings.create', ['performer' => $performer, 'event' => request('event')]) }}" class="btn ph-btn-primary btn-sm">Book</a>
+                    @endif
                 </div>
             </div>
         </div>
