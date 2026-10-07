@@ -14,7 +14,7 @@
                 <li class="nav-item"><a class="nav-link" href="#categories">Categories</a></li>
                 <li class="nav-item"><a class="nav-link" href="#how-it-works">How It Works</a></li>
                 @guest
-                    <li class="nav-item"><a class="btn ph-btn-outline btn-sm" href="{{ route('login') }}">Sign In</a></li>
+                    <li class="nav-item"><a class="btn ph-btn-outline btn-sm"    href="{{ route('login') }}">Sign In</a></li>
                     <li class="nav-item"><a class="btn ph-btn-primary btn-sm" href="{{ route('register') }}">Get Started</a></li>
                 @else
                     <li class="nav-item"><a class="btn ph-btn-primary btn-sm" href="{{ auth()->user()->dashboardRoute() }}">Dashboard</a></li>
