@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Organizer;
 use App\Http\Controllers\Controller;
 use App\Models\OrganizerProfile;
 use App\Services\SupabaseStorageService;
+use App\Support\PhoneNumbers;
 use App\Support\PhilippineLocations;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -61,12 +62,14 @@ class ProfileController extends Controller
             'organization_name' => ['required', 'string', 'max:255'],
             'organization_type' => ['required', 'in:freelancer,agency'],
             'bio' => ['nullable', 'string', 'max:2000'],
-            'phone' => ['nullable', 'string', 'max:30'],
+            'phone' => PhoneNumbers::rules(required: false),
             'website' => ['nullable', 'url', 'max:255'],
             'profile_photo' => ['nullable', 'image', 'max:5120'],
             'banner_photo' => ['nullable', 'image', 'max:5120'],
             'banner_position_y' => ['nullable', 'integer', 'min:0', 'max:100'],
-        ], PhilippineLocations::locationFieldsRules(required: false)));
+        ], PhilippineLocations::locationFieldsRules(required: false)), [
+            'phone.regex' => PhoneNumbers::message(),
+        ]);
     }
 
     private function storePhoto(Request $request, OrganizerProfile $profile, array $data, string $field, string $type): array

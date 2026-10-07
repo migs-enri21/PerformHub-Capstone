@@ -31,8 +31,12 @@
     </div>
     <div class="col-md-6">
         <div class="ph-card p-4 h-100">
-            <h5 class="fw-semibold mb-3">Location</h5>
-            <p class="text-muted mb-0">{{ $profile->fullLocation() ?: 'No location set yet.' }}</p>
+            <h5 class="fw-semibold mb-3">Location & Contact</h5>
+            <p class="text-muted mb-2">{{ $profile->fullLocation() ?: 'No location set yet.' }}</p>
+            <p class="text-muted mb-0">
+                <i class="fas fa-phone me-2"></i>
+                {{ $profile->user?->phone ?: 'No phone number set yet.' }}
+            </p>
         </div>
     </div>
     @if($profile->socialLinks())

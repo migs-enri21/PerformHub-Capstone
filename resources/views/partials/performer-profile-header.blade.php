@@ -56,6 +56,9 @@
                             @if($performer->shortLocation())
                                 <span><i class="fas fa-location-dot"></i> {{ $performer->shortLocation() }}</span>
                             @endif
+                            @if($performer->user?->phone)
+                                <span><i class="fas fa-phone"></i> {{ $performer->user->phone }}</span>
+                            @endif
                         </div>
                         @if($performer->specialtyLabel())
                             <p class="performer-profile-detail mb-1">

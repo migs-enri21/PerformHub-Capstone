@@ -151,7 +151,7 @@
             <button type="button" class="event-feed-footer-btn event-feed-footer-btn--declined w-100" disabled>
                 Applications closed
             </button>
-        @elseif(auth()->user()->isAwaitingVerification() || auth()->user()->hasLimitedAccess())
+        @elseif(auth()->user()->isAwaitingVerification())
             <button type="button" class="event-feed-footer-btn w-100" disabled>
                 <i class="fas fa-lock me-1"></i> Available after verification
             </button>

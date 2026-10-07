@@ -51,7 +51,11 @@ class UserController extends Controller
             return back()->with('warning', 'Complete Profile Details before admin verification.');
         }
 
-        $user->update(['is_verified' => true]);
+        $user->loadMissing('performerProfile');
+        $user->update([
+            'is_verified' => true,
+            'onboarding_step' => User::ONBOARDING_COMPLETE,
+        ]);
 
         if ($user->isPerformer() && $user->performerProfile) {
             $user->performerProfile->update(['is_verified_badge' => true]);
