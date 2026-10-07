@@ -290,3 +290,19 @@ button.av-day:not(:disabled):hover {
     color: var(--ph-text);
 }
 
+/* Keep Cancel / Save the same size in the availability modal */
+#availabilityModal .availability-modal-action-btn {
+    min-width: 6.5rem;
+    padding: 0.75rem 1.5rem !important;
+    font-size: 1rem !important;
+    line-height: 1.25 !important;
+    border-radius: 10px !important;
+    font-weight: 600;
+}
+
+#availabilityModal .btn.ph-btn-outline.availability-modal-action-btn {
+    border-width: 1px;
+}
+
+/* Clear stays red outline; size comes from .availability-modal-action-btn */
+

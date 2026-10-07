@@ -110,7 +110,6 @@
             <div class="modal-content" style="background: var(--ph-bg-card); border-color: var(--ph-border); color: var(--ph-text);">
                 <div class="modal-header" style="border-color: var(--ph-border);">
                     <h5 class="modal-title fw-semibold" id="availabilityModalLabel">Set Availability</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <form method="POST" action="{{ $storeUrl }}" id="availabilityForm">
                     @csrf
@@ -159,16 +158,16 @@
                             </div>
                         </div>
                     </div>
-                    <div class="modal-footer" style="border-color: var(--ph-border);">
-                        <button type="button" class="btn ph-btn-outline" data-bs-dismiss="modal" id="availabilityCancelButton">Cancel</button>
-                        <button type="submit" class="btn ph-btn-primary">Save</button>
+                    <div class="modal-footer gap-2" style="border-color: var(--ph-border);">
+                        <button type="button" class="btn ph-btn-outline availability-modal-action-btn" data-bs-dismiss="modal" id="availabilityCancelButton">Cancel</button>
+                        <button type="submit" class="btn ph-btn-primary availability-modal-action-btn">Save</button>
                     </div>
                 </form>
                 <form method="POST" id="availabilityDeleteForm" class="d-none">
                     @csrf
                     @method('DELETE')
-                    <div class="modal-footer pt-0" style="border-color: var(--ph-border);">
-                        <button type="submit" class="btn btn-outline-danger btn-sm">Remove this date</button>
+                    <div class="modal-footer pt-0 justify-content-end" style="border-color: var(--ph-border);">
+                        <button type="submit" class="btn btn-outline-danger availability-modal-action-btn availability-modal-clear-btn">Clear</button>
                     </div>
                 </form>
             </div>
@@ -392,6 +391,11 @@
                     return 'pending';
                 }
 
+                // Manual "I have an event" (unavailable + event name) uses the same red booked style.
+                if (entry && !entry.is_available && entry.notes) {
+                    return 'booked';
+                }
+
                 if (entry && !entry.is_available) {
                     return 'blocked';
                 }
@@ -505,9 +509,9 @@
                         const time = document.createElement('span');
                         time.className = 'av-day-time';
                         if (entry.start_time && entry.end_time) {
-                            time.textContent = `${entry.start_time}–${entry.end_time}`;
+                            time.textContent = `${formatTimeDisplay(entry.start_time)}–${formatTimeDisplay(entry.end_time)}`;
                         } else {
-                            time.textContent = entry.start_time || entry.end_time || '';
+                            time.textContent = formatTimeDisplay(entry.start_time || entry.end_time || '');
                         }
                         button.appendChild(time);
                     } else if (state === 'google-busy' && googleBusyDates[dateKey] && (googleBusyDates[dateKey].start_time || googleBusyDates[dateKey].end_time)) {
@@ -515,40 +519,36 @@
                         time.className = 'av-day-time';
                         const google = googleBusyDates[dateKey];
                         if (google.start_time && google.end_time) {
-                            time.textContent = `${google.start_time}–${google.end_time}`;
+                            time.textContent = `${formatTimeDisplay(google.start_time)}–${formatTimeDisplay(google.end_time)}`;
                         } else {
-                            time.textContent = google.start_time || google.end_time || '';
+                            time.textContent = formatTimeDisplay(google.start_time || google.end_time || '');
                         }
                         button.appendChild(time);
-                    } else if (state === 'pending') {
+                    }
+
+                    if (state === 'pending') {
                         const pending = document.createElement('span');
                         pending.className = 'av-day-pending-label';
                         pending.textContent = pendingDates[dateKey].label;
                         button.appendChild(pending);
-                    } else if (state === 'google-busy') {
+                    } else if (state === 'google-busy' && !(googleBusyDates[dateKey] && (googleBusyDates[dateKey].start_time || googleBusyDates[dateKey].end_time))) {
                         const googleLabel = document.createElement('span');
                         googleLabel.className = 'av-day-google-label';
                         googleLabel.textContent = 'Google';
                         button.appendChild(googleLabel);
-                    } else if (entry && entry.notes && state === 'booked') {
-                        const event = document.createElement('span');
-                        event.className = 'av-day-event';
-                        if (entry.notes.length > 14) {
-                            event.textContent = `${entry.notes.slice(0, 14)}…`;
-                        } else {
-                            event.textContent = entry.notes;
+                    }
+
+                    if (state === 'booked') {
+                        const eventName = (entry && entry.notes)
+                            ? entry.notes
+                            : (confirmedDates[dateKey] ? confirmedDates[dateKey].event_name : '');
+
+                        if (eventName) {
+                            const event = document.createElement('span');
+                            event.className = 'av-day-event';
+                            event.textContent = eventName.length > 14 ? `${eventName.slice(0, 14)}…` : eventName;
+                            button.appendChild(event);
                         }
-                        button.appendChild(event);
-                    } else if (confirmedDates[dateKey]) {
-                        const event = document.createElement('span');
-                        event.className = 'av-day-event';
-                        const name = confirmedDates[dateKey].event_name;
-                        if (name.length > 14) {
-                            event.textContent = `${name.slice(0, 14)}…`;
-                        } else {
-                            event.textContent = name;
-                        }
-                        button.appendChild(event);
                     }
 
                     if (editable && (cellDate >= today || confirmedDates[dateKey])) {
@@ -636,11 +636,7 @@
                 if (entry && entry.id && deleteForm && !confirmedBooking) {
                     deleteForm.action = destroyUrlFor(entry.id);
                     deleteForm.classList.remove('d-none');
-                    if (entry.is_available) {
-                        deleteForm.querySelector('button[type="submit"]').textContent = 'Remove custom hours';
-                    } else {
-                        deleteForm.querySelector('button[type="submit"]').textContent = 'Clear and use default (available)';
-                    }
+                    deleteForm.querySelector('button[type="submit"]').textContent = 'Clear';
                 } else if (deleteForm) {
                     deleteForm.classList.add('d-none');
                 }

@@ -492,3 +492,45 @@
     border-color: var(--ph-purple);
     color: var(--ph-purple);
 }
+
+/* Keep Edit-post footer actions the same height/padding */
+.portfolio-edit-form .modal-footer .btn {
+    min-height: 48px;
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+    font-weight: 600;
+    line-height: 1.25;
+    border-radius: 10px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+}
+
+.portfolio-edit-form .modal-footer .btn.ph-btn-outline {
+    --bs-btn-padding-y: 0.75rem;
+    --bs-btn-padding-x: 1.5rem;
+    --bs-btn-font-size: 1rem;
+    border-width: 1.5px;
+}
+
+.portfolio-edit-form .modal-footer .portfolio-delete-btn {
+    --bs-btn-color: #dc3545;
+    --bs-btn-border-color: #dc3545;
+    --bs-btn-hover-color: #fff;
+    --bs-btn-hover-bg: #dc3545;
+    --bs-btn-hover-border-color: #dc3545;
+    --bs-btn-active-color: #fff;
+    --bs-btn-active-bg: #bb2d3b;
+    --bs-btn-active-border-color: #bb2d3b;
+    color: #dc3545 !important;
+    border-color: #dc3545 !important;
+    background: transparent !important;
+}
+
+.portfolio-edit-form .modal-footer .portfolio-delete-btn:hover,
+.portfolio-edit-form .modal-footer .portfolio-delete-btn:hover i {
+    color: #fff !important;
+    background: #dc3545 !important;
+    border-color: #dc3545 !important;
+}

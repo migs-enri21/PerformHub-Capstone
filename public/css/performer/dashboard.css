@@ -195,9 +195,16 @@
 }
 
 .event-feed-footer-btn--applied {
-    background: rgba(99, 70, 255, 0.2);
-    color: #3a3838;
-    cursor: default;
+    background: rgba(220, 53, 69, 0.12);
+    border: 1.5px solid #dc3545;
+    color: #dc3545;
+    cursor: pointer;
+}
+
+.event-feed-footer-btn--applied:hover:not(:disabled) {
+    background: #dc3545;
+    border-color: #dc3545;
+    color: #fff;
 }
 
 .event-feed-footer-btn--invited {

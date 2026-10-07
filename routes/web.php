@@ -71,12 +71,12 @@ Route::middleware(['auth', 'role:performer'])->prefix('performer')->name('perfor
     Route::get('/organizers/{organizer}', [PerformerOrganizerProfileController::class, 'show'])->name('organizers.show');
     Route::get('/profile/edit', [PerformerProfileController::class, 'edit'])->name('profile.edit');
     Route::put('/profile', [PerformerProfileController::class, 'update'])->name('profile.update');
-    Route::post('/feature-requests', [PerformerFeatureRequestController::class, 'store'])->name('feature-requests.store');
-    Route::delete('/feature-requests/{featureRequest}', [PerformerFeatureRequestController::class, 'destroy'])->name('feature-requests.destroy');
     Route::get('/portfolio', [PortfolioController::class, 'index'])->name('portfolio.index');
     Route::post('/portfolio', [PortfolioController::class, 'store'])->name('portfolio.store');
     Route::post('/portfolio/update', [PortfolioController::class, 'update'])->name('portfolio.update');
+    Route::delete('/portfolio/batch', [PortfolioController::class, 'destroyBatch'])->name('portfolio.destroy-batch');
     Route::delete('/portfolio/{portfolio}', [PortfolioController::class, 'destroy'])->name('portfolio.destroy');
+    
     Route::middleware('full.access')->group(function () {
         Route::post('/availability', [AvailabilityController::class, 'store'])->name('availability.store');
         Route::delete('/availability/{schedule}', [AvailabilityController::class, 'destroy'])->name('availability.destroy');
@@ -90,6 +90,8 @@ Route::middleware(['auth', 'role:performer'])->prefix('performer')->name('perfor
         Route::post('/bookings/{booking}/signature-status', [PerformerBookingController::class, 'syncElectronicSignature'])->name('bookings.signature.sync');
         Route::post('/events/{event}/apply', [EventApplicationController::class, 'store'])->name('events.apply');
         Route::delete('/events/{event}/apply', [EventApplicationController::class, 'destroy'])->name('events.apply.cancel');
+        Route::post('/feature-requests', [PerformerFeatureRequestController::class, 'store'])->name('feature-requests.store');
+        Route::delete('/feature-requests/{featureRequest}', [PerformerFeatureRequestController::class, 'destroy'])->name('feature-requests.destroy');
     });
     Route::get('/availability', [AvailabilityController::class, 'index'])->name('availability.index');
     Route::get('/bookings', [PerformerBookingController::class, 'index'])->name('bookings.index');

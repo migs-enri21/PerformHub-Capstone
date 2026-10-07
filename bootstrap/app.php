@@ -31,7 +31,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $exceptions->render(function (PostTooLargeException $e, Request $request) {
             return back()
                 ->withInput()
-                ->with('error', 'That upload is too large. Please upload smaller files or fewer at a time (200 MB max per file).');
+                ->with('error', 'That upload is too large. Please upload smaller files or fewer at a time (500 MB max per file).');
         });
 
         $exceptions->render(function (TokenMismatchException $e, Request $request) {

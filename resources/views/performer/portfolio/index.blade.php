@@ -48,6 +48,25 @@
     </div>
 </div>
 
+<div class="modal fade" id="portfolioDeleteConfirmModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Delete post</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-1 fw-semibold">Delete this post?</p>
+                <p class="mb-0 text-muted small">Photos and videos will be removed permanently.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn ph-btn-outline" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="portfolioConfirmDeleteBtn">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="modal fade" id="addWorkSampleModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content">
@@ -96,14 +115,14 @@
                                 name="files[]"
                                 id="portfolioFiles"
                                 class="portfolio-file-input"
-                                accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm,video/quicktime,video/*"
+                                accept="image/jpeg,image/png,video/mp4,video/quicktime"
                                 multiple
                                 required
                             >
                             <label for="portfolioFiles" class="portfolio-upload-trigger" id="portfolioUploadTrigger">
                                 <span class="portfolio-sketch-plus"><i class="fas fa-plus"></i></span>
                                 <span class="fw-semibold">Add photos or videos</span>
-                                <span class="small text-muted">JPG, PNG, WEBP, GIF, MP4, WEBM · max 500 MB each</span>
+                                <span class="small text-muted">JPG, PNG, MP4, MOV · max 500 MB each</span>
                             </label>
                             <div class="portfolio-preview-collage d-none" id="portfolioPreviewCollage" aria-live="polite"></div>
                             <label for="portfolioFiles" class="portfolio-collage-add d-none" id="portfolioAddMore">
@@ -284,6 +303,12 @@
         if (!hasPerformanceType()) {
             event.preventDefault();
             syncSubmitState();
+            return;
+        }
+
+        if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Uploading…';
         }
     });
 })();

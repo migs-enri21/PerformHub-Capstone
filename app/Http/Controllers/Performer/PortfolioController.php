@@ -7,6 +7,7 @@ use App\Models\Category;
 use App\Models\Portfolio;
 use App\Services\SupabaseStorageService;
 use App\Support\PortfolioFeed;
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
@@ -39,7 +40,7 @@ class PortfolioController extends Controller
             'files.*' => [
                 'file',
                 'max:512000', // 500 MB per file (kilobytes) — Supabase project's storage size ceiling
-                'mimetypes:image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm,video/quicktime,video/x-msvideo',
+                'mimetypes:image/jpeg,image/png,video/mp4,video/quicktime,video/x-msvideo',
             ],
             'event_name' => ['nullable', 'string', 'max:150'],
             'caption' => ['nullable', 'string', 'max:2000'],
@@ -57,20 +58,26 @@ class PortfolioController extends Controller
         $supabase = new SupabaseStorageService();
         $batchKey = Str::uuid()->toString();
 
-        foreach ($this->uploadedFiles($request) as $file) {
-            [$type, $supabaseType] = $this->fileTypes($file);
-            $path = $supabase->upload($file, 'performer-files', $supabaseType, Auth::id());
+        try {
+            foreach ($this->uploadedFiles($request) as $file) {
+                [$type, $supabaseType] = $this->fileTypes($file);
+                $path = $supabase->upload($file, 'performer-files', $supabaseType, Auth::id());
 
-            $profile->portfolios()->create([
-                'batch_key' => $batchKey,
-                'type' => $type,
-                'file_path' => $path,
-                'event_name' => $eventName,
-                'caption' => $caption,
-                'category_ids' => $categoryIds,
-            ]);
+                $profile->portfolios()->create([
+                    'batch_key' => $batchKey,
+                    'type' => $type,
+                    'file_path' => $path,
+                    'event_name' => $eventName,
+                    'caption' => $caption,
+                    'category_ids' => $categoryIds,
+                ]);
 
-            $uploaded++;
+                $uploaded++;
+            }
+        } catch (ConnectionException) {
+            return redirect()
+                ->route('performer.portfolio.index')
+                ->with('error', 'Upload timed out while sending a large file to storage. Try again, or upload a smaller video / fewer files at once.');
         }
 
         if ($uploaded === 1) {
@@ -102,7 +109,7 @@ class PortfolioController extends Controller
                 'nullable',
                 'file',
                 'max:512000', // 500 MB per file (kilobytes) — Supabase project's storage size ceiling
-                'mimetypes:image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm,video/quicktime,video/x-msvideo',
+                'mimetypes:image/jpeg,image/png,video/mp4,video/quicktime,video/x-msvideo',
             ],
         ], [
             'category_ids.required' => 'Choose whether this sample shows you singing, dancing, or another role.',
@@ -168,6 +175,30 @@ class PortfolioController extends Controller
         }
 
         return back()->with('success', 'Post updated.');
+    }
+
+    public function destroyBatch(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'item_ids' => ['required', 'array', 'min:1'],
+            'item_ids.*' => ['integer'],
+        ]);
+
+        $profile = Auth::user()->performerProfile;
+        $items = $profile->portfolios()->whereIn('id', $validated['item_ids'])->get();
+
+        abort_if($items->isEmpty(), 404);
+
+        $supabase = new SupabaseStorageService();
+
+        foreach ($items as $item) {
+            $supabase->delete('performer-files', $item->file_path);
+            $item->delete();
+        }
+
+        return redirect()
+            ->route('performer.portfolio.index')
+            ->with('success', 'Post deleted.');
     }
 
     public function destroy(int $portfolio): RedirectResponse
