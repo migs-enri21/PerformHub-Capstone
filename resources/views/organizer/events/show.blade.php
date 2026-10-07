@@ -28,7 +28,12 @@
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
             <h2 class="fw-bold mb-1">{{ $event->title }}</h2>
-            <p class="text-muted mb-0">{{ ucfirst($event->status) }} event</p>
+            <p class="text-muted mb-0">
+                {{ ucfirst($event->status) }} event
+                @if($applicationsClosed)
+                    <span class="badge text-bg-secondary ms-1">Applications Closed</span>
+                @endif
+            </p>
         </div>
         <div class="d-flex gap-2">
             @if($canCompleteEvent)
@@ -42,10 +47,19 @@
                 <form method="POST" action="{{ route('organizer.events.cancel', $event) }}" class="organizer-confirm-form" data-confirm-title="Cancel Event" data-confirm-message="Cancel this event? Affected performers will be notified and active bookings will be cancelled." data-confirm-button="Cancel Event">
                     @csrf
                     @method('PATCH')
-                    <button type="submit" class="btn btn-outline-danger btn-sm">Cancel Event</button>
+                    <button type="submit" class="btn ph-btn-danger btn-sm">Cancel Event</button>
                 </form>
             @endif
-            <a href="{{ route('organizer.events.edit', $event) }}" class="btn ph-btn-primary btn-sm">Edit</a>
+            @if($canEditEvent)
+                <a href="{{ route('organizer.events.edit', $event) }}" class="btn ph-btn-primary btn-sm">Edit</a>
+            @endif
+            @if($canDeleteEvent)
+                <form method="POST" action="{{ route('organizer.events.destroy', $event) }}" class="organizer-confirm-form" data-confirm-title="Delete Event" data-confirm-message="Delete this unused event permanently? This cannot be undone." data-confirm-button="Delete Event">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" class="btn ph-btn-danger btn-sm">Delete Event</button>
+                </form>
+            @endif
             <a href="{{ route('organizer.events.index') }}" class="btn ph-btn-secondary btn-sm">Back</a>
         </div>
     </div>
@@ -120,7 +134,7 @@
                         </span>
                     </div>
                 @endif
-                @if($event->compensation_type === 'fixed' && $event->budget)
+                @if($event->compensation_type === 'fixed' && $event->budget !== null)
                     <div class="col-12">
                         <div class="organizer-budget-summary">
                             <div>
@@ -142,11 +156,31 @@
                         </div>
                     </div>
                 @endif
-                @if($event->compensation_type === 'hourly' && $event->rate_per_hour)
-                    <div class="col-md-6"><strong class="event-detail-label d-block mb-1">Rate per Hour</strong><span class="text-muted">PHP {{ number_format((float) $event->rate_per_hour, 0) }}</span></div>
+                @if($event->compensation_type === 'hourly' && $event->budget !== null)
+                    <div class="col-12">
+                        <div class="organizer-budget-summary">
+                            <div><strong>Total Hourly Budget</strong><span>PHP {{ number_format((float) $event->budget, 0) }}</span></div>
+                            <div><strong>Rate per Hour</strong><span>PHP {{ number_format((float) $event->rate_per_hour, 0) }}</span></div>
+                            <div><strong>Allocated to Confirmed Bookings</strong><span>PHP {{ number_format($reservedBudget, 0) }}</span></div>
+                            <div><strong>Remaining Budget</strong>
+                                @if($remainingBudget < 0)
+                                    <span class="text-danger">Over budget by PHP {{ number_format(abs($remainingBudget), 0) }}</span>
+                                @else
+                                    <span class="text-success">PHP {{ number_format($remainingBudget, 0) }}</span>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
                 @endif
                 @if($event->compensation_type === 'contest')
-                    <div class="col-md-6"><strong class="event-detail-label d-block mb-1">Contest Prizes</strong><span class="text-muted">First: PHP {{ number_format((float) $event->first_prize, 0) }}<br>Second: PHP {{ number_format((float) $event->second_prize, 0) }}<br>Third: PHP {{ number_format((float) $event->third_prize, 0) }}</span></div>
+                    <div class="col-12">
+                        <div class="organizer-budget-summary">
+                            <div><strong>Total Prize Pool</strong><span>PHP {{ number_format($contestPrizePool, 0) }}</span></div>
+                            <div><strong>First Prize</strong><span>PHP {{ number_format((float) $event->first_prize, 0) }}</span></div>
+                            <div><strong>Second Prize</strong><span>PHP {{ number_format((float) $event->second_prize, 0) }}</span></div>
+                            <div><strong>Third Prize</strong><span>PHP {{ number_format((float) $event->third_prize, 0) }}</span></div>
+                        </div>
+                    </div>
                 @endif
             </div>
         </div>

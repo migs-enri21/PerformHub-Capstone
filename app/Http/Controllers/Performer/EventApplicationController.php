@@ -14,13 +14,15 @@ class EventApplicationController extends Controller
     public function store(Event $event): RedirectResponse
     {
         $user = Auth::user();
+        Event::refreshStatuses();
+        $event->refresh();
 
         if (strcasecmp($event->status, 'Open') !== 0) {
             return back()->with('error', 'This event is no longer accepting applications.');
         }
 
-        if ($event->event_date && $event->event_date < now()->toDateString()) {
-            return back()->with('error', 'This event has already passed.');
+        if ($event->hasStarted()) {
+            return back()->with('error', 'Applications close when the event starts.');
         }
 
         if ($user->hasLimitedAccess() || $user->isAwaitingVerification()) {

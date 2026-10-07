@@ -35,7 +35,7 @@
     $canApply = false;
 
     if ($eventDate && in_array($event->status, ['Open', 'open'], true)) {
-        if ($eventDate->toDateString() >= now()->toDateString()) {
+        if (! $event->hasStarted()) {
             $canApply = true;
         }
     }

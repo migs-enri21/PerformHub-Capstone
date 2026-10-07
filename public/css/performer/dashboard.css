@@ -111,7 +111,7 @@
 }
 
 .event-feed-meta span:not(:last-child)::after {
-    content: " Â· ";
+    content: " \00b7 ";
     opacity: 0.75;
 }
 
@@ -221,5 +221,4 @@
     background: rgba(34, 197, 94, 0.35);
     color: #fff;
 }
-
 

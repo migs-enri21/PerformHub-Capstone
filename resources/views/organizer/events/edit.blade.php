@@ -50,15 +50,9 @@
                 <form method="POST" action="{{ route('organizer.events.cancel', $event) }}" class="organizer-confirm-form" data-confirm-title="Cancel Event" data-confirm-message="Cancel this event? Affected performers will be notified and active bookings will be cancelled." data-confirm-button="Cancel Event">
                     @csrf
                     @method('PATCH')
-                    <button type="submit" class="btn btn-outline-danger">Cancel Event</button>
+                    <button type="submit" class="btn ph-btn-danger">Cancel Event</button>
                 </form>
             @endif
-        @elseif(in_array(strtolower($event->status), ['open', 'ongoing'], true))
-            <form method="POST" action="{{ route('organizer.events.destroy', $event) }}" class="organizer-confirm-form" data-confirm-title="Delete Event" data-confirm-message="Delete this unused event permanently? This cannot be undone." data-confirm-button="Delete Event">
-                @csrf
-                @method('DELETE')
-                <button type="submit" class="btn btn-outline-danger">Delete Event</button>
-            </form>
         @endif
     </div>
 
@@ -212,7 +206,7 @@
                     <p class="organizer-form-help">Choose a compensation type to show the correct payment fields.</p>
                     <div class="row g-4" id="compensationFields">
                         <div class="col-md-6 compensation-field d-none" data-compensation-type="fixed"><label class="form-label">Fixed Budget (&#8369;)</label><input type="number" class="form-control ph-input @error('budget') is-invalid @enderror" name="budget" value="{{ old('budget', $event->budget) }}" step="0.01">@error('budget')<div class="invalid-feedback">{{ $message }}</div>@enderror</div>
-                        <div class="col-md-6 compensation-field d-none" data-compensation-type="hourly"><label class="form-label">Rate per Hour (&#8369;)</label><input type="number" class="form-control ph-input @error('rate_per_hour') is-invalid @enderror" name="rate_per_hour" value="{{ old('rate_per_hour', $event->rate_per_hour) }}" step="0.01">@error('rate_per_hour')<div class="invalid-feedback">{{ $message }}</div>@enderror</div>
+                        <div class="col-12 compensation-field d-none" data-compensation-type="hourly"><div class="row g-4"><div class="col-md-6"><label class="form-label">Total Hourly Budget (&#8369;)</label><input type="number" class="form-control ph-input @error('budget') is-invalid @enderror" name="budget" value="{{ old('budget', $event->budget) }}" step="0.01">@error('budget')<div class="invalid-feedback">{{ $message }}</div>@enderror</div><div class="col-md-6"><label class="form-label">Rate per Hour (&#8369;)</label><input type="number" class="form-control ph-input @error('rate_per_hour') is-invalid @enderror" name="rate_per_hour" value="{{ old('rate_per_hour', $event->rate_per_hour) }}" step="0.01">@error('rate_per_hour')<div class="invalid-feedback">{{ $message }}</div>@enderror</div></div></div>
                         <div class="col-12 compensation-field d-none" data-compensation-type="contest"><div class="row g-4">
                             <div class="col-md-4"><label class="form-label">First Prize (&#8369;)</label><input type="number" class="form-control ph-input @error('first_prize') is-invalid @enderror" name="first_prize" id="first_prize" value="{{ old('first_prize', $event->first_prize) }}" step="0.01">@error('first_prize')<div class="invalid-feedback">{{ $message }}</div>@enderror</div>
                             <div class="col-md-4"><label class="form-label">Second Prize (&#8369;)</label><input type="number" class="form-control ph-input @error('second_prize') is-invalid @enderror" name="second_prize" id="second_prize" value="{{ old('second_prize', $event->second_prize) }}" step="0.01">@error('second_prize')<div class="invalid-feedback">{{ $message }}</div>@enderror</div>
@@ -221,15 +215,6 @@
                     </div>
                 </div>
 
-                <div class="col-md-6">
-                    <label class="form-label">Event Status</label>
-                    @if($event->status === 'Completed')
-                        <input type="hidden" name="status" value="Completed"><input type="text" class="form-control ph-input" value="Completed" disabled>
-                    @else
-                        <select name="status" class="form-select ph-input @error('status') is-invalid @enderror"><option value="Open" @selected(old('status', $event->status) === 'Open')>Open</option><option value="Ended" @selected(old('status', $event->status) === 'Ended')>Ended</option><option value="Cancelled" @selected(old('status', $event->status) === 'Cancelled')>Cancelled</option></select>
-                    @endif
-                    @error('status')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                </div>
             </div>
 
             <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top"><a href="{{ route('organizer.events.index') }}" class="btn ph-btn-secondary">Cancel</a><button type="submit" class="btn ph-btn-primary">Save Changes</button></div>

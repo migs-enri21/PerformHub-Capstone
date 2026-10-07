@@ -22,11 +22,9 @@ class BookingController extends Controller
     public function create(Request $request, PerformerProfile $performer): View
     {
         $this->ensurePerformerCanBeBooked($performer);
+        Event::refreshStatuses();
 
-        $events = $this->activeEvents()
-            ->orderBy('event_date')
-            ->orderBy('start_time')
-            ->get();
+        $events = $this->activeEvents();
         $selectedEvent = $this->getSelectedEvent($request);
         $existingBooking = $this->findActiveBooking($performer, $selectedEvent);
         $fromApplication = $request->boolean('from_application');
@@ -37,8 +35,9 @@ class BookingController extends Controller
     public function store(Request $request, PerformerProfile $performer): RedirectResponse
     {
         $this->ensurePerformerCanBeBooked($performer);
+        Event::refreshStatuses();
 
-        $event = $this->activeEvents()->find($request->input('event_id'));
+        $event = $this->activeEvents()->firstWhere('id', $request->input('event_id'));
 
         if (! $event) {
             return back()->with('error', 'Select an active event before sending a booking request.');
@@ -214,6 +213,10 @@ class BookingController extends Controller
             return back()->with('warning', 'Wait for the signed contract before confirming this booking.');
         }
 
+        if (! $this->bookingFitsEventBudget($booking)) {
+            return back()->with('warning', 'This booking amount is higher than the event\'s remaining budget.');
+        }
+
         if (! $booking->markCompletedFromSignature()) {
             return back()->with('warning', 'This performer already has a confirmed booking on that date.');
         }
@@ -272,15 +275,28 @@ class BookingController extends Controller
             return null;
         }
 
-        return $this->activeEvents()->find($eventId);
+        return $this->activeEvents()->firstWhere('id', $eventId);
     }
 
     private function activeEvents()
     {
-        return Event::with('eventType')
+        $events = Event::with('eventType')
             ->where('organizer_id', Auth::id())
-            ->whereIn('status', ['Open', 'open', 'Ongoing', 'ongoing'])
-            ->whereDate('event_date', '>=', today());
+            ->whereIn('status', ['Open', 'open'])
+            ->whereDate('event_date', '>=', today())
+            ->orderBy('event_date')
+            ->orderBy('start_time')
+            ->get();
+
+        $activeEvents = collect();
+
+        foreach ($events as $event) {
+            if (! $event->hasStarted()) {
+                $activeEvents->push($event);
+            }
+        }
+
+        return $activeEvents;
     }
 
     private function validateBooking(Request $request, Event $event): array
@@ -326,6 +342,26 @@ class BookingController extends Controller
             ->where('event_id', $event->id)
             ->whereIn('status', ['pending', 'accepted', 'completed'])
             ->first();
+    }
+
+    private function bookingFitsEventBudget(Booking $booking): bool
+    {
+        $event = $booking->event;
+
+        if (! $event || ! in_array($event->compensation_type, ['fixed', 'hourly'], true)) {
+            return true;
+        }
+
+        if ($event->budget === null) {
+            return true;
+        }
+
+        $allocatedBudget = Booking::where('event_id', $event->id)
+            ->where('status', 'completed')
+            ->where('id', '!=', $booking->id)
+            ->sum('budget');
+
+        return $allocatedBudget + (float) $booking->budget <= (float) $event->budget;
     }
 
     private function existingBookingMessage(Booking $booking): string

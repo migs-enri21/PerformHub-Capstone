@@ -30,11 +30,11 @@ Artisan::command('users:list', function () {
     );
 })->purpose('List all users');
 
-Artisan::command('events:mark-ended', function () {
-    $updated = Event::markPastEventsEnded();
+Artisan::command('events:refresh-statuses', function () {
+    $updated = Event::refreshStatuses();
 
-    $this->info($updated . ' past event(s) marked as ended.');
-})->purpose('Mark past open events as ended');
+    $this->info($updated . ' event status(es) refreshed.');
+})->purpose('Refresh open and ended event statuses');
 
 Artisan::command('bookings:expire-past', function () {
     $expired = Booking::expirePastUnsigned();
@@ -42,5 +42,5 @@ Artisan::command('bookings:expire-past', function () {
     $this->info($expired.' unsigned past booking(s) expired.');
 })->purpose('Expire unsigned past bookings');
 
-Schedule::command('events:mark-ended')->dailyAt('00:05');
+Schedule::command('events:refresh-statuses')->everyMinute();
 Schedule::command('bookings:expire-past')->dailyAt('00:05');

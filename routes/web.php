@@ -134,7 +134,6 @@ Route::middleware(['auth', 'role:organizer'])->prefix('organizer')->name('organi
     });
     Route::prefix('calendar')->name('calendar.')->group(function () {
     Route::get('/connect', [OrganizerGoogleCalendarController::class, 'connect'])->name('connect');
-    Route::get('/callback', [OrganizerGoogleCalendarController::class, 'callback'])->name('callback');
     Route::post('/sync', [OrganizerGoogleCalendarController::class, 'sync'])->name('sync');
     Route::delete('/disconnect', [OrganizerGoogleCalendarController::class, 'disconnect'])->name('disconnect');
     });

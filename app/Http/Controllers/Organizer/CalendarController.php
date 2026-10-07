@@ -13,6 +13,7 @@ class CalendarController extends Controller
 {
     public function index(): View
     {
+        Event::refreshStatuses();
         $profile = $this->getProfile();
         $events = $this->getEvents();
         $googleBusyDates = $profile->googleCalendarBusyDates()->orderBy('date')->get();
@@ -22,7 +23,7 @@ class CalendarController extends Controller
             'events' => $events,
             'calendarEvents' => $this->getCalendarEvents($events),
             'googleBusy' => $this->getGoogleBusyDates($googleBusyDates),
-            'upcomingEvents' => $this->getUpcomingEvents($events),
+            'openEvents' => $this->getOpenEvents($events),
         ]);
     }
 
@@ -47,6 +48,10 @@ class CalendarController extends Controller
 
             $calendarEvents[$date][] = [
                 'title' => $event->title,
+                'start_time' => $event->start_time,
+                'end_time' => $event->end_time,
+                'venue' => $event->venue,
+                'status' => $event->status,
                 'url' => route('organizer.events.show', $event),
             ];
         }
@@ -67,21 +72,19 @@ class CalendarController extends Controller
         return $googleBusy;
     }
 
-    private function getUpcomingEvents(Collection $events): array
+    private function getOpenEvents(Collection $events): array
     {
-        $upcomingEvents = [];
-        $today = now()->toDateString();
-
+        $openEvents = [];
         foreach ($events as $event) {
-            if ($event->event_date >= $today) {
-                $upcomingEvents[] = $event;
+            if (strtolower($event->status) === 'open' && ! $event->hasStarted()) {
+                $openEvents[] = $event;
             }
 
-            if (count($upcomingEvents) === 4) {
+            if (count($openEvents) === 4) {
                 break;
             }
         }
 
-        return $upcomingEvents;
+        return $openEvents;
     }
 }
