@@ -55,7 +55,7 @@
         <div class="org-right-column">
             <div class="org-panel mb-4">
                 <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h6 class="fw-bold mb-0">Google Calendar</h6>
+                    <h6 class="fw-bold mb-0"><i class="fab fa-google organizer-google-calendar-icon me-2"></i>Google Calendar</h6>
 
                     @if($profile->google_calendar_connected)
                         <span class="badge text-bg-success">Connected</span>
@@ -70,28 +70,30 @@
                         @endif
                     </p>
 
-                    <form method="POST" action="{{ route('organizer.calendar.sync') }}" class="d-inline">
-                        @csrf
-                        <button class="btn btn-sm ph-btn-primary">Sync Calendar</button>
-                    </form>
+                    <div class="d-flex flex-wrap gap-2">
+                        <form method="POST" action="{{ route('organizer.calendar.sync') }}">
+                            @csrf
+                            <button class="btn btn-sm ph-btn-primary">Sync Calendar</button>
+                        </form>
 
-                    <form method="POST" action="{{ route('organizer.calendar.disconnect') }}" class="d-inline ms-1">
-                        @csrf
-                        @method('DELETE')
-                        <button class="btn btn-sm btn-outline-danger">Disconnect</button>
-                    </form>
+                        <form method="POST" action="{{ route('organizer.calendar.disconnect') }}">
+                            @csrf
+                            @method('DELETE')
+                            <button class="btn btn-sm ph-btn-danger">Disconnect</button>
+                        </form>
+                    </div>
                 @else
                     <p class="text-muted small">Connect Google Calendar to show your external busy dates here.</p>
-                    <a href="{{ route('organizer.calendar.connect') }}" class="btn btn-sm ph-btn-outline">
+                    <a href="{{ route('organizer.calendar.connect') }}" class="btn btn-sm ph-btn-primary">
                         <i class="fab fa-google me-1"></i>Connect Google Calendar
                     </a>
                 @endif
             </div>
 
             <div class="org-panel">
-                <h6 class="fw-bold mb-3">Upcoming Events</h6>
+                <h6 class="fw-bold mb-3">Open Events</h6>
 
-                @forelse($upcomingEvents as $event)
+                @forelse($openEvents as $event)
                     <a href="{{ route('organizer.events.show', $event) }}" class="org-list-item">
                         <span class="org-event-date">{{ \Illuminate\Support\Carbon::parse($event->event_date)->format('d M') }}</span>
                         <div>
@@ -100,7 +102,7 @@
                         </div>
                     </a>
                 @empty
-                    <p class="text-muted small mb-0">No upcoming events yet.</p>
+                    <p class="text-muted small mb-0">No open events yet.</p>
                 @endforelse
             </div>
         </div>

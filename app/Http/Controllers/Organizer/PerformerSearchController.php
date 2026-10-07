@@ -25,6 +25,8 @@ class PerformerSearchController extends Controller
 
     public function show(PerformerProfile $performer): View
     {
+        $this->ensureVerifiedPerformer($performer);
+
         $performer = AvailabilityCalendar::loadCalendarRelations(
             $performer->load(['user', 'categories', 'portfolios'])
         );
@@ -174,5 +176,20 @@ class PerformerSearchController extends Controller
         }
 
         return 'Already booked for this event.';
+    }
+
+    private function ensureVerifiedPerformer(PerformerProfile $performer): void
+    {
+        $performer->loadMissing('user');
+
+        if (
+            ! $performer->user
+            || ! $performer->user->is_active
+            || ! $performer->user->is_verified
+            || ! $performer->user->hasCompletedOnboarding()
+            || ! $performer->is_verified_badge
+        ) {
+            abort(404);
+        }
     }
 }

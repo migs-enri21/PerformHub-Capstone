@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Services\SupabaseStorageService;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -53,6 +54,11 @@ class Event extends Model
         return $this->hasMany(EventApplication::class);
     }
 
+    public function bookings(): HasMany
+    {
+        return $this->hasMany(Booking::class);
+    }
+
     public function photos(): HasMany
     {
         return $this->hasMany(EventPhoto::class)->orderBy('sort_order');
@@ -67,11 +73,50 @@ class Event extends Model
         return $this->photos()->exists() || $this->cover_photo !== null;
     }
 
-    public static function markPastEventsEnded(): int
+    public static function refreshStatuses(): int
     {
-        return static::whereIn('status', ['Open', 'open'])
-            ->whereDate('event_date', '<', today())
-            ->update(['status' => 'Ended']);
+        $events = static::whereIn('status', ['Open', 'open'])->get();
+        $updated = 0;
+
+        foreach ($events as $event) {
+            $status = 'Open';
+
+            if ($event->hasEnded()) {
+                $status = 'Ended';
+            }
+
+            if (strcasecmp($event->status, $status) !== 0) {
+                $event->update(['status' => $status]);
+                $updated++;
+            }
+        }
+
+        return $updated;
+    }
+
+    public function hasStarted(): bool
+    {
+        $start = Carbon::parse($this->event_date.' '.$this->start_time);
+
+        return now()->greaterThanOrEqualTo($start);
+    }
+
+    public function hasEnded(): bool
+    {
+        $start = Carbon::parse($this->event_date.' '.$this->start_time);
+        $endTime = $this->end_time;
+
+        if (! $endTime) {
+            $endTime = $this->start_time;
+        }
+
+        $end = Carbon::parse($this->event_date.' '.$endTime);
+
+        if ($end->lessThanOrEqualTo($start)) {
+            $end->addDay();
+        }
+
+        return now()->greaterThanOrEqualTo($end);
     }
 
     public function coverPhotoUrl(): ?string

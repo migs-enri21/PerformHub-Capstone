@@ -175,10 +175,19 @@
                             @error('budget')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
                         </div>
 
-                        <div class="col-md-6 compensation-field d-none" data-compensation-type="hourly">
-                            <label class="form-label">Rate per Hour (&#8369;)</label>
-                            <input type="number" class="form-control ph-input" name="rate_per_hour" value="{{ old('rate_per_hour') }}" step="0.01">
-                            @error('rate_per_hour')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
+                        <div class="col-12 compensation-field d-none" data-compensation-type="hourly">
+                            <div class="row g-4">
+                                <div class="col-md-6">
+                                    <label class="form-label">Total Hourly Budget (&#8369;)</label>
+                                    <input type="number" class="form-control ph-input" name="budget" value="{{ old('budget') }}" step="0.01">
+                                    @error('budget')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Rate per Hour (&#8369;)</label>
+                                    <input type="number" class="form-control ph-input" name="rate_per_hour" value="{{ old('rate_per_hour') }}" step="0.01">
+                                    @error('rate_per_hour')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
+                                </div>
+                            </div>
                         </div>
 
                         <div class="col-12 compensation-field d-none" data-compensation-type="contest">

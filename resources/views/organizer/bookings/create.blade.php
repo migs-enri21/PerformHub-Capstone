@@ -94,6 +94,7 @@
                 data-venue="{{ $event->venue }}"
                 data-description="{{ $event->description }}"
                 data-budget="{{ $event->budget }}"
+                data-rate-per-hour="{{ $event->rate_per_hour }}"
                 data-compensation-type="{{ $event->compensation_type }}"
                 data-first-prize="{{ $event->first_prize }}"
                 data-second-prize="{{ $event->second_prize }}"
@@ -110,7 +111,7 @@
         @endforeach
 
             </select>
-            <small class="text-muted d-block mt-2">Only today’s and upcoming active events are shown.</small>
+            <small class="text-muted d-block mt-2">Only open events that have not started are shown.</small>
             <input type="hidden" name="event_id" id="event_id" value="{{ $eventDetails['id'] }}">
             @error('event_id')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
             </div>
@@ -133,7 +134,7 @@
                     <div class="small mt-1" id="contestPrizeDetails"></div>
                 </div>
             </div>
-            <div class="col-md-4"><label class="form-label text-muted small">Budget Offer (₱)</label><input type="number" name="budget" id="budget" class="form-control ph-input @error('budget') is-invalid @enderror" value="{{ old('budget', $selectedEventBudget) }}" step="0.01">@error('budget')<div class="invalid-feedback">{{ $message }}</div>@enderror</div>
+            <div class="col-md-4"><label class="form-label text-muted small" id="budgetOfferLabel">Budget Offer (₱)</label><input type="number" name="budget" id="budget" class="form-control ph-input @error('budget') is-invalid @enderror" value="{{ old('budget', $selectedEventBudget) }}" step="0.01"><small class="text-muted d-none" id="hourlyRateHelp"></small>@error('budget')<div class="invalid-feedback">{{ $message }}</div>@enderror</div>
             <div class="col-12"><label class="form-label text-muted small">Notes for Performer (Optional)</label><textarea name="notes" class="form-control ph-input" rows="2">{{ old('notes') }}</textarea></div>
 
         </div>
@@ -155,6 +156,8 @@
     const selectedEventSummary = document.getElementById('selectedEventSummary');
     const budgetInput = document.getElementById('budget');
     const budgetOfferField = budgetInput.closest('.col-md-4');
+    const budgetOfferLabel = document.getElementById('budgetOfferLabel');
+    const hourlyRateHelp = document.getElementById('hourlyRateHelp');
     const contestPrizeNotice = document.getElementById('contestPrizeNotice');
     const contestPrizeDetails = document.getElementById('contestPrizeDetails');
 
@@ -165,6 +168,10 @@
             if (!selected.dataset.id) {
                 document.getElementById('event_id').value = '';
                 selectedEventSummary.classList.add('d-none');
+                budgetInput.value = '';
+                budgetOfferLabel.textContent = 'Budget Offer (₱)';
+                hourlyRateHelp.classList.add('d-none');
+                contestPrizeNotice.classList.add('d-none');
                 return;
             }
 
@@ -181,12 +188,20 @@
                 budgetInput.disabled = true;
                 budgetOfferField.classList.add('d-none');
                 contestPrizeNotice.classList.remove('d-none');
+                hourlyRateHelp.classList.add('d-none');
                 showContestPrizes(selected);
             } else {
                 budgetInput.value = selected.dataset.budget || '';
                 budgetInput.disabled = false;
                 budgetOfferField.classList.remove('d-none');
                 contestPrizeNotice.classList.add('d-none');
+
+                if (selected.dataset.compensationType === 'hourly') {
+                    showHourlySuggestion(selected);
+                } else {
+                    budgetOfferLabel.textContent = 'Budget Offer (₱)';
+                    hourlyRateHelp.classList.add('d-none');
+                }
             }
             selectedEventSummary.classList.remove('d-none');
     }
@@ -207,6 +222,24 @@
         }
 
         contestPrizeDetails.textContent = prizes.join(' · ');
+    }
+
+    function showHourlySuggestion(selected) {
+        const start = new Date('2000-01-01T' + selected.dataset.start);
+        let end = new Date('2000-01-01T' + selected.dataset.end);
+
+        if (end <= start) {
+            end.setDate(end.getDate() + 1);
+        }
+
+        const duration = (end - start) / 3600000;
+        const rate = Number(selected.dataset.ratePerHour || 0);
+        const suggestedOffer = rate * duration;
+
+        budgetInput.value = suggestedOffer.toFixed(2);
+        budgetOfferLabel.textContent = 'Suggested Offer (₱)';
+        hourlyRateHelp.textContent = '₱' + rate.toLocaleString() + ' per hour × ' + duration + ' hour' + (duration === 1 ? '' : 's') + '. You may edit this offer.';
+        hourlyRateHelp.classList.remove('d-none');
     }
 
     selector.addEventListener('change', updateSelectedEvent);

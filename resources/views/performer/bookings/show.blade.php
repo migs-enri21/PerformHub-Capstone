@@ -80,7 +80,7 @@
                     <p class="text-success small mb-2">Your electronic signature is complete.</p>
                 @else
                     <p class="text-primary small mb-2">SignWell status: {{ ucfirst($booking->signwell_status) }}</p>
-                    @if($booking->status === 'accepted' && ! $booking->eventDateHasPassed())
+                    @if($booking->status === 'accepted' && ! $booking->eventHasEnded())
                         <a href="{{ route('performer.bookings.sign', $booking) }}" class="btn ph-btn-primary btn-sm">Sign Contract</a>
                     @endif
                 @endif

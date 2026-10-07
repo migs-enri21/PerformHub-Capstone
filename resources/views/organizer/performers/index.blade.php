@@ -9,6 +9,12 @@
 @section('content')
 @php
     $eventTypeName = 'N/A';
+    $hasActiveFilters = request()->filled('search')
+        || request()->filled('category_id')
+        || request()->filled('specialty')
+        || request()->filled('genre')
+        || request()->filled('available_date');
+    $clearFiltersUrl = route('organizer.performers.index', $selectedEvent ? ['event' => $selectedEvent->id] : []);
 
     if ($selectedEvent && $selectedEvent->eventType) {
         $eventTypeName = $selectedEvent->eventType->name;
@@ -60,13 +66,21 @@
         <div class="col-md-6 col-lg-2"><label class="form-label small fw-semibold" for="availableDate">Available on</label>
             <input type="date" id="availableDate" name="available_date" class="form-control ph-input" value="{{ request('available_date') }}">
         </div>
-        <div class="col-md-6 col-lg-1 d-flex align-items-end">
+        <div class="col-md-6 col-lg-1 d-flex flex-column align-items-end justify-content-end">
+            @if($hasActiveFilters)
+                <a href="{{ $clearFiltersUrl }}" class="organizer-clear-filters">Clear filters</a>
+            @endif
             <button type="submit" class="btn ph-btn-primary w-100 organizer-performer-search-button">Search</button>
         </div>
     </form>
 </div>
 
-<p class="text-muted small mb-3">{{ $performers->total() }} verified performer(s) found</p>
+<p class="text-muted small mb-3">
+    {{ $performers->total() }} verified performer(s) found
+    @if($selectedEvent)
+        <span>available for {{ $selectedEvent->title }}.</span>
+    @endif
+</p>
 
 <div class="row g-4 organizer-performer-results">
     @forelse($performers as $performer)
@@ -102,7 +116,7 @@
                     @endforeach
                 </div>
 
-                <p class="text-muted small mb-3">{{ Str::limit($performer->bio, 105) }}</p>
+                <p class="text-muted small mb-3 organizer-performer-bio">{{ Str::limit($performer->bio, 105) }}</p>
 
                 @if($rateLines)
                     <p class="small mb-3"><strong>Rate:</strong> {{ implode(' · ', $rateLines) }}</p>
@@ -110,7 +124,11 @@
 
                 <div class="organizer-performer-card-actions mt-auto">
                     <a href="{{ route('organizer.performers.show', $performer) }}" class="btn ph-btn-outline btn-sm">View Profile</a>
-                    <a href="{{ route('organizer.bookings.create', ['performer' => $performer, 'event' => request('event')]) }}" class="btn ph-btn-primary btn-sm">Book</a>
+                    @if(auth()->user()->hasLimitedAccess())
+                        <span class="btn ph-btn-primary btn-sm disabled"><i class="fas fa-lock me-1"></i>Pending Verification</span>
+                    @else
+                        <a href="{{ route('organizer.bookings.create', ['performer' => $performer, 'event' => request('event')]) }}" class="btn ph-btn-primary btn-sm">Book</a>
+                    @endif
                 </div>
             </div>
         </div>

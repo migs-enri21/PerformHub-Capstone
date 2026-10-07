@@ -14,10 +14,12 @@
         <p class="text-muted mb-0">Manage all of your events in one place.</p>
     </div>
 
-    <a href="{{ route('organizer.events.create') }}" class="btn ph-btn-primary">
-        <i class="fas fa-plus me-2"></i>
-        Create Event
-    </a>
+    @if(! auth()->user()->hasLimitedAccess())
+        <a href="{{ route('organizer.events.create') }}" class="btn ph-btn-primary">
+            <i class="fas fa-plus me-2"></i>
+            Create Event
+        </a>
+    @endif
 </div>
 
 <div class="organizer-event-filters mb-4" aria-label="Filter events">
@@ -25,8 +27,7 @@
         $selectedFilter = request('status');
     @endphp
     <a href="{{ route('organizer.events.index') }}" class="organizer-event-filter @if(! $selectedFilter) organizer-event-filter--active @endif">All</a>
-    <a href="{{ route('organizer.events.index', ['status' => 'upcoming']) }}" class="organizer-event-filter @if($selectedFilter === 'upcoming') organizer-event-filter--active @endif">Upcoming</a>
-    <a href="{{ route('organizer.events.index', ['status' => 'ongoing']) }}" class="organizer-event-filter @if($selectedFilter === 'ongoing') organizer-event-filter--active @endif">Ongoing</a>
+    <a href="{{ route('organizer.events.index', ['status' => 'open']) }}" class="organizer-event-filter @if($selectedFilter === 'open') organizer-event-filter--active @endif">Open</a>
     <a href="{{ route('organizer.events.index', ['status' => 'ended']) }}" class="organizer-event-filter @if($selectedFilter === 'ended') organizer-event-filter--active @endif">Ended</a>
     <a href="{{ route('organizer.events.index', ['status' => 'completed']) }}" class="organizer-event-filter @if($selectedFilter === 'completed') organizer-event-filter--active @endif">Completed</a>
     <a href="{{ route('organizer.events.index', ['status' => 'cancelled']) }}" class="organizer-event-filter @if($selectedFilter === 'cancelled') organizer-event-filter--active @endif">Cancelled</a>
@@ -45,10 +46,8 @@
                 @php
                     $statusClass = 'organizer-event-status--default';
 
-                    if (in_array(strtolower($event->status), ['open', 'upcoming'], true)) {
+                    if (strtolower($event->status) === 'open') {
                         $statusClass = 'organizer-event-status--open';
-                    } elseif ($event->status === 'ongoing') {
-                        $statusClass = 'organizer-event-status--ongoing';
                     } elseif (strtolower($event->status) === 'completed') {
                         $statusClass = 'organizer-event-status--completed';
                     } elseif (strtolower($event->status) === 'ended') {
@@ -56,6 +55,13 @@
                     } elseif (strtolower($event->status) === 'cancelled') {
                         $statusClass = 'organizer-event-status--cancelled';
                     }
+                @endphp
+
+                @php
+                    $status = strtolower($event->status);
+                    $hasParticipants = $event->applications_count > 0 || $event->bookings_count > 0;
+                    $canDeleteEvent = $status === 'cancelled'
+                        || (! $hasParticipants && ($status === 'ended' || ($status === 'open' && ! $event->hasStarted())));
                 @endphp
 
                 <article class="ph-card organizer-event-card h-100 overflow-hidden">
@@ -99,6 +105,9 @@
                         <div class="d-flex justify-content-between align-items-start gap-3 mb-2">
                             <h5 class="event-card-title mb-0">{{ $event->title }}</h5>
                             <span class="organizer-event-status {{ $statusClass }}">{{ ucfirst($event->status) }}</span>
+                            @if(strtolower($event->status) === 'open' && $event->hasStarted())
+                                <span class="badge text-bg-secondary">Applications Closed</span>
+                            @endif
                         </div>
 
                         @if($event->description)
@@ -118,12 +127,16 @@
 
                         <div class="organizer-event-actions">
                             <a href="{{ route('organizer.events.show', $event) }}" class="btn ph-btn-primary btn-sm">View Event</a>
-                            <a href="{{ route('organizer.events.edit', $event) }}" class="btn ph-btn-outline btn-sm">Edit</a>
-                            <form method="POST" action="{{ route('organizer.events.destroy', $event) }}" class="delete-event-form">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="btn organizer-event-delete btn-sm">Delete</button>
-                            </form>
+                            @if(! auth()->user()->hasLimitedAccess() && strtolower($event->status) === 'open' && ! $event->hasStarted())
+                                <a href="{{ route('organizer.events.edit', $event) }}" class="btn ph-btn-outline btn-sm">Edit</a>
+                            @endif
+                            @if(! auth()->user()->hasLimitedAccess() && $canDeleteEvent)
+                                <form method="POST" action="{{ route('organizer.events.destroy', $event) }}" class="delete-event-form">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="btn btn-sm ph-btn-danger">Delete</button>
+                                </form>
+                            @endif
                         </div>
                     </div>
                 </article>

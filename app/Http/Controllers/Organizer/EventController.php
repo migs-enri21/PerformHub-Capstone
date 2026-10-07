@@ -32,9 +32,11 @@ class EventController extends Controller
 
     public function index(Request $request): View
     {
-        Event::markPastEventsEnded();
+        Event::refreshStatuses();
 
-        $query = Event::with('photos')->where('organizer_id', Auth::id());
+        $query = Event::with('photos')
+            ->withCount(['applications', 'bookings'])
+            ->where('organizer_id', Auth::id());
 
         $this->applyEventFilter($query, $request->status);
 
@@ -56,7 +58,7 @@ class EventController extends Controller
     public function create(): View
     {
         $eventTypes = EventType::where('is_active', true)->orderBy('name')->get();
-        $categories = Category::orderBy('name')->get();
+        $categories = Category::where('is_active', true)->orderBy('name')->get();
         $genreCategories = $this->getGenreCategories();
         $eventTypeRequests = $this->featureRequestsFor(FeatureRequest::TYPE_EVENT_TYPE);
         $categoryRequests = $this->featureRequestsFor(FeatureRequest::TYPE_CATEGORY);
@@ -98,7 +100,7 @@ class EventController extends Controller
 
     public function show(Event $event): View
     {
-        Event::markPastEventsEnded();
+        Event::refreshStatuses();
         Booking::sweepPastBookings();
         $event->refresh();
 
@@ -110,6 +112,16 @@ class EventController extends Controller
         $hasConfirmedBooking = false;
         $reservedBudget = 0;
         $remainingBudget = null;
+        $contestPrizePool = null;
+        $hasFullAccess = ! Auth::user()->hasLimitedAccess();
+        $canEditEvent = $hasFullAccess && $this->eventCanBeEdited($event);
+        $applicationsClosed = strtolower($event->status) === 'open' && $event->hasStarted();
+        $hasParticipants = $this->eventHasParticipants($event);
+        $hasPendingCancellationRequest = $this->hasPendingCancellationRequest($event);
+        $canDeleteEvent = $hasFullAccess && $this->eventCanBeDeleted($event, $hasParticipants);
+        $canCancelEvent = $hasParticipants
+            && strtolower($event->status) === 'open'
+            && ! Auth::user()->hasLimitedAccess();
 
         foreach ($bookings as $booking) {
             if ($booking->status === 'completed') {
@@ -121,37 +133,59 @@ class EventController extends Controller
             }
         }
 
-        if (in_array(strtolower($event->status), ['open', 'ended']) && $hasConfirmedBooking) {
+        if ($hasFullAccess && strtolower($event->status) === 'ended' && $hasConfirmedBooking && ! $hasPendingCancellationRequest) {
             $canCompleteEvent = true;
         }
 
-        if ($event->compensation_type === 'fixed' && $event->budget !== null) {
+        if (in_array($event->compensation_type, ['fixed', 'hourly'], true) && $event->budget !== null) {
             $remainingBudget = (float) $event->budget - $reservedBudget;
+        }
+
+        if ($event->compensation_type === 'contest') {
+            $contestPrizePool = (float) $event->first_prize
+                + (float) $event->second_prize
+                + (float) $event->third_prize;
         }
 
         return view('organizer.events.show', compact(
             'event',
             'bookings',
+            'canEditEvent',
+            'applicationsClosed',
+            'canDeleteEvent',
             'canCompleteEvent',
+            'canCancelEvent',
+            'hasPendingCancellationRequest',
             'reservedBudget',
-            'remainingBudget'
+            'remainingBudget',
+            'contestPrizePool'
         ));
     }
 
     public function edit(Event $event): View
     {
         $this->authorizeEvent($event);
+        Event::refreshStatuses();
+        $event->refresh();
+
+        if (! $this->eventCanBeEdited($event)) {
+            abort(403);
+        }
 
         $this->syncLegacyCoverPhoto($event);
         $event->load(['photos', 'categories']);
         $eventTypes = EventType::where('is_active', true)->orderBy('name')->get();
-        $categories = Category::orderBy('name')->get();
+        $categories = Category::where('is_active', true)->orderBy('name')->get();
         $genreCategories = $this->getGenreCategories(
             OptionList::wrap($event->preferred_genres),
             $event->categories->pluck('id')->all()
         );
         $eventTypeRequests = $this->featureRequestsFor(FeatureRequest::TYPE_EVENT_TYPE);
         $categoryRequests = $this->featureRequestsFor(FeatureRequest::TYPE_CATEGORY);
+        $hasParticipants = $this->eventHasParticipants($event);
+        $canCancelEvent = $hasParticipants
+            && strtolower($event->status) === 'open'
+            && ! Auth::user()->hasLimitedAccess();
 
         return view('organizer.events.edit', compact(
             'event',
@@ -159,21 +193,25 @@ class EventController extends Controller
             'categories',
             'genreCategories',
             'eventTypeRequests',
-            'categoryRequests'
+            'categoryRequests',
+            'hasParticipants',
+            'canCancelEvent'
         ));
     }
 
     public function update(Request $request, Event $event): RedirectResponse
     {
         $this->authorizeEvent($event);
+        Event::refreshStatuses();
+        $event->refresh();
 
-        if ($event->status !== 'Completed' && $request->input('status') === 'Completed') {
-            return back()->withInput()->withErrors([
-                'status' => 'Use the Mark Event Completed button after confirming a booking.',
-            ]);
+        if (! $this->eventCanBeEdited($event)) {
+            return redirect()
+                ->route('organizer.events.show', $event)
+                ->with('warning', 'Only open events can be edited.');
         }
 
-        $validated = $this->validatedEvent($request, true, $event);
+        $validated = $this->validatedEvent($request, $event);
 
         $newMediaCount = $this->mediaCount($request);
 
@@ -203,6 +241,28 @@ class EventController extends Controller
     public function destroy(Event $event): RedirectResponse
     {
         $this->authorizeEvent($event);
+        Event::refreshStatuses();
+        $event->refresh();
+
+        $hasParticipants = $this->eventHasParticipants($event);
+        $status = strtolower($event->status);
+
+        if ($status === 'cancelled') {
+            $this->deleteEventPhotos($event);
+            $event->delete();
+
+            return redirect()
+                ->route('organizer.events.index')
+                ->with('success', 'Cancelled event deleted successfully.');
+        }
+
+        if ($hasParticipants) {
+            return back()->with('warning', 'This event has performer records. Cancel it instead to notify everyone and keep the history.');
+        }
+
+        if ($status !== 'ended' && ! $this->eventCanBeEdited($event)) {
+            return back()->with('warning', 'Only unused open or ended events can be deleted.');
+        }
 
         $this->deleteEventPhotos($event);
         $event->delete();
@@ -215,6 +275,14 @@ class EventController extends Controller
     public function destroyMedia(Event $event, EventPhoto $photo): RedirectResponse
     {
         $this->authorizeEvent($event);
+        Event::refreshStatuses();
+        $event->refresh();
+
+        if (! $this->eventCanBeEdited($event)) {
+            return redirect()
+                ->route('organizer.events.show', $event)
+                ->with('warning', 'Media can only be changed while an event is open.');
+        }
 
         if ($photo->event_id !== $event->id) {
             abort(404);
@@ -243,9 +311,77 @@ class EventController extends Controller
         return back()->with('success', 'Event media removed.');
     }
 
+    public function cancel(Event $event): RedirectResponse
+    {
+        $this->authorizeEvent($event);
+        Event::refreshStatuses();
+        $event->refresh();
+
+        if (strtolower($event->status) !== 'open') {
+            return back()->with('warning', 'Only open events can be cancelled.');
+        }
+
+        if (! $this->eventHasParticipants($event)) {
+            return back()->with('warning', 'This event has no performer records. Delete it instead.');
+        }
+
+        $bookings = Booking::where('event_id', $event->id)
+            ->whereIn('status', ['pending', 'accepted', 'completed'])
+            ->with('performer')
+            ->get();
+        $applications = EventApplication::where('event_id', $event->id)
+            ->whereIn('status', ['pending', 'invited', 'accepted'])
+            ->with('performer')
+            ->get();
+        $notifiedPerformerIds = [];
+
+        foreach ($bookings as $booking) {
+            $booking->update([
+                'status' => 'cancelled',
+                'cancel_requested_at' => null,
+            ]);
+
+            if ($booking->performer) {
+                Notification::send(
+                    $booking->performer,
+                    'event',
+                    'Event Cancelled',
+                    'The organizer cancelled "'.$event->title.'". Your booking is now cancelled.',
+                    route('performer.bookings.show', $booking)
+                );
+
+                $notifiedPerformerIds[] = $booking->performer_id;
+            }
+        }
+
+        foreach ($applications as $application) {
+            $application->update(['status' => 'cancelled']);
+
+            if (! $application->performer || in_array($application->performer_id, $notifiedPerformerIds, true)) {
+                continue;
+            }
+
+            Notification::send(
+                $application->performer,
+                'event',
+                'Event Cancelled',
+                'The organizer cancelled "'.$event->title.'".',
+                route('performer.dashboard')
+            );
+        }
+
+        $event->update(['status' => 'Cancelled']);
+
+        return redirect()
+            ->route('organizer.events.show', $event)
+            ->with('success', 'Event cancelled. Affected performers were notified.');
+    }
+
     public function complete(Event $event): RedirectResponse
     {
         $this->authorizeEvent($event);
+        Event::refreshStatuses();
+        $event->refresh();
 
         if (strtolower($event->status) === 'completed') {
             return back()->with('info', 'This event is already completed.');
@@ -253,6 +389,14 @@ class EventController extends Controller
 
         if (strtolower($event->status) === 'cancelled') {
             return back()->with('warning', 'A cancelled event cannot be marked as completed.');
+        }
+
+        if (strtolower($event->status) !== 'ended') {
+            return back()->with('warning', 'An event can only be marked as completed after it has ended.');
+        }
+
+        if ($this->hasPendingCancellationRequest($event)) {
+            return back()->with('warning', 'Resolve pending performer cancellation requests before completing this event.');
         }
 
         $hasConfirmedBooking = Booking::where('event_id', $event->id)
@@ -273,6 +417,40 @@ class EventController extends Controller
         if ($event->organizer_id !== Auth::id()) {
             abort(403);
         }
+    }
+
+    private function eventHasParticipants(Event $event): bool
+    {
+        return $event->applications()->exists()
+            || Booking::where('event_id', $event->id)->exists();
+    }
+
+    private function hasPendingCancellationRequest(Event $event): bool
+    {
+        return Booking::where('event_id', $event->id)
+            ->whereNotNull('cancel_requested_at')
+            ->whereIn('status', ['accepted', 'completed'])
+            ->exists();
+    }
+
+    private function eventCanBeEdited(Event $event): bool
+    {
+        return strtolower($event->status) === 'open' && ! $event->hasStarted();
+    }
+
+    private function eventCanBeDeleted(Event $event, bool $hasParticipants): bool
+    {
+        $status = strtolower($event->status);
+
+        if ($status === 'cancelled') {
+            return true;
+        }
+
+        if ($hasParticipants) {
+            return false;
+        }
+
+        return $status === 'ended' || $this->eventCanBeEdited($event);
     }
 
     private function syncActiveBookingsAndNotifyPerformers(Event $event): void
@@ -329,14 +507,8 @@ class EventController extends Controller
 
     private function applyEventFilter($query, ?string $filter): void
     {
-        $today = now()->toDateString();
-
-        if ($filter === 'upcoming') {
-            $query->where('status', 'Open')->whereDate('event_date', '>', $today);
-        }
-
-        if ($filter === 'ongoing') {
-            $query->where('status', 'Open')->whereDate('event_date', $today);
+        if ($filter === 'open') {
+            $query->whereIn('status', ['Open', 'open']);
         }
 
         if ($filter === 'completed') {
@@ -352,7 +524,7 @@ class EventController extends Controller
         }
     }
 
-    private function validatedEvent(Request $request, bool $updating = false, ?Event $event = null): array
+    private function validatedEvent(Request $request, ?Event $event = null): array
     {
         $allowedGenres = array_keys($this->getGenreCategories());
 
@@ -366,10 +538,10 @@ class EventController extends Controller
         $eventDateRules = ['required', 'date', 'after_or_equal:today'];
 
         $rules = [
-            'event_type_id' => ['required', 'exists:event_types,id'],
+            'event_type_id' => ['required', Rule::exists('event_types', 'id')->where('is_active', true)],
             'compensation_type' => ['required', Rule::in(['fixed', 'hourly', 'contest'])],
             'category_ids' => ['required', 'array', 'min:1'],
-            'category_ids.*' => ['exists:categories,id'],
+            'category_ids.*' => [Rule::exists('categories', 'id')->where('is_active', true)],
             'preferred_genres' => ['nullable', 'array'],
             'preferred_genres.*' => ['string', Rule::in($allowedGenres)],
             'title' => ['required', 'string', 'max:255'],
@@ -388,7 +560,6 @@ class EventController extends Controller
             'second_prize' => ['nullable', 'numeric', 'min:0'],
             'third_prize' => ['nullable', 'numeric', 'min:0'],
             'rate_per_hour' => ['nullable', 'numeric', 'min:0'],
-            'status' => $this->statusRules($updating),
         ];
 
         $compensationType = $request->input('compensation_type');
@@ -400,6 +571,7 @@ class EventController extends Controller
         }
 
         if ($compensationType === 'hourly') {
+            $rules['budget'] = ['required', 'numeric', 'min:0'];
             $rules['rate_per_hour'] = ['required', 'numeric', 'min:0'];
         }
 
@@ -448,17 +620,9 @@ class EventController extends Controller
             return;
         }
 
-        if (array_key_exists('status', $eventDetails)) {
-            $status = $eventDetails['status'];
-
-            if (in_array($status, ['Cancelled', 'Completed', 'Ended'], true)) {
-                return;
-            }
-        }
-
         $scheduledEvents = Event::where('organizer_id', Auth::id())
             ->whereDate('event_date', $eventDate)
-            ->whereIn('status', ['Open', 'open', 'Ongoing', 'ongoing']);
+            ->whereIn('status', ['Open', 'open']);
 
         if ($event) {
             $scheduledEvents->where('id', '!=', $event->id);
@@ -568,7 +732,6 @@ class EventController extends Controller
         }
 
         if ($compensationType === 'hourly') {
-            $eventDetails['budget'] = null;
             $eventDetails['first_prize'] = null;
             $eventDetails['second_prize'] = null;
             $eventDetails['third_prize'] = null;
@@ -645,15 +808,6 @@ class EventController extends Controller
         $event->categories()->sync($categoryIds);
     }
 
-    private function statusRules(bool $updating): array
-    {
-        if ($updating) {
-            return ['required', 'in:Open,Ended,Completed,Cancelled'];
-        }
-
-        return ['nullable'];
-    }
-
     private function syncLegacyCoverPhoto(Event $event): void
     {
         if ($event->cover_photo && !$event->photos()->exists()) {
@@ -667,6 +821,7 @@ class EventController extends Controller
     private function deleteEventPhotos(Event $event): void
     {
         $supabase = new SupabaseStorageService();
+        $photoPaths = $event->photos->pluck('file_path')->all();
 
         foreach ($event->photos as $photo) {
             if (!str_starts_with($photo->file_path, 'http')) {
@@ -674,7 +829,11 @@ class EventController extends Controller
             }
         }
 
-        if ($event->cover_photo && !str_starts_with($event->cover_photo, 'http')) {
+        if (
+            $event->cover_photo
+            && !in_array($event->cover_photo, $photoPaths, true)
+            && !str_starts_with($event->cover_photo, 'http')
+        ) {
             $supabase->delete('organizer-files', $event->cover_photo);
         }
     }

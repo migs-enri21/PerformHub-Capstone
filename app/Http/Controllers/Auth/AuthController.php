@@ -50,26 +50,6 @@ class AuthController extends Controller
         return back()->withErrors(['email' => 'Invalid credentials.'])->onlyInput('email');
     }
 
-    public function showForgotPassword(): View
-    {
-        return view('auth.forgot-password');
-    }
-
-    public function sendResetLink(Request $request): RedirectResponse
-    {
-        $validated = $request->validate([
-            'email' => ['required', 'email'],
-        ]);
-
-        $status = PasswordBroker::sendResetLink($validated);
-
-        if ($status !== PasswordBroker::RESET_LINK_SENT) {
-            return back()->withInput()->withErrors(['email' => __($status)]);
-        }
-
-        return back()->with('status', __($status));
-    }
-
     public function showResetPassword(string $token): View
     {
         return view('auth.reset-password', [

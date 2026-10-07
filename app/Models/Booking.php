@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Services\SupabaseStorageService;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -99,11 +100,11 @@ class Booking extends Model
             case 'cancelled':
                 return 'bg-secondary';
             case 'accepted':
-                return 'bg-success';
+                return 'bg-primary';
             case 'rejected':
                 return 'bg-danger';
             case 'completed':
-                return 'bg-secondary';
+                return 'bg-success';
             case 'expired':
                 return 'bg-danger';
             default:
@@ -142,28 +143,37 @@ class Booking extends Model
         return $this->hasSignedContract() || $this->isSignWellCompleted();
     }
 
-    public function eventDateHasPassed(): bool
+    public function eventHasEnded(): bool
     {
-        return $this->event_date->toDateString() < now()->toDateString();
+        $date = $this->event_date->toDateString();
+        $start = Carbon::parse($date.' '.$this->event_time);
+        $endTime = $this->end_time ?: $this->event_time;
+        $end = Carbon::parse($date.' '.$endTime);
+
+        if ($end->lessThanOrEqualTo($start)) {
+            $end->addDay();
+        }
+
+        return now()->greaterThanOrEqualTo($end);
     }
 
     public static function sweepPastBookings(): void
     {
-        static::expirePastUnsigned();
+        static::expirePastUnconfirmed();
     }
 
-    public static function expirePastUnsigned(): int
+    public static function expirePastUnconfirmed(): int
     {
         $bookings = static::query()
             ->with(['organizer', 'performer'])
             ->whereIn('status', ['pending', 'accepted'])
-            ->whereDate('event_date', '<', today())
+            ->whereDate('event_date', '<=', today())
             ->get();
 
         $count = 0;
 
         foreach ($bookings as $booking) {
-            if ($booking->isSigned()) {
+            if (! $booking->eventHasEnded()) {
                 continue;
             }
 
@@ -172,7 +182,7 @@ class Booking extends Model
                 'cancel_requested_at' => null,
             ]);
 
-            $message = '"'.$booking->event_name.'" expired because the event date passed without a signed contract.';
+            $message = '"'.$booking->event_name.'" expired because the event ended before the booking was confirmed.';
 
             if ($booking->performer) {
                 \App\Models\Notification::send(

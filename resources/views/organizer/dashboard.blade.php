@@ -25,7 +25,7 @@
                 <div class="col-md-3">
                     <a href="{{ route('organizer.events.index') }}" class="org-stat">
                         <i class="fas fa-calendar-plus"></i>
-                        <div><strong>{{ $upcomingEvents->count() }}</strong><small>Upcoming Events</small></div>
+                        <div><strong>{{ $openEvents->count() }}</strong><small>Open Events</small></div>
                     </a>
                 </div>
                 <div class="col-md-3">
@@ -56,7 +56,7 @@
             </div>
 
             @if($recommendationEvent)
-                <p class="text-muted small mb-3">Based on your nearest upcoming event: {{ $recommendationEvent->title }}</p>
+                <p class="text-muted small mb-3">Based on your nearest open event: {{ $recommendationEvent->title }}</p>
                 @if(! empty($recommendationEvent->preferred_genres))
                     <p class="text-muted small mb-3">Required categories are matched first. Preferred genres are shown first within those matches.</p>
                 @endif
@@ -95,7 +95,7 @@
                 @endforelse
                 </div>
             @else
-                <p class="text-muted mb-0">Create an upcoming event to receive performer suggestions.</p>
+                <p class="text-muted mb-0">Create an open event to receive performer suggestions.</p>
             @endif
         </div>
 
@@ -128,8 +128,8 @@
                     <a href="{{ route('organizer.events.index') }}" class="small">See all</a>
                 </div>
 
-                @if($upcomingEvents->isNotEmpty())
-                    @php($nextEvent = $upcomingEvents->first())
+                @if($openEvents->isNotEmpty())
+                    @php($nextEvent = $openEvents->first())
                     <a href="{{ route('organizer.events.show', $nextEvent) }}" class="org-list-item">
                         <span class="org-event-date">{{ \Illuminate\Support\Carbon::parse($nextEvent->event_date)->format('d M') }}</span>
                         <div>
@@ -138,7 +138,7 @@
                         </div>
                     </a>
                 @else
-                    <p class="text-muted small mb-0">No upcoming events yet.</p>
+                    <p class="text-muted small mb-0">No open events yet.</p>
                 @endif
             </div>
 

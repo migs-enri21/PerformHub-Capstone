@@ -49,6 +49,20 @@
     color: #ffffff;
 }
 
+.ph-btn-danger {
+    background: #dc3545;
+    border: none;
+    border-radius: 10px;
+    color: #ffffff;
+    font-weight: 600;
+    padding: 0.75rem 1.5rem;
+}
+
+.ph-btn-danger:hover {
+    background: #bb2d3b;
+    color: #ffffff;
+}
+
 .ph-card .form-control,
 .ph-card .form-select,
 .ph-card textarea{
@@ -317,7 +331,6 @@
 }
 
 .organizer-event-status--open { background: #eee8ff; color: #5837cc; }
-.organizer-event-status--ongoing { background: #def7e8; color: #147a43; }
 .organizer-event-status--completed { background: #e7e9ee; color: #374151; }
 .organizer-event-status--ended { background: #fff2d8; color: #9a5b00; }
 .organizer-event-status--cancelled { background: #ffe3e5; color: #b4232d; }
@@ -359,17 +372,6 @@
     margin-top: auto;
     padding-top: 1rem;
     border-top: 1px solid #eeeaf8;
-}
-
-.organizer-event-delete {
-    background: transparent;
-    border: 1px solid #f1b7bd;
-    color: #b4232d;
-}
-
-.organizer-event-delete:hover {
-    background: #fff0f1;
-    color: #8d1720;
 }
 
 .organizer-events-empty {
@@ -478,6 +480,92 @@
 .organizer-calendar-day--clickable:focus-visible {
     outline: 3px solid var(--ph-purple-glow);
     outline-offset: 2px;
+}
+
+/* Organizer calendar: a calmer schedule view than performer availability. */
+.organizer-calendar .availability-calendar-weekdays,
+.organizer-calendar .availability-calendar-grid {
+    gap: 0.4rem;
+}
+
+.organizer-calendar .availability-calendar-weekdays span {
+    color: #6d6680;
+    font-weight: 700;
+}
+
+.organizer-calendar .av-day {
+    background: #fcfbff;
+    border-color: #e8e2f5;
+    min-height: 64px;
+    padding: 0.5rem;
+}
+
+.organizer-calendar .av-day--empty {
+    background: transparent;
+    border: 0;
+    min-height: 0;
+    padding: 0;
+}
+
+.organizer-calendar .av-day--past {
+    background: #f8f7fb;
+    opacity: 0.6;
+}
+
+.organizer-calendar .av-day--booked {
+    background: #f0ecff;
+    border-color: #b8a9ff;
+}
+
+.organizer-calendar .av-day--booked .av-day-event {
+    color: #5735c7;
+    font-weight: 600;
+}
+
+.organizer-calendar .av-day--google-busy {
+    background: #f0f2f5;
+    border-color: #cfd5de;
+}
+
+.organizer-calendar .av-day--google-busy .av-day-google-label {
+    color: #647084;
+}
+
+.organizer-calendar .av-day--today {
+    box-shadow: none;
+    border-color: #d1c5ff;
+}
+
+.organizer-calendar .av-day--today .av-day-number {
+    align-items: center;
+    background: var(--ph-purple);
+    border-radius: 999px;
+    color: #ffffff;
+    display: inline-flex;
+    height: 1.55rem;
+    justify-content: center;
+    padding: 0 0.35rem;
+    width: 1.55rem;
+}
+
+.organizer-calendar .organizer-calendar-day--clickable:hover {
+    border-color: #9079ff;
+    box-shadow: 0 3px 10px rgba(99, 70, 255, 0.1);
+}
+
+.organizer-calendar .availability-calendar-legend {
+    border-top: 1px solid #eeeaf7;
+    color: #6d6680;
+    margin-top: 1rem !important;
+    padding-top: 0.85rem;
+}
+
+.organizer-calendar .av-legend-dot--booked {
+    background: #7254e8;
+}
+
+.organizer-google-calendar-icon {
+    color: #6346ff;
 }
 
 .organizer-event-form {
@@ -591,6 +679,18 @@
     padding: 0.375rem 0.75rem;
 }
 
+.organizer-clear-filters {
+    color: #6346ff;
+    font-size: 0.875rem;
+    font-weight: 600;
+    margin-bottom: 0.35rem;
+}
+
+.organizer-clear-filters:hover {
+    color: #4f36cc;
+    text-decoration: underline;
+}
+
 .organizer-performer-card {
     background: #fff;
     border: 1px solid #e3dcf7;
@@ -617,6 +717,9 @@
     display: flex;
     flex-wrap: wrap;
     gap: 0.4rem;
+    max-height: 4.25rem;
+    min-height: 2rem;
+    overflow: hidden;
 }
 
 .organizer-performer-tags span {
@@ -625,6 +728,14 @@
     color: #5b35c8;
     font-size: 0.75rem;
     padding: 0.25rem 0.55rem;
+}
+
+.organizer-performer-bio {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    min-height: 2.5rem;
+    overflow: hidden;
 }
 
 .organizer-performer-card-actions {

@@ -21,10 +21,10 @@ class BookingController extends Controller
 {
     public function create(Request $request, PerformerProfile $performer): View
     {
-        $events = $this->activeEvents()
-            ->orderBy('event_date')
-            ->orderBy('start_time')
-            ->get();
+        $this->ensurePerformerCanBeBooked($performer);
+        Event::refreshStatuses();
+
+        $events = $this->activeEvents();
         $selectedEvent = $this->getSelectedEvent($request);
         $existingBooking = $this->findActiveBooking($performer, $selectedEvent);
         $fromApplication = $request->boolean('from_application');
@@ -34,10 +34,26 @@ class BookingController extends Controller
 
     public function store(Request $request, PerformerProfile $performer): RedirectResponse
     {
-        $event = $this->activeEvents()->find($request->input('event_id'));
+        $this->ensurePerformerCanBeBooked($performer);
+        Event::refreshStatuses();
+
+        $event = $this->activeEvents()->firstWhere('id', $request->input('event_id'));
 
         if (! $event) {
             return back()->with('error', 'Select an active event before sending a booking request.');
+        }
+
+        $fromApplication = $request->boolean('from_application');
+
+        if ($fromApplication) {
+            $hasPendingApplication = EventApplication::where('event_id', $event->id)
+                ->where('performer_id', $performer->user_id)
+                ->where('status', 'pending')
+                ->exists();
+
+            if (! $hasPendingApplication) {
+                return back()->with('error', 'This performer does not have a pending application for the selected event.');
+            }
         }
 
         $validated = $this->validateBooking($request, $event);
@@ -66,7 +82,6 @@ class BookingController extends Controller
 
         $validated['organizer_id'] = Auth::id();
         $validated['performer_id'] = $performer->user_id;
-        $fromApplication = $request->boolean('from_application');
         $validated['source'] = 'invite';
         $validated['status'] = 'pending';
 
@@ -109,8 +124,8 @@ class BookingController extends Controller
             return back()->with('warning', 'Only an active booking can receive a contract.');
         }
 
-        if ($booking->eventDateHasPassed()) {
-            return back()->with('warning', 'This booking date has already passed.');
+        if ($booking->eventHasEnded()) {
+            return back()->with('warning', 'This event has already ended.');
         }
 
         if (! $signWell->isConfigured()) {
@@ -149,8 +164,8 @@ class BookingController extends Controller
         $this->ensureBookingOwner($booking);
         abort_unless($booking->status === 'accepted' && $booking->hasContract(), 400);
 
-        if ($booking->eventDateHasPassed()) {
-            return back()->with('warning', 'This booking date has already passed.');
+        if ($booking->eventHasEnded()) {
+            return back()->with('warning', 'This event has already ended.');
         }
 
         if ($booking->signwell_document_id) {
@@ -193,7 +208,16 @@ class BookingController extends Controller
     public function complete(Booking $booking, SignWellService $signWell): RedirectResponse
     {
         $this->ensureBookingOwner($booking);
-        abort_unless($booking->status === 'accepted', 400);
+        Booking::sweepPastBookings();
+        $booking->refresh();
+
+        if ($booking->status !== 'accepted') {
+            return back()->with('warning', 'This booking is no longer active and cannot be confirmed.');
+        }
+
+        if ($booking->eventHasEnded()) {
+            return back()->with('warning', 'This event has already ended, so the booking can no longer be confirmed.');
+        }
 
         if ($booking->signwell_document_id && ! $booking->isSigned()) {
             try {
@@ -208,6 +232,10 @@ class BookingController extends Controller
 
         if (! $booking->isSigned()) {
             return back()->with('warning', 'Wait for the signed contract before confirming this booking.');
+        }
+
+        if (! $this->bookingFitsEventBudget($booking)) {
+            return back()->with('warning', 'This booking amount is higher than the event\'s remaining budget.');
         }
 
         if (! $booking->markCompletedFromSignature()) {
@@ -268,15 +296,28 @@ class BookingController extends Controller
             return null;
         }
 
-        return $this->activeEvents()->find($eventId);
+        return $this->activeEvents()->firstWhere('id', $eventId);
     }
 
     private function activeEvents()
     {
-        return Event::with('eventType')
+        $events = Event::with('eventType')
             ->where('organizer_id', Auth::id())
-            ->whereIn('status', ['Open', 'open', 'Ongoing', 'ongoing'])
-            ->whereDate('event_date', '>=', today());
+            ->whereIn('status', ['Open', 'open'])
+            ->whereDate('event_date', '>=', today())
+            ->orderBy('event_date')
+            ->orderBy('start_time')
+            ->get();
+
+        $activeEvents = collect();
+
+        foreach ($events as $event) {
+            if (! $event->hasStarted()) {
+                $activeEvents->push($event);
+            }
+        }
+
+        return $activeEvents;
     }
 
     private function validateBooking(Request $request, Event $event): array
@@ -324,6 +365,26 @@ class BookingController extends Controller
             ->first();
     }
 
+    private function bookingFitsEventBudget(Booking $booking): bool
+    {
+        $event = $booking->event;
+
+        if (! $event || ! in_array($event->compensation_type, ['fixed', 'hourly'], true)) {
+            return true;
+        }
+
+        if ($event->budget === null) {
+            return true;
+        }
+
+        $allocatedBudget = Booking::where('event_id', $event->id)
+            ->where('status', 'completed')
+            ->where('id', '!=', $booking->id)
+            ->sum('budget');
+
+        return $allocatedBudget + (float) $booking->budget <= (float) $event->budget;
+    }
+
     private function existingBookingMessage(Booking $booking): string
     {
         if ($booking->status === 'pending') {
@@ -366,6 +427,21 @@ class BookingController extends Controller
     private function ensureBookingOwner(Booking $booking): void
     {
         abort_unless($booking->organizer_id === Auth::id(), 403);
+    }
+
+    private function ensurePerformerCanBeBooked(PerformerProfile $performer): void
+    {
+        $performer->loadMissing('user');
+
+        if (
+            !$performer->user
+            || !$performer->user->is_active
+            || !$performer->user->is_verified
+            || !$performer->user->hasCompletedOnboarding()
+            || !$performer->is_verified_badge
+        ) {
+            abort(404);
+        }
     }
 
     private function saveContract(Booking $booking, $file): void

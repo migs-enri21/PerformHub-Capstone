@@ -3,7 +3,7 @@
 @section('title', 'Register')
 
 @section('content')
-<div class="auth-split">
+<div class="auth-split auth-register">
     <div class="auth-hero d-none d-lg-block">
         <div class="p-4">
             <a href="{{ route('home') }}" class="text-white text-decoration-none fw-bold fs-5 d-flex align-items-center">
