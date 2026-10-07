@@ -72,7 +72,16 @@ class EventController extends Controller
     public function show(Booking $booking): View
     {
         $booking->load(['organizer', 'performer']);
+        $eventPerformers = $booking->event_id
+            ? Booking::query()
+                ->where('event_id', $booking->event_id)
+                ->with('performer')
+                ->orderBy('id')
+                ->get()
+                ->unique('performer_id')
+                ->values()
+            : collect([$booking]);
 
-        return view('admin.events.show', compact('booking'));
+        return view('admin.events.show', compact('booking', 'eventPerformers'));
     }
 }

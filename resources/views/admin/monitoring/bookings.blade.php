@@ -73,7 +73,21 @@
                         @if($b->venue)<div class="small text-muted">{{ $b->venue }}</div>@endif
                     </td>
                     <td>{{ $b->organizer?->fullName() ?? '—' }}</td>
-                    <td>{{ $b->performer?->fullName() ?? '—' }}</td>
+                    <td>
+                        @php
+                            $performerCount = $b->event_id ? ($eventPerformerCounts[$b->event_id] ?? 1) : 1;
+                            $performerName = $b->performer?->fullName() ?? '—';
+                        @endphp
+
+                        @if($performerCount > 1)
+                            <span class="d-inline-flex align-items-center gap-2">
+                                <span>{{ $performerName }}</span>
+                                <span class="badge bg-light text-dark rounded-pill" title="{{ $performerCount }} performers booked for this event">+{{ $performerCount - 1 }}</span>
+                            </span>
+                        @else
+                            {{ $performerName }}
+                        @endif
+                    </td>
                     <td>
                         {{ optional($b->event_date)->format('M d, Y') }}
                         @if($b->event_time)<div class="small text-muted">{{ \Carbon\Carbon::parse($b->event_time)->format('g:i A') }}</div>@endif

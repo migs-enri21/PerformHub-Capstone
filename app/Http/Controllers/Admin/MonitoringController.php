@@ -42,6 +42,12 @@ class MonitoringController extends Controller
         $bookings = $query->orderBy('event_name')->orderBy('event_date')->paginate(20);
         $organizers = User::where('role', User::ROLE_ORGANIZER)->orderBy('first_name')->get();
 
-        return view('admin.monitoring.bookings', compact('bookings', 'organizers'));
+        $eventPerformerCounts = Booking::query()
+            ->whereNotNull('event_id')
+            ->selectRaw('event_id, COUNT(DISTINCT performer_id) as performer_count')
+            ->groupBy('event_id')
+            ->pluck('performer_count', 'event_id');
+
+        return view('admin.monitoring.bookings', compact('bookings', 'organizers', 'eventPerformerCounts'));
     }
 }

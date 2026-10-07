@@ -669,6 +669,59 @@ input[type="file"].ph-input::file-selector-button:hover {
         overflow-y: auto;
         padding: 2rem;
     }
+
+    .auth-register .auth-form-panel > .w-100 {
+        margin-block: auto !important;
+    }
+
+    @media (max-height: 800px) {
+        .auth-register .auth-form-panel {
+            justify-content: flex-start;
+            padding-block: 1rem;
+        }
+
+        .auth-register .auth-form-panel > .w-100 {
+            margin-block: 0 auto !important;
+        }
+
+        .auth-register .auth-form-panel > .w-100 > a {
+            margin-bottom: 0.5rem !important;
+        }
+
+        .auth-register .auth-form-panel > .w-100 > p {
+            margin-bottom: 0.5rem !important;
+        }
+
+        .auth-register #registrationFields .mb-2 {
+            margin-bottom: 0.35rem !important;
+        }
+
+        .auth-register #registrationFields .ph-input {
+            padding-block: 0.4rem;
+        }
+
+        .auth-register .role-card {
+            padding: 0.5rem;
+        }
+
+        .auth-register .role-card i {
+            font-size: 1.2rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .auth-register #registrationFields .upload-field {
+            margin-bottom: 0.5rem !important;
+        }
+
+        .auth-register #registrationFields .upload-field-inner {
+            padding: 0.6rem;
+        }
+
+        .auth-register #registrationFields .upload-field-icon {
+            width: 32px;
+            height: 32px;
+        }
+    }
 }
 
 @media (max-width: 991px) {

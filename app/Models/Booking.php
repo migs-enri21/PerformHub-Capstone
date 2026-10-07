@@ -99,11 +99,11 @@ class Booking extends Model
             case 'cancelled':
                 return 'bg-secondary';
             case 'accepted':
-                return 'bg-success';
+                return 'bg-primary';
             case 'rejected':
                 return 'bg-danger';
             case 'completed':
-                return 'bg-secondary';
+                return 'bg-success';
             case 'expired':
                 return 'bg-danger';
             default:

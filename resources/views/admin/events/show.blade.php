@@ -22,8 +22,19 @@
                     <div class="fw-semibold">{{ $booking->organizer?->fullName() ?? '—' }}</div>
                 </div>
                 <div class="col-md-6">
-                    <div class="small text-muted">Performer</div>
-                    <div class="fw-semibold">{{ $booking->performer?->fullName() ?? '—' }}</div>
+                    <div class="small text-muted">{{ $eventPerformers->count() > 1 ? 'Performers' : 'Performer' }}</div>
+                    <div class="fw-semibold">
+                        @forelse($eventPerformers as $eventPerformer)
+                            <div>
+                                {{ $eventPerformer->performer?->fullName() ?? '—' }}
+                                @if($eventPerformers->count() > 1 && $eventPerformer->performer?->email)
+                                    <small class="d-block fw-normal text-muted">{{ $eventPerformer->performer->email }}</small>
+                                @endif
+                            </div>
+                        @empty
+                            —
+                        @endforelse
+                    </div>
                 </div>
                 <div class="col-md-6">
                     <div class="small text-muted">Event Date</div>
