@@ -67,8 +67,8 @@ class BookingController extends Controller
         abort_unless($booking->performer_id === Auth::id(), 403);
         abort_unless($booking->status === 'pending', 400);
 
-        if ($booking->eventDateHasPassed()) {
-            return back()->with('warning', 'This booking date has already passed.');
+        if ($booking->eventHasEnded()) {
+            return back()->with('warning', 'This event has already ended.');
         }
 
         $conflict = $booking->sameDayConfirmedConflict();
@@ -167,10 +167,10 @@ class BookingController extends Controller
         abort_unless($booking->performer_id === Auth::id(), 403);
         abort_unless($booking->status === 'accepted' && $booking->signwell_document_id, 400);
 
-        if ($booking->eventDateHasPassed()) {
+        if ($booking->eventHasEnded()) {
             return redirect()
                 ->route('performer.bookings.show', $booking)
-                ->with('warning', 'This booking date has already passed, so it can no longer be signed.');
+                ->with('warning', 'This event has already ended, so it can no longer be signed.');
         }
 
         try {

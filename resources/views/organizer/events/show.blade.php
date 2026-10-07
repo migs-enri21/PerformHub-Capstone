@@ -34,6 +34,9 @@
                     <span class="badge text-bg-secondary ms-1">Applications Closed</span>
                 @endif
             </p>
+            @if($hasPendingCancellationRequest)
+                <p class="text-warning small mb-0">Resolve the pending performer cancellation request before completing this event.</p>
+            @endif
         </div>
         <div class="d-flex gap-2">
             @if($canCompleteEvent)

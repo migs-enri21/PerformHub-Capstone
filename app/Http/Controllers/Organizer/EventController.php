@@ -113,10 +113,12 @@ class EventController extends Controller
         $reservedBudget = 0;
         $remainingBudget = null;
         $contestPrizePool = null;
-        $canEditEvent = $this->eventCanBeEdited($event);
+        $hasFullAccess = ! Auth::user()->hasLimitedAccess();
+        $canEditEvent = $hasFullAccess && $this->eventCanBeEdited($event);
         $applicationsClosed = strtolower($event->status) === 'open' && $event->hasStarted();
         $hasParticipants = $this->eventHasParticipants($event);
-        $canDeleteEvent = $this->eventCanBeDeleted($event, $hasParticipants);
+        $hasPendingCancellationRequest = $this->hasPendingCancellationRequest($event);
+        $canDeleteEvent = $hasFullAccess && $this->eventCanBeDeleted($event, $hasParticipants);
         $canCancelEvent = $hasParticipants
             && strtolower($event->status) === 'open'
             && ! Auth::user()->hasLimitedAccess();
@@ -131,7 +133,7 @@ class EventController extends Controller
             }
         }
 
-        if (strtolower($event->status) === 'ended' && $hasConfirmedBooking) {
+        if ($hasFullAccess && strtolower($event->status) === 'ended' && $hasConfirmedBooking && ! $hasPendingCancellationRequest) {
             $canCompleteEvent = true;
         }
 
@@ -153,6 +155,7 @@ class EventController extends Controller
             'canDeleteEvent',
             'canCompleteEvent',
             'canCancelEvent',
+            'hasPendingCancellationRequest',
             'reservedBudget',
             'remainingBudget',
             'contestPrizePool'
@@ -392,6 +395,10 @@ class EventController extends Controller
             return back()->with('warning', 'An event can only be marked as completed after it has ended.');
         }
 
+        if ($this->hasPendingCancellationRequest($event)) {
+            return back()->with('warning', 'Resolve pending performer cancellation requests before completing this event.');
+        }
+
         $hasConfirmedBooking = Booking::where('event_id', $event->id)
             ->where('status', 'completed')
             ->exists();
@@ -416,6 +423,14 @@ class EventController extends Controller
     {
         return $event->applications()->exists()
             || Booking::where('event_id', $event->id)->exists();
+    }
+
+    private function hasPendingCancellationRequest(Event $event): bool
+    {
+        return Booking::where('event_id', $event->id)
+            ->whereNotNull('cancel_requested_at')
+            ->whereIn('status', ['accepted', 'completed'])
+            ->exists();
     }
 
     private function eventCanBeEdited(Event $event): bool

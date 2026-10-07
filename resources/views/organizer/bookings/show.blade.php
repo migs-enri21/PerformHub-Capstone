@@ -70,7 +70,7 @@
                     </form>
                 </div>
             @else
-                @if(in_array($booking->status, ['pending', 'accepted'], true) && ! $booking->eventDateHasPassed())
+                @if(in_array($booking->status, ['pending', 'accepted'], true) && ! $booking->eventHasEnded())
                 <form method="POST" action="{{ route('organizer.bookings.contract', $booking) }}" enctype="multipart/form-data" class="border-top pt-3">
                     @csrf
                     @if($booking->hasContract())

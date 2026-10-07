@@ -43,6 +43,19 @@ class BookingController extends Controller
             return back()->with('error', 'Select an active event before sending a booking request.');
         }
 
+        $fromApplication = $request->boolean('from_application');
+
+        if ($fromApplication) {
+            $hasPendingApplication = EventApplication::where('event_id', $event->id)
+                ->where('performer_id', $performer->user_id)
+                ->where('status', 'pending')
+                ->exists();
+
+            if (! $hasPendingApplication) {
+                return back()->with('error', 'This performer does not have a pending application for the selected event.');
+            }
+        }
+
         $validated = $this->validateBooking($request, $event);
         $validated = $this->bookingDetailsFromEvent($event, $validated);
 
@@ -69,7 +82,6 @@ class BookingController extends Controller
 
         $validated['organizer_id'] = Auth::id();
         $validated['performer_id'] = $performer->user_id;
-        $fromApplication = $request->boolean('from_application');
         $validated['source'] = 'invite';
         $validated['status'] = 'pending';
 
@@ -112,8 +124,8 @@ class BookingController extends Controller
             return back()->with('warning', 'Only an active booking can receive a contract.');
         }
 
-        if ($booking->eventDateHasPassed()) {
-            return back()->with('warning', 'This booking date has already passed.');
+        if ($booking->eventHasEnded()) {
+            return back()->with('warning', 'This event has already ended.');
         }
 
         if (! $signWell->isConfigured()) {
@@ -152,8 +164,8 @@ class BookingController extends Controller
         $this->ensureBookingOwner($booking);
         abort_unless($booking->status === 'accepted' && $booking->hasContract(), 400);
 
-        if ($booking->eventDateHasPassed()) {
-            return back()->with('warning', 'This booking date has already passed.');
+        if ($booking->eventHasEnded()) {
+            return back()->with('warning', 'This event has already ended.');
         }
 
         if ($booking->signwell_document_id) {
@@ -196,7 +208,16 @@ class BookingController extends Controller
     public function complete(Booking $booking, SignWellService $signWell): RedirectResponse
     {
         $this->ensureBookingOwner($booking);
-        abort_unless($booking->status === 'accepted', 400);
+        Booking::sweepPastBookings();
+        $booking->refresh();
+
+        if ($booking->status !== 'accepted') {
+            return back()->with('warning', 'This booking is no longer active and cannot be confirmed.');
+        }
+
+        if ($booking->eventHasEnded()) {
+            return back()->with('warning', 'This event has already ended, so the booking can no longer be confirmed.');
+        }
 
         if ($booking->signwell_document_id && ! $booking->isSigned()) {
             try {

@@ -14,10 +14,12 @@
         <p class="text-muted mb-0">Manage all of your events in one place.</p>
     </div>
 
-    <a href="{{ route('organizer.events.create') }}" class="btn ph-btn-primary">
-        <i class="fas fa-plus me-2"></i>
-        Create Event
-    </a>
+    @if(! auth()->user()->hasLimitedAccess())
+        <a href="{{ route('organizer.events.create') }}" class="btn ph-btn-primary">
+            <i class="fas fa-plus me-2"></i>
+            Create Event
+        </a>
+    @endif
 </div>
 
 <div class="organizer-event-filters mb-4" aria-label="Filter events">
@@ -125,10 +127,10 @@
 
                         <div class="organizer-event-actions">
                             <a href="{{ route('organizer.events.show', $event) }}" class="btn ph-btn-primary btn-sm">View Event</a>
-                            @if(strtolower($event->status) === 'open' && ! $event->hasStarted())
+                            @if(! auth()->user()->hasLimitedAccess() && strtolower($event->status) === 'open' && ! $event->hasStarted())
                                 <a href="{{ route('organizer.events.edit', $event) }}" class="btn ph-btn-outline btn-sm">Edit</a>
                             @endif
-                            @if($canDeleteEvent)
+                            @if(! auth()->user()->hasLimitedAccess() && $canDeleteEvent)
                                 <form method="POST" action="{{ route('organizer.events.destroy', $event) }}" class="delete-event-form">
                                     @csrf
                                     @method('DELETE')

@@ -63,7 +63,7 @@
                         $needsSignature = $booking->status === 'accepted'
                             && $booking->hasContract()
                             && ! $booking->isSigned()
-                            && ! $booking->eventDateHasPassed();
+                            && ! $booking->eventHasEnded();
                     @endphp
                     <tr>
                         <td>{{ $booking->event_name }}</td>
