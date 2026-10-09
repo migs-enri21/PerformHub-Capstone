@@ -247,7 +247,7 @@
                 $booking = $bookings[$application->performer_id];
 
                 if ($booking->status === 'expired') {
-                    $bookingMessage = 'Booking expired — event date passed before the contract was signed.';
+                    $bookingMessage = 'Booking expired - event ended before the booking was confirmed.';
                     $bookingMessageClass = 'text-danger';
                 } elseif ($booking->status === 'completed') {
                     $bookingMessage = 'Booking confirmed';

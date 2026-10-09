@@ -82,6 +82,23 @@
                 if ($event->compensation_type === 'contest') {
                     $compensationLabel = 'Contest Prizes';
                 }
+
+                $eventMediaUrl = '';
+                $eventMediaType = '';
+
+                if ($event->photos->isNotEmpty()) {
+                    $firstMedia = $event->photos->first();
+                    $eventMediaUrl = $firstMedia->fileUrl();
+
+                    if ($firstMedia->isVideo()) {
+                        $eventMediaType = 'video';
+                    } else {
+                        $eventMediaType = 'image';
+                    }
+                } elseif ($event->coverPhotoUrl()) {
+                    $eventMediaUrl = $event->coverPhotoUrl();
+                    $eventMediaType = 'image';
+                }
             @endphp
 
             <option
@@ -103,6 +120,8 @@
                 data-time-label="{{ \Illuminate\Support\Carbon::parse($event->start_time)->format('g:i A') }} - {{ \Illuminate\Support\Carbon::parse($event->end_time)->format('g:i A') }}"
                 data-event-type="{{ $eventTypeName }}"
                 data-compensation="{{ $compensationLabel }}"
+                data-media-url="{{ $eventMediaUrl }}"
+                data-media-type="{{ $eventMediaType }}"
                 @selected($eventDetails['id'] == $event->id)>
 
                 {{ $event->title }} — {{ \Illuminate\Support\Carbon::parse($event->event_date)->format('M d') }}, {{ \Illuminate\Support\Carbon::parse($event->start_time)->format('g:i A') }}
@@ -117,21 +136,42 @@
             </div>
 
             <div id="selectedEventSummary" class="organizer-booking-event-summary d-none">
-                <div class="organizer-booking-event-summary-title">Selected Event</div>
-                <div class="organizer-booking-event-summary-name" id="summaryEventName"></div>
-                <div class="organizer-booking-event-summary-details">
-                    <span id="summaryEventDate"></span>
-                    <span id="summaryEventTime"></span>
-                    <span id="summaryEventVenue"></span>
-                    <span id="summaryEventType"></span>
-                    <span id="summaryEventCompensation"></span>
+                <div class="organizer-booking-event-summary-content">
+                    <div class="organizer-booking-event-media d-none" id="summaryEventMedia">
+                        <img id="summaryEventImage" src="" alt="Selected event media">
+                        <div class="organizer-booking-event-video-preview d-none" id="summaryEventVideoPreview">
+                            <i class="fas fa-play" aria-hidden="true"></i>
+                            <span>Video</span>
+                        </div>
+                    </div>
+                    <div class="flex-grow-1 min-w-0">
+                        <div class="organizer-booking-event-summary-header">
+                            <div>
+                                <div class="organizer-booking-event-summary-title">Selected Event</div>
+                                <div class="organizer-booking-event-summary-name" id="summaryEventName"></div>
+                            </div>
+                            <div class="organizer-booking-event-summary-badges">
+                                <span class="organizer-booking-event-badge" id="summaryEventType"></span>
+                                <span class="organizer-booking-event-badge organizer-booking-event-badge--compensation" id="summaryEventCompensation"></span>
+                            </div>
+                        </div>
+                        <div class="organizer-booking-event-summary-details">
+                            <span><i class="fas fa-calendar-alt" aria-hidden="true"></i><span id="summaryEventDate"></span></span>
+                            <span><i class="far fa-clock" aria-hidden="true"></i><span id="summaryEventTime"></span></span>
+                            <span><i class="fas fa-map-marker-alt" aria-hidden="true"></i><span id="summaryEventVenue"></span></span>
+                        </div>
+                    </div>
                 </div>
             </div>
 
             <div class="col-12 d-none" id="contestPrizeNotice">
-                <div class="alert alert-info mb-0">
-                    <strong>Prize-based contest entry.</strong> Contestants do not receive a guaranteed booking fee. Only the winners receive prizes.
-                    <div class="small mt-1" id="contestPrizeDetails"></div>
+                <div class="organizer-contest-prize-notice" role="note">
+                    <div class="organizer-contest-prize-notice-icon"><i class="fas fa-trophy" aria-hidden="true"></i></div>
+                    <div>
+                        <strong>Prize-based contest entry</strong>
+                        <p>Contestants do not receive a guaranteed booking fee. Only the winners receive prizes.</p>
+                        <div class="organizer-contest-prize-details" id="contestPrizeDetails"></div>
+                    </div>
                 </div>
             </div>
             <div class="col-md-4"><label class="form-label text-muted small" id="budgetOfferLabel">Budget Offer (₱)</label><input type="number" name="budget" id="budget" class="form-control ph-input @error('budget') is-invalid @enderror" value="{{ old('budget', $selectedEventBudget) }}" step="0.01"><small class="text-muted d-none" id="hourlyRateHelp"></small>@error('budget')<div class="invalid-feedback">{{ $message }}</div>@enderror</div>
@@ -160,6 +200,9 @@
     const hourlyRateHelp = document.getElementById('hourlyRateHelp');
     const contestPrizeNotice = document.getElementById('contestPrizeNotice');
     const contestPrizeDetails = document.getElementById('contestPrizeDetails');
+    const summaryEventMedia = document.getElementById('summaryEventMedia');
+    const summaryEventImage = document.getElementById('summaryEventImage');
+    const summaryEventVideoPreview = document.getElementById('summaryEventVideoPreview');
 
     function updateSelectedEvent() {
 
@@ -172,6 +215,7 @@
                 budgetOfferLabel.textContent = 'Budget Offer (₱)';
                 hourlyRateHelp.classList.add('d-none');
                 contestPrizeNotice.classList.add('d-none');
+                summaryEventMedia.classList.add('d-none');
                 return;
             }
 
@@ -182,6 +226,7 @@
             document.getElementById('summaryEventVenue').textContent = selected.dataset.venue;
             document.getElementById('summaryEventType').textContent = selected.dataset.eventType;
             document.getElementById('summaryEventCompensation').textContent = selected.dataset.compensation;
+            updateEventMediaPreview(selected);
 
             if (selected.dataset.compensationType === 'contest') {
                 budgetInput.value = '';
@@ -204,6 +249,27 @@
                 }
             }
             selectedEventSummary.classList.remove('d-none');
+    }
+
+    function updateEventMediaPreview(selected) {
+        const mediaUrl = selected.dataset.mediaUrl;
+
+        if (!mediaUrl) {
+            summaryEventMedia.classList.add('d-none');
+            return;
+        }
+
+        summaryEventMedia.classList.remove('d-none');
+
+        if (selected.dataset.mediaType === 'video') {
+            summaryEventImage.classList.add('d-none');
+            summaryEventVideoPreview.classList.remove('d-none');
+            return;
+        }
+
+        summaryEventImage.src = mediaUrl;
+        summaryEventImage.classList.remove('d-none');
+        summaryEventVideoPreview.classList.add('d-none');
     }
 
     function showContestPrizes(selected) {

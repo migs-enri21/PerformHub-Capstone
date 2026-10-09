@@ -301,7 +301,7 @@ class BookingController extends Controller
 
     private function activeEvents()
     {
-        $events = Event::with('eventType')
+        $events = Event::with(['eventType', 'photos'])
             ->where('organizer_id', Auth::id())
             ->whereIn('status', ['Open', 'open'])
             ->whereDate('event_date', '>=', today())

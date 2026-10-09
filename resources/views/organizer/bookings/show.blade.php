@@ -47,7 +47,7 @@
 
         @if($booking->status === 'expired')
             <div class="alert alert-secondary mb-4">
-                This booking expired because the event date passed before the contract was signed.
+                This booking expired because the event ended before the booking was confirmed.
             </div>
         @endif
 

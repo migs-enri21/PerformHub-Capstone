@@ -147,7 +147,11 @@ class Booking extends Model
     {
         $date = $this->event_date->toDateString();
         $start = Carbon::parse($date.' '.$this->event_time);
-        $endTime = $this->end_time ?: $this->event_time;
+        $endTime = $this->end_time;
+
+        if (! $endTime) {
+            $endTime = $this->event_time;
+        }
         $end = Carbon::parse($date.' '.$endTime);
 
         if ($end->lessThanOrEqualTo($start)) {

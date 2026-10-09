@@ -88,8 +88,12 @@
 .portfolio-feed-stream {
     display: flex;
     flex-direction: column;
-    gap: 0;
+    gap: 1rem;
     width: 100%;
+}
+
+.portfolio-feed-stream > .event-feed-post {
+    margin-bottom: 0 !important;
 }
 
 /* Single feed post â€” full main-column width */
