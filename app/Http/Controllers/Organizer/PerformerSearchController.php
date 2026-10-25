@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Models\Booking;
 use App\Models\Event;
+use App\Models\Genre;
 use App\Models\PerformerProfile;
 use App\Support\AvailabilityCalendar;
 use Illuminate\Http\Request;
@@ -19,8 +20,9 @@ class PerformerSearchController extends Controller
         $selectedEvent = $this->getSelectedEvent($request);
         $performers = $this->getPerformers($request, $selectedEvent);
         $categories = Category::where('is_active', true)->get();
+        $genres = Genre::where('is_active', true)->orderBy('name')->get(['name', 'category_id']);
 
-        return view('organizer.performers.index', compact('performers', 'categories', 'selectedEvent'));
+        return view('organizer.performers.index', compact('performers', 'categories', 'genres', 'selectedEvent'));
     }
 
     public function show(PerformerProfile $performer): View

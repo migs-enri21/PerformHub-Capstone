@@ -14,7 +14,11 @@
         || request()->filled('specialty')
         || request()->filled('genre')
         || request()->filled('available_date');
-    $clearFiltersUrl = route('organizer.performers.index', $selectedEvent ? ['event' => $selectedEvent->id] : []);
+    $clearFiltersUrl = route('organizer.performers.index');
+
+    if ($selectedEvent) {
+        $clearFiltersUrl = route('organizer.performers.index', ['event' => $selectedEvent->id]);
+    }
 
     if ($selectedEvent && $selectedEvent->eventType) {
         $eventTypeName = $selectedEvent->eventType->name;
@@ -61,7 +65,9 @@
         </div>
         <div class="col-md-6 col-lg-2">
             <label class="form-label small fw-semibold">Genre</label>
-            @include('partials.genre-select', ['value' => request('genre'), 'placeholder' => 'All Genres'])
+            <div id="performerGenreFilter">
+                @include('partials.genre-select', ['value' => request('genre'), 'placeholder' => 'All Genres'])
+            </div>
         </div>
         <div class="col-md-6 col-lg-2"><label class="form-label small fw-semibold" for="availableDate">Available on</label>
             <input type="date" id="availableDate" name="available_date" class="form-control ph-input" value="{{ request('available_date') }}">
@@ -139,3 +145,35 @@
 
 {{ $performers->links() }}
 @endsection
+
+@push('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const category = document.getElementById('categoryId');
+        const genreSelect = document.querySelector('#performerGenreFilter [data-ph-select]');
+        const genres = {{ Illuminate\Support\Js::from($genres) }};
+
+        if (!category || !genreSelect || !window.PhSelect) {
+            return;
+        }
+
+        genreSelect.dataset.placeholder = 'All Genres';
+        genreSelect.dataset.emptyMessage = 'No genres available for this category';
+
+        function updateGenres() {
+            const options = [];
+
+            genres.forEach(function (genre) {
+                if (category.value === '' || String(genre.category_id) === category.value) {
+                    options.push(genre.name);
+                }
+            });
+
+            window.PhSelect.setGroups(genreSelect, [{ options: options }]);
+        }
+
+        category.addEventListener('change', updateGenres);
+        updateGenres();
+    });
+</script>
+@endpush

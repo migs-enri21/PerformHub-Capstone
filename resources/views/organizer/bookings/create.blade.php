@@ -304,7 +304,12 @@
 
         budgetInput.value = suggestedOffer.toFixed(2);
         budgetOfferLabel.textContent = 'Suggested Offer (₱)';
-        hourlyRateHelp.textContent = '₱' + rate.toLocaleString() + ' per hour × ' + duration + ' hour' + (duration === 1 ? '' : 's') + '. You may edit this offer.';
+        let hourLabel = 'hours';
+        if (duration === 1) {
+            hourLabel = 'hour';
+        }
+
+        hourlyRateHelp.textContent = '₱' + rate.toLocaleString() + ' per hour × ' + duration + ' ' + hourLabel + '. You may edit this offer.';
         hourlyRateHelp.classList.remove('d-none');
     }
 
