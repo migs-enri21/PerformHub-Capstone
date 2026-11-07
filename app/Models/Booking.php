@@ -314,7 +314,7 @@ class Booking extends Model
             return false;
         }
     
-        return $this->event_date->toDateString() >= now()->toDateString();
+        return ! $this->eventHasEnded();
     }
 
     public function hasCancelRequest(): bool
