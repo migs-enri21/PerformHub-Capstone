@@ -50,6 +50,24 @@
 <div class="row g-4">
     <div class="col-xl-8">
         <div class="event-feed-section">
+{{--
+        <form method="GET" action="{{ route('performer.dashboard') }}" class="mb-3 d-flex gap-2">
+            <input
+                type="text"
+                name="search"
+                class="form-control ph-input"
+                value="{{ request('search') }}"
+                placeholder="Search events by name or venue…"
+            >
+            <button type="submit" class="btn ph-btn-primary">Search</button>
+            @if(request('search'))
+                        <a href="{{ route('performer.dashboard') }}"
+            class="btn ph-btn-outline d-inline-flex align-items-center justify-content-center"
+            style="padding: 0.75rem 1.5rem; font-weight: 600; border-radius: 10px;">
+                Clear
+            </a>
+            @endif
+        </form> --}}
 
             @if($availableEvents->isNotEmpty())
                 <div class="event-feed-center">
@@ -63,11 +81,16 @@
                 </div>
             @else
                 <div class="event-feed-center">
-                    <div class="event-feed-empty text-muted text-center">
+                <div class="event-feed-empty text-muted text-center">
+                    @if(request('search'))
+                        No events match “{{ request('search') }}”.
+                    @else
                         No open events match your performer categories yet.
-                    </div>
+                    @endif
+                </div>
                 </div>
             @endif
+            
         </div>
     </div>
 

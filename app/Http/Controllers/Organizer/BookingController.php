@@ -253,7 +253,18 @@ class BookingController extends Controller
             return back()->with('warning', 'There is no cancellation request to approve.');
         }
 
-        $booking->update(['status' => 'cancelled']);
+        $booking->update([
+            'status' => 'cancelled',
+            'cancel_requested_at' => null,
+        ]);
+
+        // Booking cancelled but event may still be open — clear application so performer can apply again.
+        if ($booking->event_id) {
+            EventApplication::where('event_id', $booking->event_id)
+                ->where('performer_id', $booking->performer_id)
+                ->whereIn('status', ['pending', 'invited', 'accepted'])
+                ->delete();
+        }
 
         Notification::send($booking->performer, 'booking', 'Cancellation Approved',
             'Your cancellation request for '.$booking->event_name.' was approved.',

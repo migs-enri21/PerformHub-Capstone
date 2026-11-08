@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Performer;
 
 use App\Http\Controllers\Controller;
+use App\Models\Booking;
 use App\Models\Event;
 use App\Models\EventApplication;
 use App\Models\Notification;
@@ -29,12 +30,26 @@ class EventApplicationController extends Controller
             return back()->with('warning', 'Your account is under review. You can apply to events after an admin verifies you.');
         }
 
-        $existing = EventApplication::where('event_id', $event->id)
+        $hasActiveBooking = Booking::where('event_id', $event->id)
             ->where('performer_id', $user->id)
+            ->whereIn('status', ['pending', 'accepted', 'completed'])
             ->exists();
 
+        if ($hasActiveBooking) {
+            return back()->with('warning', 'You already have an active booking for this event.');
+        }
+
+        $existing = EventApplication::where('event_id', $event->id)
+            ->where('performer_id', $user->id)
+            ->first();
+
         if ($existing) {
-            return back()->with('warning', 'You have already applied to this event.');
+            // Stale row after a cancelled booking — remove so they can apply again.
+            if (in_array($existing->status, ['accepted', 'invited'], true)) {
+                $existing->delete();
+            } else {
+                return back()->with('warning', 'You have already applied to this event.');
+            }
         }
 
         EventApplication::create([

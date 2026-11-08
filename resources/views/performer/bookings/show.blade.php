@@ -110,7 +110,7 @@
             </div>
         @elseif($booking->hasCancelRequest())
             <div class="border-top pt-3 mt-3">
-                <span class="badge bg-warning text-dark">Cancel pending</span>
+                <span class="badge ph-badge ph-badge-action">Cancel pending</span>
             </div>
         @endif
     </div>

@@ -72,18 +72,18 @@
                         <td>
                             <span class="badge {{ $booking->statusBadgeClass() }}">{{ $booking->statusLabel() }}</span>
                             @if($booking->hasCancelRequest())
-                                <span class="badge bg-warning text-dark">Cancel pending</span>
+                                <span class="badge ph-badge ph-badge-action">Cancel pending</span>
                             @endif
                         </td>
                         <td>
                             @if($booking->hasSignedContract())
-                                <span class="badge bg-success">Signed copy sent</span>
+                                <span class="badge ph-badge ph-badge-success">Signed copy sent</span>
                             @elseif($booking->isSignWellCompleted())
-                                <span class="badge bg-success">Signed</span>
+                                <span class="badge ph-badge ph-badge-success">Signed</span>
                             @elseif($needsSignature)
-                                <span class="badge bg-warning text-dark">Sign contract</span>
+                                <span class="badge ph-badge ph-badge-action">Sign contract</span>
                             @elseif($booking->hasContract())
-                                <span class="badge bg-info">Contract uploaded</span>
+                                <span class="badge ph-badge ph-badge-contract">Contract uploaded</span>
                             @else
                                 <span class="text-muted small">—</span>
                             @endif

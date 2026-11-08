@@ -8,10 +8,12 @@ use App\Models\Event;
 use App\Models\EventApplication;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
+use Illuminate\Http\Request;
+
 
 class DashboardController extends Controller
 {
-    public function index(): View
+    public function index(Request $request): View
     {
         $user = Auth::user();
         $profile = $user->performerProfile;
@@ -28,7 +30,7 @@ class DashboardController extends Controller
             $categoryIds = $profile->categories()->pluck('categories.id')->all();
         }
 
-        $availableEvents = $this->getRecommendedEvents($categoryIds);
+        $availableEvents = $this->getRecommendedEvents($categoryIds, $request->input('search'));
 
         foreach ($availableEvents as $event) {
             if ($event->cover_photo && $event->photos->isEmpty()) {
@@ -38,6 +40,23 @@ class DashboardController extends Controller
                 ]);
                 $event->setRelation('photos', collect([$photo]));
             }
+        }
+
+        // Heal stale "accepted/invited" applications when the booking was cancelled but the event is still open.
+        $cancelledOpenEventIds = Booking::query()
+            ->where('performer_id', $user->id)
+            ->where('status', 'cancelled')
+            ->whereNotNull('event_id')
+            ->whereHas('event', function ($query) {
+                $query->whereIn('status', ['Open', 'open']);
+            })
+            ->pluck('event_id');
+
+        if ($cancelledOpenEventIds->isNotEmpty()) {
+            EventApplication::where('performer_id', $user->id)
+                ->whereIn('event_id', $cancelledOpenEventIds)
+                ->whereIn('status', ['accepted', 'invited'])
+                ->delete();
         }
 
         $applicationStatuses = EventApplication::where('performer_id', $user->id)
@@ -61,7 +80,7 @@ class DashboardController extends Controller
         $nextBooking = Booking::where('performer_id', $user->id)
             ->where('status', 'accepted')
             ->whereDate('event_date', '>=', today())
-            ->orderBy('event_date')
+            ->orderBy('event_date') 
             ->orderBy('event_time')
             ->first();
 
@@ -79,15 +98,26 @@ class DashboardController extends Controller
             'recentNotifications',
         ));
     }
-    private function getRecommendedEvents(array $categoryIds)
+    private function getRecommendedEvents(array $categoryIds, ?string $search = null)
     {
-        return Event::with(['organizer.organizerProfile', 'eventType', 'categories', 'photos'])
+        $query = Event::with(['organizer.organizerProfile', 'eventType', 'categories', 'photos'])
             ->whereIn('status', ['Open', 'open'])
             ->whereDate('event_date', '>=', now()->toDateString())
             ->whereHas('categories', function ($query) use ($categoryIds) {
                 $query->whereIn('categories.id', $categoryIds);
-            })
-            ->orderBy('created_at', 'desc')
-            ->get();
+            });
+    
+            $search = is_string($search) ? trim($search) : null;
+
+            if ($search !== null && $search !== '') {
+                $like = '%'.$search.'%';
+                $query->where(function ($q) use ($like) {
+                    $q->where('title', 'ilike', $like)   // Postgres case-insensitive
+                      ->orWhere('venue', 'ilike', $like)
+                      ->orWhere('description', 'ilike', $like);
+                });
+            }
+    
+        return $query->orderBy('created_at', 'desc')->get();
     }
 }

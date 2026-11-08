@@ -96,19 +96,19 @@ class Booking extends Model
     {
         switch ($this->status) {
             case 'pending':
-                return 'bg-warning text-dark';
+                return 'ph-badge ph-badge-action';
             case 'cancelled':
-                return 'bg-secondary';
+                return 'ph-badge ph-badge-muted';
             case 'accepted':
-                return 'bg-primary';
+                return 'ph-badge ph-badge-accepted';
             case 'rejected':
-                return 'bg-danger';
+                return 'ph-badge ph-badge-rejected';
             case 'completed':
-                return 'bg-success';
+                return 'ph-badge ph-badge-success';
             case 'expired':
-                return 'bg-danger';
+                return 'ph-badge ph-badge-expired';
             default:
-                return 'bg-secondary';
+                return 'ph-badge ph-badge-muted';
         }
     }
 
