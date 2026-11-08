@@ -135,6 +135,12 @@
                                 <input type="time" name="end_time" id="availabilityEnd" class="form-control ph-input">
                             </div>
                             <div class="col-12">
+                                <button type="button" class="btn ph-btn-outline btn-sm" id="availabilityWholeDayBtn">
+                                    Whole day
+                                </button>
+                                <span class="text-muted small ms-2">Sets 12:00 AM – 11:59 PM</span>
+                            </div>
+                            <div class="col-12">
                                 <label class="form-label text-muted small d-block mb-2">Status</label>
                                 <div class="d-flex flex-column gap-2">
                                     <label class="av-status-option">
@@ -219,10 +225,18 @@
             const notesInput = document.getElementById('availabilityNotes');
             const isAvailableInput = document.getElementById('availabilityIsAvailable');
             const eventWrap = document.getElementById('availabilityEventWrap');
+            const wholeDayButton = document.getElementById('availabilityWholeDayBtn');
             let modeInputs = [];
 
             if (form) {
                 modeInputs = form.querySelectorAll('input[name="availability_mode"]');
+            }
+
+            if (wholeDayButton && startInput && endInput) {
+                wholeDayButton.addEventListener('click', () => {
+                    startInput.value = '00:00';
+                    endInput.value = '23:59';
+                });
             }
             const modalDateLabel = document.getElementById('availabilityModalDate');
             const modalTitle = document.getElementById('availabilityModalLabel');
