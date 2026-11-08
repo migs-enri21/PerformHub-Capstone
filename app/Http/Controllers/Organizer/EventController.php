@@ -553,7 +553,11 @@ class EventController extends Controller
             'description' => ['required', 'string', 'max:2000'],
             'event_date' => $eventDateRules,
             'start_time' => ['required', 'date_format:H:i'],
-            'end_time' => ['required', 'date_format:H:i'],
+            'end_time' => [
+                'required',
+                'date_format:H:i',
+                'after:start_time',
+            ],
             'venue' => ['required', 'string', 'max:255'],
             'budget' => ['nullable', 'numeric'],
             'first_prize' => ['nullable', 'numeric', 'min:0'],
@@ -579,7 +583,9 @@ class EventController extends Controller
             $rules['budget'] = ['required', 'numeric', 'min:0'];
         }
 
-        $validated = $request->validate($rules);
+        $validated = $request->validate($rules, [
+            'end_time.after' => 'End time must be later than start time on the same day. Overnight events are not allowed.',
+        ]);
 
         $this->validateContestPrizeOrder($validated);
 
@@ -639,8 +645,11 @@ class EventController extends Controller
         $newStart = $this->eventDateTime($eventDate, $eventDetails['start_time']);
         $newEnd = $this->eventDateTime($eventDate, $eventDetails['end_time']);
 
+        // Events must stay on one calendar day (no overnight / next-day end times).
         if ($newEnd->lessThanOrEqualTo($newStart)) {
-            $newEnd->addDay();
+            throw ValidationException::withMessages([
+                'end_time' => 'End time must be later than start time on the same day. Overnight events are not allowed.',
+            ]);
         }
 
         foreach ($scheduledEvents as $scheduledEvent) {
@@ -653,8 +662,9 @@ class EventController extends Controller
 
             $scheduledEnd = $this->eventDateTime($eventDate, $scheduledEndTime);
 
+            // Skip corrupt overnight rows so they don't break new scheduling checks.
             if ($scheduledEnd->lessThanOrEqualTo($scheduledStart)) {
-                $scheduledEnd->addDay();
+                continue;
             }
 
             if (!$this->hasRequiredGap($newStart, $newEnd, $scheduledStart, $scheduledEnd)) {
