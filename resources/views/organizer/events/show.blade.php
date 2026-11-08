@@ -246,7 +246,10 @@
             if ($application->status === 'accepted' && isset($bookings[$application->performer_id])) {
                 $booking = $bookings[$application->performer_id];
 
-                if ($booking->status === 'expired') {
+                if ($booking->status === 'cancelled') {
+                    $bookingMessage = 'Booking cancelled after the performer requested cancellation.';
+                    $bookingMessageClass = 'text-danger';
+                } elseif ($booking->status === 'expired') {
                     $bookingMessage = 'Booking expired - event ended before the booking was confirmed.';
                     $bookingMessageClass = 'text-danger';
                 } elseif ($booking->status === 'completed') {

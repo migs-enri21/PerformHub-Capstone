@@ -145,7 +145,7 @@
             <h5 class="fw-semibold mb-3">Booking Progress</h5>
             <p><span class="badge bg-success">Done</span> Booking Request Sent</p>
             <p>
-                @if(in_array($booking->status, ['accepted', 'completed', 'expired']))
+                @if(in_array($booking->status, ['accepted', 'completed', 'cancelled', 'expired']))
                     <span class="badge bg-success">Done</span>
                 @else
                     <span class="badge bg-secondary">Pending</span>
@@ -168,14 +168,15 @@
                 @endif
                 Signed Contract Ready
             </p>
-            <p class="mb-0">
-                @if($booking->status === 'completed')
-                    <span class="badge bg-success">Done</span>
-                @else
-                    <span class="badge bg-secondary">Pending</span>
-                @endif
-                Booking Confirmed
-            </p>
+            @if($booking->status === 'cancelled')
+                <p class="mb-0"><span class="badge bg-danger">Cancelled</span> Booking Cancelled</p>
+            @elseif($booking->status === 'expired')
+                <p class="mb-0"><span class="badge bg-warning text-dark">Expired</span> Booking Expired</p>
+            @elseif($booking->status === 'completed')
+                <p class="mb-0"><span class="badge bg-success">Done</span> Booking Confirmed</p>
+            @else
+                <p class="mb-0"><span class="badge bg-secondary">Pending</span> Booking Confirmed</p>
+            @endif
         </div>
 
         @if($booking->status === 'accepted')
