@@ -143,6 +143,15 @@
             </div>
         @endforeach
     </div>
+
+    @if($events->hasPages())
+        <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3 mt-4">
+            <p class="text-muted mb-0 small">
+                Showing {{ $events->firstItem() }} to {{ $events->lastItem() }} of {{ $events->total() }} events
+            </p>
+            {{ $events->links() }}
+        </div>
+    @endif
 @endif
 
 <!-- Delete Event Modal -->
@@ -177,14 +186,14 @@
             <div class="modal-footer">
 
                 <button type="button"
-                        class="btn btn-secondary"
+                        class="btn ph-btn-outline"
                         data-bs-dismiss="modal">
                     Cancel
                 </button>
 
                 <button type="button"
                         id="confirmDeleteBtn"
-                        class="btn btn-danger">
+                        class="btn ph-btn-danger">
                     Delete
                 </button>
 

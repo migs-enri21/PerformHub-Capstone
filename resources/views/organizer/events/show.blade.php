@@ -40,14 +40,14 @@
         </div>
         <div class="d-flex gap-2">
             @if($canCompleteEvent)
-                <form method="POST" action="{{ route('organizer.events.complete', $event) }}" class="organizer-confirm-form" data-confirm-title="Mark Event Completed" data-confirm-message="Mark this event as completed? This means the event has finished." data-confirm-button="Mark Completed">
+                <form method="POST" action="{{ route('organizer.events.complete', $event) }}" class="organizer-confirm-form" data-confirm-title="Mark Event Completed" data-confirm-message="Mark this event as completed? This means the event has finished." data-confirm-button="Mark Completed" data-confirm-style="ph-btn-success">
                     @csrf
                     @method('PATCH')
                     <button type="submit" class="btn ph-btn-success btn-sm">Mark Event Completed</button>
                 </form>
             @endif
             @if($canCancelEvent)
-                <form method="POST" action="{{ route('organizer.events.cancel', $event) }}" class="organizer-confirm-form" data-confirm-title="Cancel Event" data-confirm-message="Cancel this event? Affected performers will be notified and active bookings will be cancelled." data-confirm-button="Cancel Event">
+                <form method="POST" action="{{ route('organizer.events.cancel', $event) }}" class="organizer-confirm-form" data-confirm-title="Cancel Event" data-confirm-message="Cancel this event? Affected performers will be notified and active bookings will be cancelled." data-confirm-button="Cancel Event" data-confirm-style="ph-btn-danger">
                     @csrf
                     @method('PATCH')
                     <button type="submit" class="btn ph-btn-danger btn-sm">Cancel Event</button>
@@ -57,13 +57,13 @@
                 <a href="{{ route('organizer.events.edit', $event) }}" class="btn ph-btn-primary btn-sm">Edit</a>
             @endif
             @if($canDeleteEvent)
-                <form method="POST" action="{{ route('organizer.events.destroy', $event) }}" class="organizer-confirm-form" data-confirm-title="Delete Event" data-confirm-message="Delete this unused event permanently? This cannot be undone." data-confirm-button="Delete Event">
+                <form method="POST" action="{{ route('organizer.events.destroy', $event) }}" class="organizer-confirm-form" data-confirm-title="Delete Event" data-confirm-message="Delete this unused event permanently? This cannot be undone." data-confirm-button="Delete Event" data-confirm-style="ph-btn-danger">
                     @csrf
                     @method('DELETE')
                     <button type="submit" class="btn ph-btn-danger btn-sm">Delete Event</button>
                 </form>
             @endif
-            <a href="{{ route('organizer.events.index') }}" class="btn ph-btn-secondary btn-sm">Back</a>
+            <a href="{{ route('organizer.events.index') }}" class="btn ph-btn-outline btn-sm">Back</a>
         </div>
     </div>
 
@@ -320,20 +320,20 @@
                 <div class="organizer-applicant-actions">
                     @if($application->status === 'pending')
                         @if(auth()->user()->hasLimitedAccess())
-                            <span class="btn ph-btn-secondary btn-sm disabled"><i class="fas fa-lock me-1"></i>Pending Verification</span>
+                            <span class="btn ph-btn-outline btn-sm disabled"><i class="fas fa-lock me-1"></i>Pending Verification</span>
                         @else
                             <a href="{{ route('organizer.bookings.create', ['performer' => $application->performer->performerProfile, 'event' => $event->id, 'from_application' => 1]) }}" class="btn ph-btn-primary btn-sm">
                                 Accept Application
                             </a>
-                            <form method="POST" action="{{ route('organizer.events.applications.decline', [$event, $application]) }}" class="organizer-confirm-form" data-confirm-title="Decline Applicant" data-confirm-message="Decline this applicant?" data-confirm-button="Decline Applicant">
+                            <form method="POST" action="{{ route('organizer.events.applications.decline', [$event, $application]) }}" class="organizer-confirm-form" data-confirm-title="Decline Applicant" data-confirm-message="Decline this applicant?" data-confirm-button="Decline Applicant" data-confirm-style="ph-btn-danger">
                                 @csrf
-                                <button type="submit" class="btn btn-outline-danger btn-sm">Decline</button>
+                                <button type="submit" class="btn ph-btn-danger-outline btn-sm">Decline</button>
                             </form>
                         @endif
                     @elseif($application->status === 'accepted' && isset($bookings[$application->performer_id]))
                         @php($booking = $bookings[$application->performer_id])
                         @if($booking->hasCancelRequest())
-                            <a href="{{ route('organizer.bookings.show', $booking) }}" class="btn btn-outline-danger btn-sm">Review Cancellation</a>
+                            <a href="{{ route('organizer.bookings.show', $booking) }}" class="btn ph-btn-outline btn-sm">Review Cancellation</a>
                         @else
                             <a href="{{ route('organizer.bookings.show', $booking) }}" class="btn ph-btn-primary btn-sm">View Booking</a>
                         @endif

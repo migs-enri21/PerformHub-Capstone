@@ -22,15 +22,17 @@
     }
 
     $scheduleMap = $schedules
-        ->mapWithKeys(fn ($schedule) => [
-            $schedule->date->format('Y-m-d') => [
+        ->mapWithKeys(function ($schedule) use ($formatTime) {
+            return [
+                $schedule->date->format('Y-m-d') => [
                 'id' => $schedule->id,
                 'is_available' => (bool) $schedule->is_available,
                 'start_time' => $formatTime($schedule->start_time),
                 'end_time' => $formatTime($schedule->end_time),
                 'notes' => $schedule->notes,
             ],
-        ])
+            ];
+        })
         ->all();
 
     $pendingMap = [];
@@ -51,12 +53,18 @@
             }
 
             if ($booking->locksTheDate()) {
+                $bookingUrl = null;
+
+                if ($editable) {
+                    $bookingUrl = route('performer.bookings.show', $booking);
+                }
+
                 $confirmedMap[$dateKey] = [
                     'event_name' => $booking->event_name,
                     'event_time' => $formatTime($booking->event_time),
                     'end_time' => $formatTime($booking->end_time),
                     'venue' => $booking->venue,
-                    'url' => $editable ? route('performer.bookings.show', $booking) : null,
+                    'url' => $bookingUrl,
                 ];
             }
 
@@ -202,7 +210,7 @@
 @once
     @push('scripts')
         <script>
-        document.querySelectorAll('.availability-calendar').forEach(calendar => {
+        document.querySelectorAll('.availability-calendar').forEach(function (calendar) {
             function parseDataset(value, fallback = {}) {
                 try {
                     return JSON.parse(value || '{}');
@@ -251,7 +259,7 @@
             }
 
             if (wholeDayButton && startInput && endInput) {
-                wholeDayButton.addEventListener('click', () => {
+                wholeDayButton.addEventListener('click', function () {
                     startInput.value = '00:00';
                     endInput.value = '23:59';
                 });
@@ -308,7 +316,11 @@
                 }
 
                 if (modalTitle) {
-                    modalTitle.textContent = show ? 'Decline pending request?' : 'Set Availability';
+                    if (show) {
+                        modalTitle.textContent = 'Decline pending request?';
+                    } else {
+                        modalTitle.textContent = 'Set Availability';
+                    }
                 }
 
                 if (modalDateLabel) {
@@ -346,8 +358,17 @@
                     return time;
                 }
 
-                const suffix = hour >= 12 ? 'PM' : 'AM';
-                const hour12 = hour % 12 || 12;
+                let suffix = 'AM';
+
+                if (hour >= 12) {
+                    suffix = 'PM';
+                }
+
+                let hour12 = hour % 12;
+
+                if (hour12 === 0) {
+                    hour12 = 12;
+                }
 
                 return `${hour12}:${minute} ${suffix}`;
             }
@@ -373,14 +394,26 @@
                     bookingView.classList.toggle('d-none', !locked);
                 }
                 if (modalTitle) {
-                    modalTitle.textContent = locked ? 'Event this day' : 'Set Availability';
+                    if (locked) {
+                        modalTitle.textContent = 'Event this day';
+                    } else {
+                        modalTitle.textContent = 'Set Availability';
+                    }
                 }
                 if (cancelButton) {
-                    cancelButton.textContent = locked ? 'Close' : 'Cancel';
+                    if (locked) {
+                        cancelButton.textContent = 'Close';
+                    } else {
+                        cancelButton.textContent = 'Cancel';
+                    }
                 }
 
                 if (bookingEventName) {
-                    bookingEventName.textContent = booking && booking.event_name ? booking.event_name : '';
+                    bookingEventName.textContent = '';
+
+                    if (booking && booking.event_name) {
+                        bookingEventName.textContent = booking.event_name;
+                    }
                 }
 
                 if (bookingMeta) {
@@ -397,7 +430,11 @@
                 }
 
                 if (bookingVenue) {
-                    const venue = booking && booking.venue ? `Venue: ${booking.venue}` : '';
+                    let venue = '';
+
+                    if (booking && booking.venue) {
+                        venue = `Venue: ${booking.venue}`;
+                    }
                     bookingVenue.textContent = venue;
                     bookingVenue.classList.toggle('d-none', !venue);
                 }
@@ -444,10 +481,12 @@
                 }
             }
 
-            modeInputs.forEach(input => input.addEventListener('change', syncAvailabilityMode));
+            modeInputs.forEach(function (input) {
+                input.addEventListener('change', syncAvailabilityMode);
+            });
 
             if (form) {
-                form.addEventListener('submit', (event) => {
+                form.addEventListener('submit', function (event) {
                     if (confirmedDates[dateInput.value]) {
                         event.preventDefault();
                         return;
@@ -461,7 +500,11 @@
                     const dateKey = dateInput.value;
                     const pendingBooking = pendingDates[dateKey];
                     const checkedMode = form.querySelector('input[name="availability_mode"]:checked');
-                    const mode = checkedMode ? checkedMode.value : 'available';
+                    let mode = 'available';
+
+                    if (checkedMode) {
+                        mode = checkedMode.value;
+                    }
 
                     if (pendingBooking && mode !== 'available') {
                         event.preventDefault();
@@ -478,13 +521,13 @@
             }
 
             if (pendingBackBtn) {
-                pendingBackBtn.addEventListener('click', () => {
+            pendingBackBtn.addEventListener('click', function () {
                     showPendingConfirmStep(false);
                 });
             }
 
             if (pendingConfirmBtn && form) {
-                pendingConfirmBtn.addEventListener('click', () => {
+                pendingConfirmBtn.addEventListener('click', function () {
                     skipPendingConfirm = true;
                     form.requestSubmit();
                 });
@@ -669,20 +712,30 @@
                     }
 
                     if (state === 'booked') {
-                        const eventName = (entry && entry.notes)
-                            ? entry.notes
-                            : (confirmedDates[dateKey] ? confirmedDates[dateKey].event_name : '');
+                        let eventName = '';
+
+                        if (entry && entry.notes) {
+                            eventName = entry.notes;
+                        } else if (confirmedDates[dateKey]) {
+                            eventName = confirmedDates[dateKey].event_name;
+                        }
 
                         if (eventName) {
                             const event = document.createElement('span');
                             event.className = 'av-day-event';
-                            event.textContent = eventName.length > 14 ? `${eventName.slice(0, 14)}…` : eventName;
+                            event.textContent = eventName;
+
+                            if (eventName.length > 14) {
+                                event.textContent = `${eventName.slice(0, 14)}…`;
+                            }
                             button.appendChild(event);
                         }
                     }
 
                     if (editable && (cellDate >= today || confirmedDates[dateKey])) {
-                        button.addEventListener('click', () => openEditor(dateKey, entry));
+                        button.addEventListener('click', function () {
+                            openEditor(dateKey, entry);
+                        });
                     } else if (editable && cellDate < today) {
                         button.disabled = true;
                     }
@@ -780,8 +833,8 @@
                 availabilityModal.show();
             }
 
-            calendar.querySelectorAll('[data-action]').forEach(button => {
-                button.addEventListener('click', () => {
+            calendar.querySelectorAll('[data-action]').forEach(function (button) {
+                button.addEventListener('click', function () {
                     const action = button.dataset.action;
 
                     if (action === 'prev') {

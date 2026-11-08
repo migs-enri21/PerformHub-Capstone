@@ -40,7 +40,9 @@ class EventController extends Controller
 
         $this->applyEventFilter($query, $request->status);
 
-        $events = $query->latest()->get();
+        $events = $query->latest()
+            ->paginate(6)
+            ->withQueryString();
 
         foreach ($events as $event) {
             if ($event->cover_photo && $event->photos->isEmpty()) {
@@ -183,6 +185,9 @@ class EventController extends Controller
         $eventTypeRequests = $this->featureRequestsFor(FeatureRequest::TYPE_EVENT_TYPE);
         $categoryRequests = $this->featureRequestsFor(FeatureRequest::TYPE_CATEGORY);
         $hasParticipants = $this->eventHasParticipants($event);
+        $confirmedBookingBudget = Booking::where('event_id', $event->id)
+            ->where('status', 'completed')
+            ->sum('budget');
         $canCancelEvent = $hasParticipants
             && strtolower($event->status) === 'open'
             && ! Auth::user()->hasLimitedAccess();
@@ -195,6 +200,7 @@ class EventController extends Controller
             'eventTypeRequests',
             'categoryRequests',
             'hasParticipants',
+            'confirmedBookingBudget',
             'canCancelEvent'
         ));
     }
@@ -613,6 +619,7 @@ class EventController extends Controller
         }
 
         $this->clearUnusedCompensationFields($validated, $validated['compensation_type']);
+        $this->ensureConfirmedBookingsFitEditedBudget($validated, $event);
         $this->ensureOrganizerScheduleAvailable($validated, $event);
 
         return $validated;
@@ -633,6 +640,39 @@ class EventController extends Controller
         if ($eventDetails['second_prize'] <= $eventDetails['third_prize']) {
             throw ValidationException::withMessages([
                 'second_prize' => 'Second prize must be higher than third prize.',
+            ]);
+        }
+    }
+
+    private function ensureConfirmedBookingsFitEditedBudget(array $eventDetails, ?Event $event): void
+    {
+        if (! $event) {
+            return;
+        }
+
+        $confirmedBookings = Booking::where('event_id', $event->id)
+            ->where('status', 'completed');
+
+        if (! $confirmedBookings->exists()) {
+            return;
+        }
+
+        if ($eventDetails['compensation_type'] !== $event->compensation_type) {
+            throw ValidationException::withMessages([
+                'compensation_type' => 'Compensation type cannot be changed after performer bookings are confirmed.',
+            ]);
+        }
+
+        if ($eventDetails['compensation_type'] === 'contest') {
+            return;
+        }
+
+        $allocatedBudget = (float) $confirmedBookings->sum('budget');
+        $eventBudget = (float) $eventDetails['budget'];
+
+        if ($eventBudget < $allocatedBudget) {
+            throw ValidationException::withMessages([
+                'budget' => 'The total budget cannot be lower than PHP '.number_format($allocatedBudget, 2).' already allocated to confirmed bookings.',
             ]);
         }
     }

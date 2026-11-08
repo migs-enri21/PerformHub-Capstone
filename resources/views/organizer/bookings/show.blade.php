@@ -136,7 +136,7 @@
                 <div class="d-flex gap-2">
                     <form method="POST" action="{{ route('organizer.bookings.cancel.approve', $booking) }}" class="flex-grow-1">
                         @csrf
-                        <button class="btn btn-danger w-100">Approve</button>
+                        <button class="btn ph-btn-danger w-100">Approve Cancellation</button>
                     </form>
                     <form method="POST" action="{{ route('organizer.bookings.cancel.decline', $booking) }}" class="flex-grow-1">
                         @csrf
@@ -190,7 +190,7 @@
                 @if($booking->isSigned())
                     <form method="POST" action="{{ route('organizer.bookings.complete', $booking) }}">
                         @csrf
-                        <button class="btn btn-success w-100">Confirm Booking</button>
+                        <button class="btn ph-btn-success w-100">Confirm Booking</button>
                     </form>
                 @else
                     @if($booking->signwell_document_id)

@@ -34,7 +34,7 @@
                     <form method="POST" action="{{ route('organizer.feature-requests.destroy', $featureRequest) }}" class="mt-2">
                         @csrf
                         @method('DELETE')
-                        <button type="submit" class="btn btn-sm btn-outline-danger">Cancel Request</button>
+                        <button type="submit" class="btn ph-btn-danger-outline btn-sm">Cancel Request</button>
                     </form>
                 @endif
             </div>

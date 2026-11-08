@@ -228,7 +228,7 @@
             </div>
 
             <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
-                <a href="{{ route('organizer.events.index') }}" class="btn ph-btn-secondary">Cancel</a>
+            <a href="{{ route('organizer.events.index') }}" class="btn ph-btn-outline">Cancel</a>
                 <button type="submit" class="btn ph-btn-primary">Create Event</button>
             </div>
         </form>
@@ -297,7 +297,7 @@
                 <textarea name="description" id="featureRequestDescription" class="form-control ph-input" rows="3" placeholder="What is it used for?"></textarea>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn ph-btn-outline" data-bs-dismiss="modal">Cancel</button>
                 <button type="submit" class="btn ph-btn-primary">Send Request</button>
             </div>
         </form>
