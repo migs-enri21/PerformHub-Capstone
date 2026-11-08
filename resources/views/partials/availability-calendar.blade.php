@@ -126,9 +126,6 @@
                         <div class="alert alert-warning small d-none mb-3" id="availabilityBookingLockNotice">
                             You already have a booking this day, so you can't change the status. You can still see the event below.
                         </div>
-                        <div class="alert alert-warning small d-none mb-3" id="availabilityPendingNotice">
-                            You have a <strong>pending booking request</strong> this day. Saving as Day off or “I have an event” will <strong>decline that pending request</strong>.
-                        </div>
                         <div class="d-none mb-0" id="availabilityBookingView">
                             <p class="fw-semibold mb-1" id="availabilityBookingEventName"></p>
                             <p class="text-muted small mb-1" id="availabilityBookingMeta"></p>
@@ -136,7 +133,7 @@
                             <a href="#" class="small d-none" id="availabilityBookingLink">View booking</a>
                         </div>
                         <input type="hidden" name="date" id="availabilityDateInput">
-                        <div class="row g-3" id="availabilityEditorFields">
+                        <div class="row g-3 availability-step is-visible" id="availabilityEditorFields">
                             <div class="col-6">
                                 <label class="form-label text-muted small" for="availabilityStart">Start time</label>
                                 <input type="time" name="start_time" id="availabilityStart" class="form-control ph-input">
@@ -174,10 +171,20 @@
                                 <input type="text" name="notes" id="availabilityNotes" class="form-control ph-input" placeholder="e.g. Wedding gig at Marco Polo Hotel">
                             </div>
                         </div>
+                        <div class="availability-step d-none" id="availabilityPendingConfirmStep">
+                            <p class="mb-2" id="availabilityPendingConfirmText">
+                                You have a pending booking request this day. Saving will decline that pending request.
+                            </p>
+                            <p class="text-muted small mb-0">Continue only if you do not want to take that booking.</p>
+                        </div>
                     </div>
-                    <div class="modal-footer gap-2" style="border-color: var(--ph-border);">
+                    <div class="modal-footer gap-2 availability-step is-visible" style="border-color: var(--ph-border);" id="availabilityEditorFooter">
                         <button type="button" class="btn ph-btn-outline availability-modal-action-btn" data-bs-dismiss="modal" id="availabilityCancelButton">Cancel</button>
-                        <button type="submit" class="btn ph-btn-primary availability-modal-action-btn">Save</button>
+                        <button type="submit" class="btn ph-btn-primary availability-modal-action-btn" id="availabilitySaveButton">Save</button>
+                    </div>
+                    <div class="modal-footer gap-2 availability-step d-none" style="border-color: var(--ph-border);" id="availabilityPendingConfirmFooter">
+                        <button type="button" class="btn ph-btn-outline availability-modal-action-btn" id="availabilityPendingBackBtn">Go back</button>
+                        <button type="button" class="btn ph-btn-primary availability-modal-action-btn" id="availabilityPendingConfirmBtn">Decline &amp; save</button>
                     </div>
                 </form>
                 <form method="POST" id="availabilityDeleteForm" class="d-none">
@@ -252,8 +259,14 @@
             const modalDateLabel = document.getElementById('availabilityModalDate');
             const modalTitle = document.getElementById('availabilityModalLabel');
             const bookingLockNotice = document.getElementById('availabilityBookingLockNotice');
-            const pendingNotice = document.getElementById('availabilityPendingNotice');
             const bookingView = document.getElementById('availabilityBookingView');
+            const pendingConfirmStep = document.getElementById('availabilityPendingConfirmStep');
+            const pendingConfirmText = document.getElementById('availabilityPendingConfirmText');
+            const pendingConfirmBtn = document.getElementById('availabilityPendingConfirmBtn');
+            const pendingBackBtn = document.getElementById('availabilityPendingBackBtn');
+            const editorFooter = document.getElementById('availabilityEditorFooter');
+            const pendingConfirmFooter = document.getElementById('availabilityPendingConfirmFooter');
+            let skipPendingConfirm = false;
             const bookingEventName = document.getElementById('availabilityBookingEventName');
             const bookingMeta = document.getElementById('availabilityBookingMeta');
             const bookingVenue = document.getElementById('availabilityBookingVenue');
@@ -262,7 +275,63 @@
             const cancelButton = document.getElementById('availabilityCancelButton');
             const availableModeInput = document.getElementById('availabilityModeAvailable');
             const blockedModeInput = document.getElementById('availabilityModeBlocked');
-            const saveButton = form ? form.querySelector('button[type="submit"]') : null;
+            const saveButton = document.getElementById('availabilitySaveButton');
+
+            let clearActionVisible = false;
+            let stepAnimTimer = null;
+
+            function hideStep(element) {
+                if (!element) {
+                    return;
+                }
+
+                element.classList.remove('is-visible');
+                element.classList.add('d-none');
+            }
+
+            function showStep(element) {
+                if (!element) {
+                    return;
+                }
+
+                element.classList.remove('d-none');
+                element.classList.remove('is-visible');
+                // Force layout, then fade in (same idea as Bootstrap modal fade).
+                void element.offsetWidth;
+                element.classList.add('is-visible');
+            }
+
+            function showPendingConfirmStep(show) {
+                if (stepAnimTimer) {
+                    window.clearTimeout(stepAnimTimer);
+                    stepAnimTimer = null;
+                }
+
+                if (modalTitle) {
+                    modalTitle.textContent = show ? 'Decline pending request?' : 'Set Availability';
+                }
+
+                if (modalDateLabel) {
+                    modalDateLabel.classList.toggle('d-none', show);
+                }
+
+                if (deleteForm) {
+                    deleteForm.classList.toggle('d-none', show || !clearActionVisible);
+                }
+
+                if (show) {
+                    hideStep(editorFields);
+                    hideStep(editorFooter);
+                    showStep(pendingConfirmStep);
+                    showStep(pendingConfirmFooter);
+                    return;
+                }
+
+                hideStep(pendingConfirmStep);
+                hideStep(pendingConfirmFooter);
+                showStep(editorFields);
+                showStep(editorFooter);
+            }
 
             function formatTimeDisplay(time) {
                 if (!time) {
@@ -369,10 +438,9 @@
                     notesInput.removeAttribute('required');
                 } else if (mode === 'blocked') {
                     isAvailableInput.value = '0';
-                    eventWrap.classList.remove('d-none');
-                    eventWrap.querySelector('label').textContent = 'Notes (optional)';
-                    notesInput.placeholder = 'e.g. Out of town, rest day';
+                    eventWrap.classList.add('d-none');
                     notesInput.removeAttribute('required');
+                    notesInput.value = '';
                 }
             }
 
@@ -385,22 +453,40 @@
                         return;
                     }
 
+                    if (skipPendingConfirm) {
+                        skipPendingConfirm = false;
+                        return;
+                    }
+
                     const dateKey = dateInput.value;
                     const pendingBooking = pendingDates[dateKey];
                     const checkedMode = form.querySelector('input[name="availability_mode"]:checked');
                     const mode = checkedMode ? checkedMode.value : 'available';
 
                     if (pendingBooking && mode !== 'available') {
-                        const eventName = pendingBooking.event_name || 'this request';
-                        const confirmed = window.confirm(
-                            `You have a pending booking request for "${eventName}" on this day.\n\n` +
-                            `Saving this will decline that pending request.\n\nContinue?`
-                        );
+                        event.preventDefault();
 
-                        if (!confirmed) {
-                            event.preventDefault();
+                        const eventName = pendingBooking.event_name || 'this request';
+                        if (pendingConfirmText) {
+                            pendingConfirmText.textContent =
+                                `You have a pending booking request for "${eventName}" this day. Saving as Day off or “I have an event” will decline that pending request.`;
                         }
+
+                        showPendingConfirmStep(true);
                     }
+                });
+            }
+
+            if (pendingBackBtn) {
+                pendingBackBtn.addEventListener('click', () => {
+                    showPendingConfirmStep(false);
+                });
+            }
+
+            if (pendingConfirmBtn && form) {
+                pendingConfirmBtn.addEventListener('click', () => {
+                    skipPendingConfirm = true;
+                    form.requestSubmit();
                 });
             }
 
@@ -617,10 +703,6 @@
                 endInput.value = '';
                 notesInput.value = '';
 
-                if (pendingNotice) {
-                    pendingNotice.classList.add('d-none');
-                }
-
                 if (entry) {
                     startInput.value = entry.start_time || '';
                     endInput.value = entry.end_time || '';
@@ -642,9 +724,6 @@
                     }
                 } else if (pendingBooking) {
                     statusHint = ` · Pending: ${pendingBooking.event_name}`;
-                    if (pendingNotice) {
-                        pendingNotice.classList.remove('d-none');
-                    }
                 } else if (googleBusy) {
                     mode = 'event';
                     const summary = googleBusy.summary || 'Busy';
@@ -684,14 +763,14 @@
                     }
                 }
 
-                if (entry && entry.id && deleteForm && !confirmedBooking) {
+                clearActionVisible = Boolean(entry && entry.id && deleteForm && !confirmedBooking);
+
+                if (clearActionVisible) {
                     deleteForm.action = destroyUrlFor(entry.id);
-                    deleteForm.classList.remove('d-none');
                     deleteForm.querySelector('button[type="submit"]').textContent = 'Clear';
-                } else if (deleteForm) {
-                    deleteForm.classList.add('d-none');
                 }
 
+                showPendingConfirmStep(false);
                 setBookingLocked(Boolean(confirmedBooking), confirmedBooking || null);
                 startInput.readOnly = Boolean(confirmedBooking);
                 endInput.readOnly = Boolean(confirmedBooking);

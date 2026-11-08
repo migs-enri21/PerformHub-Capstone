@@ -306,3 +306,13 @@ button.av-day:not(:disabled):hover {
 
 /* Clear stays red outline; size comes from .availability-modal-action-btn */
 
+/* Step switch (editor <-> decline notice) — fade only, no layout clash */
+#availabilityModal .availability-step {
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+#availabilityModal .availability-step.is-visible {
+    opacity: 1;
+}
+
