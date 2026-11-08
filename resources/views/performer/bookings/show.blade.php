@@ -58,6 +58,9 @@
         <p><strong>Budget Offer:</strong> ₱{{ number_format((float) $booking->budget, 2) }}</p>
     @endif
     <p><strong>Requirements:</strong> {{ $booking->requirements ?? 'None specified' }}</p>
+    @if(filled($booking->notes))
+        <p><strong>Notes from organizer:</strong> {{ $booking->notes }}</p>
+    @endif
     <p class="mb-0">
         <strong>Organizer:</strong>
         {{ $booking->organizer->organizerProfile?->organization_name ?? $booking->organizer->name }}

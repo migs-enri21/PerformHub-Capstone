@@ -42,7 +42,12 @@
             <p><strong>Performer:</strong> {{ $performerName }}</p>
             <p><strong>Date:</strong> {{ $booking->event_date->format('F d, Y') }}</p>
             <p><strong>Venue:</strong> {{ $venue }}</p>
-            <p class="mb-0"><strong>Requirements:</strong> {{ $requirements }}</p>
+            <p><strong>Requirements:</strong> {{ $requirements }}</p>
+            @if(filled($booking->notes))
+                <p class="mb-0"><strong>Notes for performer:</strong> {{ $booking->notes }}</p>
+            @else
+                <p class="mb-0 text-muted"><strong>Notes for performer:</strong> None</p>
+            @endif
         </div>
 
         @if($booking->status === 'expired')
