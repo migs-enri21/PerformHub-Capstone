@@ -42,19 +42,32 @@ class DashboardController extends Controller
             }
         }
 
-        // Heal stale "accepted/invited" applications when the booking was cancelled but the event is still open.
-        $cancelledOpenEventIds = Booking::query()
+        $activeBookingsByEvent = Booking::query()
+            ->where('performer_id', $user->id)
+            ->whereNotNull('event_id')
+            ->whereIn('status', ['pending', 'accepted', 'completed'])
+            ->orderByRaw("case status when 'completed' then 1 when 'accepted' then 2 else 3 end")
+            ->get(['event_id', 'status'])
+            ->unique('event_id')
+            ->keyBy('event_id');
+
+        $activeBookingEventIds = $activeBookingsByEvent->keys();
+
+        // Heal stale applications only when a booking was cancelled and there is no active booking left.
+        $staleCancelledEventIds = Booking::query()
             ->where('performer_id', $user->id)
             ->where('status', 'cancelled')
             ->whereNotNull('event_id')
             ->whereHas('event', function ($query) {
                 $query->whereIn('status', ['Open', 'open']);
             })
-            ->pluck('event_id');
+            ->pluck('event_id')
+            ->diff($activeBookingEventIds)
+            ->values();
 
-        if ($cancelledOpenEventIds->isNotEmpty()) {
+        if ($staleCancelledEventIds->isNotEmpty()) {
             EventApplication::where('performer_id', $user->id)
-                ->whereIn('event_id', $cancelledOpenEventIds)
+                ->whereIn('event_id', $staleCancelledEventIds)
                 ->whereIn('status', ['accepted', 'invited'])
                 ->delete();
         }
@@ -62,6 +75,11 @@ class DashboardController extends Controller
         $applicationStatuses = EventApplication::where('performer_id', $user->id)
             ->pluck('status', 'event_id')
             ->all();
+
+        // Feed footer follows bookings too — completed/accepted must not show Apply again.
+        foreach ($activeBookingsByEvent as $eventId => $booking) {
+            $applicationStatuses[$eventId] = $booking->status === 'pending' ? 'invited' : 'accepted';
+        }
 
         $pendingBookingUrls = Booking::where('performer_id', $user->id)
             ->where('status', 'pending')
