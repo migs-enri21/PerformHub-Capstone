@@ -118,6 +118,9 @@
                         <div class="alert alert-warning small d-none mb-3" id="availabilityBookingLockNotice">
                             You already have a booking this day, so you can't change the status. You can still see the event below.
                         </div>
+                        <div class="alert alert-warning small d-none mb-3" id="availabilityPendingNotice">
+                            You have a <strong>pending booking request</strong> this day. Saving as Day off or “I have an event” will <strong>decline that pending request</strong>.
+                        </div>
                         <div class="d-none mb-0" id="availabilityBookingView">
                             <p class="fw-semibold mb-1" id="availabilityBookingEventName"></p>
                             <p class="text-muted small mb-1" id="availabilityBookingMeta"></p>
@@ -241,6 +244,7 @@
             const modalDateLabel = document.getElementById('availabilityModalDate');
             const modalTitle = document.getElementById('availabilityModalLabel');
             const bookingLockNotice = document.getElementById('availabilityBookingLockNotice');
+            const pendingNotice = document.getElementById('availabilityPendingNotice');
             const bookingView = document.getElementById('availabilityBookingView');
             const bookingEventName = document.getElementById('availabilityBookingEventName');
             const bookingMeta = document.getElementById('availabilityBookingMeta');
@@ -370,6 +374,24 @@
                 form.addEventListener('submit', (event) => {
                     if (confirmedDates[dateInput.value]) {
                         event.preventDefault();
+                        return;
+                    }
+
+                    const dateKey = dateInput.value;
+                    const pendingBooking = pendingDates[dateKey];
+                    const checkedMode = form.querySelector('input[name="availability_mode"]:checked');
+                    const mode = checkedMode ? checkedMode.value : 'available';
+
+                    if (pendingBooking && mode !== 'available') {
+                        const eventName = pendingBooking.event_name || 'this request';
+                        const confirmed = window.confirm(
+                            `You have a pending booking request for "${eventName}" on this day.\n\n` +
+                            `Saving this will decline that pending request.\n\nContinue?`
+                        );
+
+                        if (!confirmed) {
+                            event.preventDefault();
+                        }
                     }
                 });
             }
@@ -587,6 +609,10 @@
                 endInput.value = '';
                 notesInput.value = '';
 
+                if (pendingNotice) {
+                    pendingNotice.classList.add('d-none');
+                }
+
                 if (entry) {
                     startInput.value = entry.start_time || '';
                     endInput.value = entry.end_time || '';
@@ -608,6 +634,9 @@
                     }
                 } else if (pendingBooking) {
                     statusHint = ` · Pending: ${pendingBooking.event_name}`;
+                    if (pendingNotice) {
+                        pendingNotice.classList.remove('d-none');
+                    }
                 } else if (googleBusy) {
                     mode = 'event';
                     const summary = googleBusy.summary || 'Busy';
