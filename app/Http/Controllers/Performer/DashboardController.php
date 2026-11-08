@@ -20,7 +20,7 @@ class DashboardController extends Controller
         Booking::sweepPastBookings();
         $pendingBookings = Booking::where('performer_id', $user->id)->where('status', 'pending')->count();
         $upcomingBookings = Booking::where('performer_id', $user->id)
-            ->where('status', 'accepted')
+            ->whereIn('status', ['accepted', 'completed'])
             ->whereDate('event_date', '>=', today())
             ->count();
 
@@ -78,9 +78,9 @@ class DashboardController extends Controller
             ->count();
 
         $nextBooking = Booking::where('performer_id', $user->id)
-            ->where('status', 'accepted')
+            ->whereIn('status', ['accepted', 'completed'])
             ->whereDate('event_date', '>=', today())
-            ->orderBy('event_date') 
+            ->orderBy('event_date')
             ->orderBy('event_time')
             ->first();
 
