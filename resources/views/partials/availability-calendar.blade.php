@@ -159,7 +159,7 @@
                                 <input type="hidden" name="is_available" id="availabilityIsAvailable" value="1">
                             </div>
                             <div class="col-12" id="availabilityEventWrap">
-                                <label class="form-label text-muted small" for="availabilityNotes">Event name</label>
+                                <label class="form-label text-muted small" for="availabilityNotes">Event name (optional)</label>
                                 <input type="text" name="notes" id="availabilityNotes" class="form-control ph-input" placeholder="e.g. Wedding gig at Marco Polo Hotel">
                             </div>
                         </div>
@@ -352,9 +352,9 @@
                 } else if (mode === 'event') {
                     isAvailableInput.value = '0';
                     eventWrap.classList.remove('d-none');
-                    eventWrap.querySelector('label').textContent = 'Event name';
+                    eventWrap.querySelector('label').textContent = 'Event name (optional)';
                     notesInput.placeholder = 'e.g. Wedding gig at Marco Polo Hotel';
-                    notesInput.setAttribute('required', 'required');
+                    notesInput.removeAttribute('required');
                 } else if (mode === 'blocked') {
                     isAvailableInput.value = '0';
                     eventWrap.classList.remove('d-none');
