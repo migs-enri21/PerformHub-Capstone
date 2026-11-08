@@ -33,28 +33,36 @@
         ])
         ->all();
 
-    $pendingMap = $bookingCalendar
-        ->where('status', 'pending')
-        ->mapWithKeys(fn ($booking) => [
-            $booking->event_date->format('Y-m-d') => [
-                'label' => 'Pending',
-                'event_name' => $booking->event_name,
-            ],
-        ])
-        ->all();
+    $pendingMap = [];
+    $confirmedMap = [];
 
-        $confirmedMap = $bookingCalendar
-        ->filter(fn ($booking) => $booking->locksTheDate())
-        ->mapWithKeys(fn ($booking) => [
-            $booking->event_date->format('Y-m-d') => [
-                'event_name' => $booking->event_name,
-                'event_time' => $formatTime($booking->event_time),
-                'end_time' => $formatTime($booking->end_time),
-                'venue' => $booking->venue,
-                'url' => $editable ? route('performer.bookings.show', $booking) : null,
-            ],
-        ])
-        ->all();
+    foreach ($bookingCalendar as $booking) {
+        $date = $booking->event_date->copy();
+        $endDate = $booking->end_date;
+
+        while ($date->lessThanOrEqualTo($endDate)) {
+            $dateKey = $date->format('Y-m-d');
+
+            if ($booking->status === 'pending') {
+                $pendingMap[$dateKey] = [
+                    'label' => 'Pending',
+                    'event_name' => $booking->event_name,
+                ];
+            }
+
+            if ($booking->locksTheDate()) {
+                $confirmedMap[$dateKey] = [
+                    'event_name' => $booking->event_name,
+                    'event_time' => $formatTime($booking->event_time),
+                    'end_time' => $formatTime($booking->end_time),
+                    'venue' => $booking->venue,
+                    'url' => $editable ? route('performer.bookings.show', $booking) : null,
+                ];
+            }
+
+            $date->addDay();
+        }
+    }
 @endphp
 
 <div

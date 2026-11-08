@@ -29,7 +29,8 @@ class BookingController extends Controller
             $query->cancelRequested();
             $listFilter = 'cancel';
         } elseif ($status === 'accepted') {
-            $query->where('status', 'accepted')->whereDate('event_date', '>=', today());
+            $query->where('status', 'accepted')
+                ->whereDate('end_date', '>=', today());
             $listFilter = 'accepted';
         } elseif (in_array($status, ['pending', 'completed', 'rejected', 'cancelled', 'expired'], true)) {
             $query->where('status', $status);
@@ -76,7 +77,7 @@ class BookingController extends Controller
         if ($conflict) {
             return back()->with(
                 'warning',
-                'You already have "'.$conflict->event_name.'" on '.$booking->event_date->format('F d, Y').'. PerformHub allows 1 event per day.'
+                'You already have "'.$conflict->event_name.'" during '.$booking->dateRangeLabel().'. PerformHub allows 1 event per day.'
             );
         }
 

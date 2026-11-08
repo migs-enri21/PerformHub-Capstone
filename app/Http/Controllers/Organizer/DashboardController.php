@@ -68,7 +68,7 @@ class DashboardController extends Controller
                 ->count(),
             'activeBookings' => Booking::where('organizer_id', Auth::id())
                 ->where('status', 'accepted')
-                ->whereDate('event_date', '>=', today())
+                ->whereDate('end_date', '>=', today())
                 ->count(),
             'cancelRequests' => Booking::where('organizer_id', Auth::id())
                 ->whereNotNull('cancel_requested_at')

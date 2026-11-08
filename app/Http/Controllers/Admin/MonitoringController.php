@@ -32,7 +32,7 @@ class MonitoringController extends Controller
         }
 
         if ($request->filled('date_from')) {
-            $query->whereDate('event_date', '>=', $request->date_from);
+            $query->whereDate('end_date', '>=', $request->date_from);
         }
 
         if ($request->filled('date_to')) {

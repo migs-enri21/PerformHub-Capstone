@@ -50,13 +50,14 @@
         @endif
 
         <p class="event-feed-meta mb-0">
-            <span>{{ \Illuminate\Support\Carbon::parse($event->event_date)->format('M j, Y') }}</span>
+            <span>{{ $event->dateRangeLabel() }}</span>
             <span>{{ $event->venue }}</span>
             @if($event->budget)
                 <span>₱{{ number_format((float) $event->budget, 0) }}</span>
             @endif
             @if($event->compensation_type === 'hourly' && $event->rate_per_hour)
                 <span>Rate per hour: PHP {{ number_format((float) $event->rate_per_hour, 0) }}</span>
+                <span>{{ $event->work_hours_per_day }} work hours per day</span>
             @endif
             @if($event->compensation_type === 'contest')
                 <span>Contest prizes available</span>

@@ -62,7 +62,7 @@ class AvailabilityController extends Controller
         $validated['is_available'] = $request->boolean('is_available', true);
 
         $hasConfirmedBooking = Booking::where('performer_id', Auth::id())
-            ->whereDate('event_date', $validated['date'])
+            ->overlappingDates($validated['date'], $validated['date'])
             ->lockingDate()
             ->exists();
 
@@ -114,7 +114,7 @@ class AvailabilityController extends Controller
         abort_unless($schedule->performer_profile_id === Auth::user()->performerProfile->id, 403);
 
         $hasConfirmedBooking = Booking::where('performer_id', Auth::id())
-            ->whereDate('event_date', $schedule->date)
+            ->overlappingDates($schedule->date, $schedule->date)
             ->lockingDate()
             ->exists();
 
@@ -136,7 +136,7 @@ class AvailabilityController extends Controller
         $pendingBookings = Booking::query()
             ->with('organizer')
             ->where('performer_id', Auth::id())
-            ->whereDate('event_date', $date)
+            ->overlappingDates($date, $date)
             ->where('status', 'pending')
             ->get();
 
@@ -175,7 +175,7 @@ class AvailabilityController extends Controller
             $date = $schedule->date->toDateString();
 
             $hasConfirmed = $bookings->contains(
-                fn ($booking) => $booking->locksTheDate() && $booking->event_date->toDateString() === $date
+                fn ($booking) => $booking->locksTheDate() && $booking->coversDate($date)
             );
 
             if ($hasConfirmed) {
@@ -185,7 +185,7 @@ class AvailabilityController extends Controller
             $copiedFromOpenBooking = $bookings->contains(
                 function ($booking) use ($date, $schedule) {
                     return in_array($booking->status, ['pending', 'accepted'], true)
-                        && $booking->event_date->toDateString() === $date
+                        && $booking->coversDate($date)
                         && strcasecmp(trim((string) $booking->event_name), trim((string) $schedule->notes)) === 0;
                 }
             );

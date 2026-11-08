@@ -38,7 +38,7 @@
         <i class="fas fa-wand-magic-sparkles"></i>
         <div>
             <strong>Recommended for {{ $selectedEvent->title }}</strong>
-            <small>{{ $eventTypeName }} · {{ \Carbon\Carbon::parse($selectedEvent->event_date)->format('F d, Y') }}</small>
+            <small>{{ $eventTypeName }} · {{ $selectedEvent->dateRangeLabel() }}</small>
         </div>
     </div>
 @endif

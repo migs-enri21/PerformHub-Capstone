@@ -16,6 +16,7 @@ class Booking extends Model
         'event_id',
         'event_name',
         'event_date',
+        'end_date',
         'event_time',
         'end_time',
         'venue',
@@ -43,6 +44,7 @@ class Booking extends Model
     {
         return [
             'event_date' => 'date',
+            'end_date' => 'date',
             'signed_contract_uploaded_at' => 'datetime',
             'cancel_requested_at' => 'datetime',
             'signwell_sent_at' => 'datetime',
@@ -145,20 +147,40 @@ class Booking extends Model
 
     public function eventHasEnded(): bool
     {
-        $date = $this->event_date->toDateString();
-        $start = Carbon::parse($date.' '.$this->event_time);
         $endTime = $this->end_time;
 
         if (! $endTime) {
             $endTime = $this->event_time;
         }
-        $end = Carbon::parse($date.' '.$endTime);
+        $endDate = $this->end_date;
+        $end = Carbon::parse($endDate->toDateString().' '.$endTime);
 
-        if ($end->lessThanOrEqualTo($start)) {
+        $start = Carbon::parse($this->event_date->toDateString().' '.$this->event_time);
+
+        if ($endDate->isSameDay($this->event_date) && $end->lessThanOrEqualTo($start)) {
             $end->addDay();
         }
 
         return now()->greaterThanOrEqualTo($end);
+    }
+
+    public function dateRangeLabel(string $format = 'F j, Y'): string
+    {
+        $endDate = $this->end_date;
+
+        if ($this->event_date->isSameDay($endDate)) {
+            return $this->event_date->format($format);
+        }
+
+        return $this->event_date->format($format).' - '.$endDate->format($format);
+    }
+
+    public function coversDate($date): bool
+    {
+        $checkedDate = Carbon::parse($date);
+        $endDate = $this->end_date;
+
+        return $checkedDate->betweenIncluded($this->event_date, $endDate);
     }
 
     public static function sweepPastBookings(): void
@@ -171,7 +193,7 @@ class Booking extends Model
         $bookings = static::query()
             ->with(['organizer', 'performer'])
             ->whereIn('status', ['pending', 'accepted'])
-            ->whereDate('event_date', '<=', today())
+            ->whereDate('end_date', '<=', today())
             ->get();
 
         $count = 0;
@@ -271,9 +293,11 @@ class Booking extends Model
 
     public function sameDayConfirmedConflict(): ?self
     {
+        $endDate = $this->end_date;
+
         return static::query()
             ->where('performer_id', $this->performer_id)
-            ->whereDate('event_date', $this->event_date)
+            ->overlappingDates($this->event_date, $endDate)
             ->lockingDate()
             ->where('id', '!=', $this->id)
             ->first();
@@ -281,10 +305,12 @@ class Booking extends Model
 
     public function dropSameDayCompetitors(): void
     {
+        $endDate = $this->end_date;
+
         $others = static::query()
             ->with('organizer')
             ->where('performer_id', $this->performer_id)
-            ->whereDate('event_date', $this->event_date)
+            ->overlappingDates($this->event_date, $endDate)
             ->whereIn('status', ['pending', 'accepted'])
             ->where('id', '!=', $this->id)
             ->get();
@@ -315,6 +341,13 @@ class Booking extends Model
         }
     
         return ! $this->eventHasEnded();
+    }
+
+    public function scopeOverlappingDates($query, $startDate, $endDate)
+    {
+        return $query
+            ->whereDate('event_date', '<=', $endDate)
+            ->whereDate('end_date', '>=', $startDate);
     }
 
     public function hasCancelRequest(): bool

@@ -33,7 +33,7 @@ class EventController extends Controller
         }
 
         if ($request->filled('date_from')) {
-            $query->whereDate('event_date', '>=', $request->date_from);
+            $query->whereDate('end_date', '>=', $request->date_from);
         }
 
         if ($request->filled('date_to')) {
@@ -51,19 +51,30 @@ class EventController extends Controller
         $validated = $request->validate([
             'event_name' => ['required', 'string', 'max:255'],
             'event_date' => ['required', 'date', 'after_or_equal:today'],
+            'end_date' => ['nullable', 'date', 'after_or_equal:event_date'],
             'event_time' => ['nullable', 'date_format:H:i'],
             'venue' => ['nullable', 'string', 'max:255'],
             'requirements' => ['nullable', 'string', 'max:2000'],
-            'duration_hours' => ['nullable', 'integer', 'min:1', 'max:24'],
+            'duration_hours' => ['nullable', 'integer', 'min:1'],
             'notes' => ['nullable', 'string', 'max:1000'],
             'organizer_id' => ['required', 'exists:users,id'],
             'performer_id' => ['required', 'exists:users,id'],
             'status' => ['nullable', 'in:pending,accepted,rejected,completed'],
         ]);
 
+        if (empty($validated['end_date'])) {
+            $validated['end_date'] = $validated['event_date'];
+        }
+
+        $status = 'pending';
+
+        if (! empty($validated['status'])) {
+            $status = $validated['status'];
+        }
+
         Booking::create([
             ...$validated,
-            'status' => $validated['status'] ?? 'pending',
+            'status' => $status,
         ]);
 
         return redirect()->route('admin.events.index')->with('success', 'Event created successfully.');

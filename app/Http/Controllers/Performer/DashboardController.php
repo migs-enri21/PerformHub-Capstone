@@ -21,7 +21,7 @@ class DashboardController extends Controller
         $pendingBookings = Booking::where('performer_id', $user->id)->where('status', 'pending')->count();
         $upcomingBookings = Booking::where('performer_id', $user->id)
             ->whereIn('status', ['accepted', 'completed'])
-            ->whereDate('event_date', '>=', today())
+            ->whereDate('end_date', '>=', today())
             ->count();
 
         $categoryIds = [];
@@ -97,7 +97,7 @@ class DashboardController extends Controller
 
         $nextBooking = Booking::where('performer_id', $user->id)
             ->whereIn('status', ['accepted', 'completed'])
-            ->whereDate('event_date', '>=', today())
+            ->whereDate('end_date', '>=', today())
             ->orderBy('event_date')
             ->orderBy('event_time')
             ->first();
@@ -120,7 +120,7 @@ class DashboardController extends Controller
     {
         $query = Event::with(['organizer.organizerProfile', 'eventType', 'categories', 'photos'])
             ->whereIn('status', ['Open', 'open'])
-            ->whereDate('event_date', '>=', now()->toDateString())
+            ->whereDate('end_date', '>=', now()->toDateString())
             ->whereHas('categories', function ($query) use ($categoryIds) {
                 $query->whereIn('categories.id', $categoryIds);
             });
@@ -136,6 +136,15 @@ class DashboardController extends Controller
                 });
             }
     
-        return $query->orderBy('created_at', 'desc')->get();
+        $events = $query->orderBy('created_at', 'desc')->get();
+        $availableEvents = collect();
+
+        foreach ($events as $event) {
+            if (! $event->hasStarted()) {
+                $availableEvents->push($event);
+            }
+        }
+
+        return $availableEvents;
     }
 }

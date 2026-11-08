@@ -135,18 +135,24 @@
                     @error('preferred_genres.*')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
                 </div>
 
-                <div class="col-md-4">
-                    <label class="form-label">Event Date</label>
+                <div class="col-md-3">
+                    <label class="form-label">Start Date</label>
                     <input type="date" class="form-control ph-input @error('event_date') is-invalid @enderror" name="event_date" value="{{ old('event_date') }}" min="{{ now()->toDateString() }}">
                     @error('event_date')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     <small class="text-muted d-block mt-1">Up to 3 active events may be scheduled on one day, with a 3-hour gap between them.</small>
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-3">
+                    <label class="form-label">End Date</label>
+                    <input type="date" class="form-control ph-input @error('end_date') is-invalid @enderror" name="end_date" value="{{ old('end_date', old('event_date')) }}" min="{{ now()->toDateString() }}">
+                    @error('end_date')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    <small class="text-muted d-block mt-1">Use the same date for a one-day event.</small>
+                </div>
+                <div class="col-md-3">
                     <label class="form-label">Start Time</label>
                     <input type="time" class="form-control ph-input @error('start_time') is-invalid @enderror" name="start_time" value="{{ old('start_time') }}">
                     @error('start_time')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <label class="form-label">End Time</label>
                     <input type="time" class="form-control ph-input @error('end_time') is-invalid @enderror" name="end_time" value="{{ old('end_time') }}">
                     @error('end_time')<div class="invalid-feedback">{{ $message }}</div>@enderror
@@ -180,12 +186,19 @@
                                 <div class="col-md-6">
                                     <label class="form-label">Total Hourly Budget (&#8369;)</label>
                                     <input type="number" class="form-control ph-input" name="budget" value="{{ old('budget') }}" step="0.01">
+                                    <small class="text-muted">Your total payment cap across all performers for this event.</small>
                                     @error('budget')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
                                 </div>
                                 <div class="col-md-6">
                                     <label class="form-label">Rate per Hour (&#8369;)</label>
                                     <input type="number" class="form-control ph-input" name="rate_per_hour" value="{{ old('rate_per_hour') }}" step="0.01">
                                     @error('rate_per_hour')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Work Hours per Day</label>
+                                    <input type="number" class="form-control ph-input" name="work_hours_per_day" value="{{ old('work_hours_per_day', 8) }}" min="1" max="24" step="1">
+                                    <small class="text-muted">Used to calculate the suggested offer for each performer.</small>
+                                    @error('work_hours_per_day')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
                                 </div>
                             </div>
                         </div>

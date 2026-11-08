@@ -27,7 +27,7 @@
         @if($dayConflict)
             <div class="alert alert-warning small mb-3">
                 You already have <strong>{{ $dayConflict->event_name }}</strong> on
-                {{ $booking->event_date->format('F d, Y') }}. PerformHub allows <strong>1 event per day</strong>,
+                {{ $booking->dateRangeLabel() }}. PerformHub allows <strong>1 event per day</strong>,
                 so this request cannot be accepted. Decline it, or free that date first.
             </div>
         @endif
@@ -48,7 +48,7 @@
     <h5 class="fw-semibold mb-3">Event Details</h5>
     <p>
         <strong>Date:</strong>
-        {{ $booking->event_date->format('F d, Y') }}
+        {{ $booking->dateRangeLabel() }}
         @if($booking->event_time)
             at {{ \Carbon\Carbon::parse($booking->event_time)->format('g:i A') }}
         @endif
@@ -132,7 +132,7 @@
                     <p class="text-muted small">The organizer must approve this. This booking stays booked until they do.</p>
                    {{-- <p class= "mb-2">
                         <strong>{{ $booking->event_name }}</strong> <br>
-                        <span class= "text-muted small">{{ $booking->event_date->format('F d, Y') }}</span>
+                        <span class= "text-muted small">{{ $booking->dateRangeLabel() }}</span>
                     </p>--}}
                     <label class="form-label" for="cancel_reason">Reason</label>
                     <textarea name="cancel_reason" id="cancel_reason" class="form-control ph-input" rows="3" required maxlength="500" placeholder="Why do you need to cancel?"></textarea>

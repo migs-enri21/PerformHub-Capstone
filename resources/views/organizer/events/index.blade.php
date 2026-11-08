@@ -117,7 +117,7 @@
                         <div class="organizer-event-meta">
                             <p>
                                 <i class="fas fa-calendar"></i>
-                                {{ \Carbon\Carbon::parse($event->event_date)->format('F d, Y') }}
+                                {{ $event->dateRangeLabel() }}
                             </p>
                             <p>
                                 <i class="fas fa-map-marker-alt"></i>

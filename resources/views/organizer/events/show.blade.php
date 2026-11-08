@@ -98,7 +98,7 @@
             <div class="row g-3">
                 <div class="col-md-6">
                     <strong class="event-detail-label d-block mb-1">Date</strong>
-                    <span class="text-muted">{{ \Illuminate\Support\Carbon::parse($event->event_date)->format('F j, Y') }}</span>
+                    <span class="text-muted">{{ $event->dateRangeLabel() }}</span>
                 </div>
                 <div class="col-md-6">
                     <strong class="event-detail-label d-block mb-1">Time</strong>
@@ -164,6 +164,7 @@
                         <div class="organizer-budget-summary">
                             <div><strong>Total Hourly Budget</strong><span>PHP {{ number_format((float) $event->budget, 0) }}</span></div>
                             <div><strong>Rate per Hour</strong><span>PHP {{ number_format((float) $event->rate_per_hour, 0) }}</span></div>
+                            <div><strong>Work Hours per Day</strong><span>{{ $event->work_hours_per_day }} hours</span></div>
                             <div><strong>Allocated to Confirmed Bookings</strong><span>PHP {{ number_format($reservedBudget, 0) }}</span></div>
                             <div><strong>Remaining Budget</strong>
                                 @if($remainingBudget < 0)

@@ -38,7 +38,7 @@
                 </div>
                 <div class="col-md-6">
                     <div class="small text-muted">Event Date</div>
-                    <div class="fw-semibold">{{ $booking->event_date->format('F d, Y') }}</div>
+                    <div class="fw-semibold">{{ $booking->dateRangeLabel() }}</div>
                 </div>
                 <div class="col-md-6">
                     <div class="small text-muted">Event Time</div>
@@ -102,7 +102,7 @@
             <h5 class="fw-bold mb-3">Event Summary</h5>
             <div class="d-flex justify-content-between mb-2"><span class="text-muted">Name</span><span>{{ $booking->event_name }}</span></div>
             <div class="d-flex justify-content-between mb-2"><span class="text-muted">Date Created</span><span>{{ $booking->created_at->format('M d, Y') }}</span></div>
-            <div class="d-flex justify-content-between mb-2"><span class="text-muted">Scheduled Date</span><span>{{ $booking->event_date->format('M d, Y') }}</span></div>
+            <div class="d-flex justify-content-between mb-2"><span class="text-muted">Scheduled Dates</span><span>{{ $booking->dateRangeLabel() }}</span></div>
             <div class="d-flex justify-content-between mb-2"><span class="text-muted">Created By</span><span>{{ $booking->organizer?->fullName() ?? '—' }}</span></div>
         </div>
     </div>

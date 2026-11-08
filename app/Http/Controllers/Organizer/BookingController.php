@@ -69,14 +69,19 @@ class BookingController extends Controller
             return back()->with('error', $this->existingBookingMessage($existingBooking));
         }
 
+        $endDate = $validated['event_date'];
+
+        if (! empty($validated['end_date'])) {
+            $endDate = $validated['end_date'];
+        }
         $sameDayBooking = Booking::where('performer_id', $performer->user_id)
-            ->whereDate('event_date', $validated['event_date'])
+            ->overlappingDates($validated['event_date'], $endDate)
             ->lockingDate()
             ->first();
 
         if ($sameDayBooking) {
             return back()->with('error',
-                'This performer already has "'.$sameDayBooking->event_name.'" on that date. PerformHub allows 1 event per day.'
+                'This performer already has "'.$sameDayBooking->event_name.'" during the selected event dates. PerformHub allows 1 event per day.'
             );
         }
 
@@ -315,7 +320,7 @@ class BookingController extends Controller
         $events = Event::with(['eventType', 'photos'])
             ->where('organizer_id', Auth::id())
             ->whereIn('status', ['Open', 'open'])
-            ->whereDate('event_date', '>=', today())
+            ->whereDate('end_date', '>=', today())
             ->orderBy('event_date')
             ->orderBy('start_time')
             ->get();
@@ -355,6 +360,7 @@ class BookingController extends Controller
     {
         $bookingDetails['event_name'] = $event->title;
         $bookingDetails['event_date'] = $event->event_date;
+        $bookingDetails['end_date'] = $event->end_date;
         $bookingDetails['event_time'] = Carbon::parse($event->start_time)->format('H:i');
         $bookingDetails['end_time'] = Carbon::parse($event->end_time)->format('H:i');
         $bookingDetails['venue'] = $event->venue;

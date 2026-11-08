@@ -105,18 +105,20 @@
                 value="{{ $event->id }}"
                 data-id="{{ $event->id }}"
                 data-title="{{ $event->title }}"
-                data-date="{{ $event->event_date }}"
+                data-date="{{ $event->event_date->format('Y-m-d') }}"
+                data-end-date="{{ $event->end_date->format('Y-m-d') }}"
                 data-start="{{ $event->start_time }}"
                 data-end="{{ $event->end_time }}"
                 data-venue="{{ $event->venue }}"
                 data-description="{{ $event->description }}"
                 data-budget="{{ $event->budget }}"
                 data-rate-per-hour="{{ $event->rate_per_hour }}"
+                data-work-hours-per-day="{{ $event->work_hours_per_day }}"
                 data-compensation-type="{{ $event->compensation_type }}"
                 data-first-prize="{{ $event->first_prize }}"
                 data-second-prize="{{ $event->second_prize }}"
                 data-third-prize="{{ $event->third_prize }}"
-                data-date-label="{{ \Illuminate\Support\Carbon::parse($event->event_date)->format('M d, Y') }}"
+                data-date-label="{{ $event->dateRangeLabel() }}"
                 data-time-label="{{ \Illuminate\Support\Carbon::parse($event->start_time)->format('g:i A') }} - {{ \Illuminate\Support\Carbon::parse($event->end_time)->format('g:i A') }}"
                 data-event-type="{{ $eventTypeName }}"
                 data-compensation="{{ $compensationLabel }}"
@@ -291,25 +293,16 @@
     }
 
     function showHourlySuggestion(selected) {
-        const start = new Date('2000-01-01T' + selected.dataset.start);
-        let end = new Date('2000-01-01T' + selected.dataset.end);
-
-        if (end <= start) {
-            end.setDate(end.getDate() + 1);
-        }
-
-        const duration = (end - start) / 3600000;
+        const startDate = new Date(selected.dataset.date + 'T00:00:00');
+        const endDate = new Date(selected.dataset.endDate + 'T00:00:00');
+        const eventDays = Math.round((endDate - startDate) / 86400000) + 1;
         const rate = Number(selected.dataset.ratePerHour || 0);
-        const suggestedOffer = rate * duration;
+        const workHoursPerDay = Number(selected.dataset.workHoursPerDay || 0);
+        const suggestedOffer = rate * workHoursPerDay * eventDays;
 
         budgetInput.value = suggestedOffer.toFixed(2);
         budgetOfferLabel.textContent = 'Suggested Offer (₱)';
-        let hourLabel = 'hours';
-        if (duration === 1) {
-            hourLabel = 'hour';
-        }
-
-        hourlyRateHelp.textContent = '₱' + rate.toLocaleString() + ' per hour × ' + duration + ' ' + hourLabel + '. You may edit this offer.';
+        hourlyRateHelp.textContent = '₱' + rate.toLocaleString() + ' per hour × ' + workHoursPerDay + ' hours per day × ' + eventDays + ' day(s). You may edit this offer.';
         hourlyRateHelp.classList.remove('d-none');
     }
 

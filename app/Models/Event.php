@@ -16,6 +16,7 @@ class Event extends Model
         'title',
         'description',
         'event_date',
+        'end_date',
         'start_time',
         'end_time',
         'venue',
@@ -26,11 +27,14 @@ class Event extends Model
         'second_prize',
         'third_prize',
         'rate_per_hour',
+        'work_hours_per_day',
         'status',
         'cover_photo',
     ];
 
     protected $casts = [
+        'event_date' => 'date',
+        'end_date' => 'date',
         'preferred_genres' => 'array',
     ];
 
@@ -64,15 +68,6 @@ class Event extends Model
         return $this->hasMany(EventPhoto::class)->orderBy('sort_order');
     }
 
-    public function hasGalleryPhotos(): bool
-    {
-        if ($this->relationLoaded('photos')) {
-            return $this->photos->isNotEmpty() || $this->cover_photo !== null;
-        }
-
-        return $this->photos()->exists() || $this->cover_photo !== null;
-    }
-
     public static function refreshStatuses(): int
     {
         $events = static::whereIn('status', ['Open', 'open'])->get();
@@ -103,20 +98,33 @@ class Event extends Model
 
     public function hasEnded(): bool
     {
-        $start = Carbon::parse($this->event_date.' '.$this->start_time);
         $endTime = $this->end_time;
 
         if (! $endTime) {
             $endTime = $this->start_time;
         }
 
-        $end = Carbon::parse($this->event_date.' '.$endTime);
+        $endDate = $this->end_date;
+        $end = Carbon::parse($endDate->toDateString().' '.$endTime);
 
-        if ($end->lessThanOrEqualTo($start)) {
+        $start = Carbon::parse($this->event_date->toDateString().' '.$this->start_time);
+
+        if ($endDate->isSameDay($this->event_date) && $end->lessThanOrEqualTo($start)) {
             $end->addDay();
         }
 
         return now()->greaterThanOrEqualTo($end);
+    }
+
+    public function dateRangeLabel(string $format = 'F j, Y'): string
+    {
+        $endDate = $this->end_date;
+
+        if ($this->event_date->isSameDay($endDate)) {
+            return $this->event_date->format($format);
+        }
+
+        return $this->event_date->format($format).' - '.$endDate->format($format);
     }
 
     public function coverPhotoUrl(): ?string

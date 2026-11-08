@@ -126,7 +126,7 @@ class PerformerSearchController extends Controller
 
         $query->where(function ($performer) use ($date) {
             $performer->whereDoesntHave('bookings', function ($booking) use ($date) {
-                return $booking->whereDate('event_date', $date)
+                return $booking->overlappingDates($date, $date)
                     ->lockingDate();
             })
                 ->where(function ($schedule) use ($date) {
