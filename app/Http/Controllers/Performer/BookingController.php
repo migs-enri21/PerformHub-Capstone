@@ -30,7 +30,7 @@ class BookingController extends Controller
             $listFilter = 'cancel';
         } elseif ($status === 'accepted') {
             $query->where('status', 'accepted')
-                ->whereDate('end_date', '>=', today());
+                ->whereDate('assigned_end_date', '>=', today());
             $listFilter = 'accepted';
         } elseif (in_array($status, ['pending', 'completed', 'rejected', 'cancelled', 'expired'], true)) {
             $query->where('status', $status);
@@ -40,9 +40,9 @@ class BookingController extends Controller
         }
 
         if (in_array($listFilter, ['accepted', 'pending', 'cancel'], true)) {
-            $query->orderBy('event_date')->orderBy('event_time')->orderBy('id');
+            $query->orderBy('assigned_start_date')->orderBy('event_time')->orderBy('id');
         } else {
-            $query->orderByDesc('event_date')->orderByDesc('event_time')->orderByDesc('id');
+            $query->orderByDesc('assigned_start_date')->orderByDesc('event_time')->orderByDesc('id');
         }
 
         $bookings = $query->paginate(10)->withQueryString();
@@ -77,7 +77,7 @@ class BookingController extends Controller
         if ($conflict) {
             return back()->with(
                 'warning',
-                'You already have "'.$conflict->event_name.'" during '.$booking->dateRangeLabel().'. PerformHub allows 1 event per day.'
+                'You already have "'.$conflict->event_name.'" during '.$booking->assignmentDateRangeLabel().'. PerformHub allows 1 event per day.'
             );
         }
 

@@ -30,7 +30,7 @@
         @if($dayConflict)
             <div class="alert alert-warning small mb-3">
                 You already have <strong>{{ $dayConflict->event_name }}</strong> on
-                {{ $booking->dateRangeLabel() }}. PerformHub allows <strong>1 event per day</strong>,
+                {{ $booking->assignmentDateRangeLabel() }}. PerformHub allows <strong>1 event per day</strong>,
                 so this request cannot be accepted. Decline it, or free that date first.
             </div>
         @endif
@@ -51,8 +51,12 @@
 <div class="ph-card p-4 mb-4">
     <h5 class="fw-semibold mb-3">Event Details</h5>
     <p>
-        <strong>Date:</strong>
+        <strong>Event Dates:</strong>
         {{ $booking->dateRangeLabel() }}
+    </p>
+    <p>
+        <strong>Your Assignment:</strong>
+        {{ $booking->assignmentDateRangeLabel() }}
         @if($booking->event_time)
             at {{ \Carbon\Carbon::parse($booking->event_time)->format('g:i A') }}
         @endif

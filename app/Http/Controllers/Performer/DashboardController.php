@@ -21,7 +21,7 @@ class DashboardController extends Controller
         $pendingBookings = Booking::where('performer_id', $user->id)->where('status', 'pending')->count();
         $upcomingBookings = Booking::where('performer_id', $user->id)
             ->whereIn('status', ['accepted', 'completed'])
-            ->whereDate('end_date', '>=', today())
+            ->whereDate('assigned_end_date', '>=', today())
             ->count();
 
         $categoryIds = [];
@@ -97,8 +97,8 @@ class DashboardController extends Controller
 
         $nextBooking = Booking::where('performer_id', $user->id)
             ->whereIn('status', ['accepted', 'completed'])
-            ->whereDate('end_date', '>=', today())
-            ->orderBy('event_date')
+            ->whereDate('assigned_end_date', '>=', today())
+            ->orderBy('assigned_start_date')
             ->orderBy('event_time')
             ->first();
 

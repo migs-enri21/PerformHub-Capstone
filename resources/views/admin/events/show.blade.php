@@ -41,6 +41,10 @@
                     <div class="fw-semibold">{{ $booking->dateRangeLabel() }}</div>
                 </div>
                 <div class="col-md-6">
+                    <div class="small text-muted">Performer Assignment</div>
+                    <div class="fw-semibold">{{ $booking->assignmentDateRangeLabel() }}</div>
+                </div>
+                <div class="col-md-6">
                     <div class="small text-muted">Event Time</div>
                     <div class="fw-semibold">{{ $booking->event_time ? \Carbon\Carbon::parse($booking->event_time)->format('g:i A') : '—' }}</div>
                 </div>
@@ -103,6 +107,7 @@
             <div class="d-flex justify-content-between mb-2"><span class="text-muted">Name</span><span>{{ $booking->event_name }}</span></div>
             <div class="d-flex justify-content-between mb-2"><span class="text-muted">Date Created</span><span>{{ $booking->created_at->format('M d, Y') }}</span></div>
             <div class="d-flex justify-content-between mb-2"><span class="text-muted">Scheduled Dates</span><span>{{ $booking->dateRangeLabel() }}</span></div>
+            <div class="d-flex justify-content-between mb-2"><span class="text-muted">Performer Assignment</span><span>{{ $booking->assignmentDateRangeLabel() }}</span></div>
             <div class="d-flex justify-content-between mb-2"><span class="text-muted">Created By</span><span>{{ $booking->organizer?->fullName() ?? '—' }}</span></div>
         </div>
     </div>

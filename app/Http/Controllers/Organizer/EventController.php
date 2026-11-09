@@ -617,6 +617,15 @@ class EventController extends Controller
             ]);
         }
 
+        $eventStartDate = Carbon::parse($validated['event_date']);
+        $eventEndDate = Carbon::parse($validated['end_date']);
+
+        if ($eventStartDate->diffInDays($eventEndDate) >= 31) {
+            throw ValidationException::withMessages([
+                'end_date' => 'An event can last up to 31 consecutive days.',
+            ]);
+        }
+
         $this->validateContestPrizeOrder($validated);
 
         if (!array_key_exists('preferred_genres', $validated)) {
@@ -806,13 +815,33 @@ class EventController extends Controller
             return;
         }
 
-        $confirmedBookings = Booking::where('event_id', $event->id)
-            ->where('status', 'completed')
+        $activeBookings = Booking::where('event_id', $event->id)
+            ->whereIn('status', ['pending', 'accepted', 'completed'])
+            ->with('performer')
             ->get();
 
-        foreach ($confirmedBookings as $booking) {
+        foreach ($activeBookings as $booking) {
+            $assignedStartDate = $booking->assignmentStartDate()->toDateString();
+            $assignedEndDate = $booking->assignmentEndDate()->toDateString();
+
+            if ($assignedStartDate < $eventDate || $assignedEndDate > $endDate) {
+                $performerName = 'a performer';
+
+                if ($booking->performer) {
+                    $performerName = $booking->performer->name;
+                }
+
+                throw ValidationException::withMessages([
+                    'event_date' => 'The event dates cannot exclude '.$performerName.'\'s assigned dates.',
+                ]);
+            }
+
+            if ($booking->status !== 'completed') {
+                continue;
+            }
+
             $conflict = Booking::where('performer_id', $booking->performer_id)
-                ->overlappingDates($eventDate, $endDate)
+                ->overlappingAssignmentDates($assignedStartDate, $assignedEndDate)
                 ->lockingDate()
                 ->where('id', '!=', $booking->id)
                 ->first();

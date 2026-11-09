@@ -137,15 +137,15 @@
 
                 <div class="col-md-3">
                     <label class="form-label">Start Date</label>
-                    <input type="date" class="form-control ph-input @error('event_date') is-invalid @enderror" name="event_date" value="{{ old('event_date') }}" min="{{ now()->toDateString() }}">
+                    <input type="date" id="event_date" class="form-control ph-input @error('event_date') is-invalid @enderror" name="event_date" value="{{ old('event_date') }}" min="{{ now()->toDateString() }}">
                     @error('event_date')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     <small class="text-muted d-block mt-1">Up to 3 active events may be scheduled on one day, with a 3-hour gap between them.</small>
                 </div>
                 <div class="col-md-3">
                     <label class="form-label">End Date</label>
-                    <input type="date" class="form-control ph-input @error('end_date') is-invalid @enderror" name="end_date" value="{{ old('end_date', old('event_date')) }}" min="{{ now()->toDateString() }}">
+                    <input type="date" id="end_date" class="form-control ph-input @error('end_date') is-invalid @enderror" name="end_date" value="{{ old('end_date', old('event_date')) }}" min="{{ now()->toDateString() }}">
                     @error('end_date')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                    <small class="text-muted d-block mt-1">Use the same date for a one-day event.</small>
+                    <small class="text-muted d-block mt-1">Use the same date for a one-day event. Events can last up to 31 consecutive days.</small>
                 </div>
                 <div class="col-md-3">
                     <label class="form-label">Start Time</label>
@@ -538,6 +538,37 @@ document.addEventListener('DOMContentLoaded', function () {
     firstPrize.addEventListener('input', checkPrizeOrder);
     secondPrize.addEventListener('input', checkPrizeOrder);
     thirdPrize.addEventListener('input', checkPrizeOrder);
+    const eventDate = document.getElementById('event_date');
+    const endDate = document.getElementById('end_date');
+
+    eventDate.addEventListener('change', function () {
+        if (!eventDate.value) {
+            return;
+        }
+
+        const maximumEndDate = new Date(eventDate.value + 'T00:00:00');
+        maximumEndDate.setDate(maximumEndDate.getDate() + 30);
+        let month = maximumEndDate.getMonth() + 1;
+        let day = maximumEndDate.getDate();
+
+        if (month < 10) {
+            month = '0' + month;
+        }
+
+        if (day < 10) {
+            day = '0' + day;
+        }
+
+        const maximumEndDateValue = maximumEndDate.getFullYear() + '-' + month + '-' + day;
+
+        endDate.min = eventDate.value;
+        endDate.max = maximumEndDateValue;
+
+        if (!endDate.value || endDate.value < eventDate.value || endDate.value > maximumEndDateValue) {
+            endDate.value = eventDate.value;
+        }
+    });
+    eventDate.dispatchEvent(new Event('change'));
     showCompensationFields();
     showRelevantGenres();
 });

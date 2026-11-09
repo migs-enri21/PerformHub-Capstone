@@ -40,7 +40,8 @@
     <div class="col-lg-8">
         <div class="ph-card p-4 mb-4">
             <p><strong>Performer:</strong> {{ $performerName }}</p>
-            <p><strong>Date:</strong> {{ $booking->dateRangeLabel() }}</p>
+            <p><strong>Event Dates:</strong> {{ $booking->dateRangeLabel() }}</p>
+            <p><strong>Performer Assignment:</strong> {{ $booking->assignmentDateRangeLabel() }}</p>
             <p><strong>Venue:</strong> {{ $venue }}</p>
             <p><strong>Requirements:</strong> {{ $requirements }}</p>
             @if(filled($booking->notes))

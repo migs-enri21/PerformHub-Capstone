@@ -39,8 +39,8 @@
     $confirmedMap = [];
 
     foreach ($bookingCalendar as $booking) {
-        $date = $booking->event_date->copy();
-        $endDate = $booking->end_date;
+        $date = $booking->assignmentStartDate()->copy();
+        $endDate = $booking->assignmentEndDate();
 
         while ($date->lessThanOrEqualTo($endDate)) {
             $dateKey = $date->format('Y-m-d');

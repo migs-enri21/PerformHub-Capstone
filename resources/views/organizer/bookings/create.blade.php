@@ -166,6 +166,25 @@
                 </div>
             </div>
 
+            <div class="col-12 d-none" id="assignmentSchedule">
+                <div class="organizer-booking-event-summary">
+                    <div class="organizer-booking-event-summary-title mb-3">Performer Assignment Schedule</div>
+                    <p class="text-muted small mb-3">Choose the dates this performer will work within the selected event.</p>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label text-muted small" for="assigned_start_date">Assignment Start Date</label>
+                            <input type="date" name="assigned_start_date" id="assigned_start_date" class="form-control ph-input @error('assigned_start_date') is-invalid @enderror" value="{{ old('assigned_start_date') }}" required>
+                            @error('assigned_start_date')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label text-muted small" for="assigned_end_date">Assignment End Date</label>
+                            <input type="date" name="assigned_end_date" id="assigned_end_date" class="form-control ph-input @error('assigned_end_date') is-invalid @enderror" value="{{ old('assigned_end_date') }}" required>
+                            @error('assigned_end_date')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div class="col-12 d-none" id="contestPrizeNotice">
                 <div class="organizer-contest-prize-notice" role="note">
                     <div class="organizer-contest-prize-notice-icon"><i class="fas fa-trophy" aria-hidden="true"></i></div>
@@ -205,6 +224,9 @@
     const summaryEventMedia = document.getElementById('summaryEventMedia');
     const summaryEventImage = document.getElementById('summaryEventImage');
     const summaryEventVideoPreview = document.getElementById('summaryEventVideoPreview');
+    const assignmentSchedule = document.getElementById('assignmentSchedule');
+    const assignmentStartDate = document.getElementById('assigned_start_date');
+    const assignmentEndDate = document.getElementById('assigned_end_date');
 
     function updateSelectedEvent() {
 
@@ -218,6 +240,9 @@
                 hourlyRateHelp.classList.add('d-none');
                 contestPrizeNotice.classList.add('d-none');
                 summaryEventMedia.classList.add('d-none');
+                assignmentSchedule.classList.add('d-none');
+                assignmentStartDate.value = '';
+                assignmentEndDate.value = '';
                 return;
             }
 
@@ -229,6 +254,7 @@
             document.getElementById('summaryEventType').textContent = selected.dataset.eventType;
             document.getElementById('summaryEventCompensation').textContent = selected.dataset.compensation;
             updateEventMediaPreview(selected);
+            updateAssignmentSchedule(selected);
 
             if (selected.dataset.compensationType === 'contest') {
                 budgetInput.value = '';
@@ -293,20 +319,56 @@
     }
 
     function showHourlySuggestion(selected) {
-        const startDate = new Date(selected.dataset.date + 'T00:00:00');
-        const endDate = new Date(selected.dataset.endDate + 'T00:00:00');
-        const eventDays = Math.round((endDate - startDate) / 86400000) + 1;
+        const startDate = new Date(assignmentStartDate.value + 'T00:00:00');
+        const endDate = new Date(assignmentEndDate.value + 'T00:00:00');
+        const assignmentDays = Math.round((endDate - startDate) / 86400000) + 1;
         const rate = Number(selected.dataset.ratePerHour || 0);
         const workHoursPerDay = Number(selected.dataset.workHoursPerDay || 0);
-        const suggestedOffer = rate * workHoursPerDay * eventDays;
+        const suggestedOffer = rate * workHoursPerDay * assignmentDays;
 
         budgetInput.value = suggestedOffer.toFixed(2);
         budgetOfferLabel.textContent = 'Suggested Offer (₱)';
-        hourlyRateHelp.textContent = '₱' + rate.toLocaleString() + ' per hour × ' + workHoursPerDay + ' hours per day × ' + eventDays + ' day(s). You may edit this offer.';
+        hourlyRateHelp.textContent = '₱' + rate.toLocaleString() + ' per hour × ' + workHoursPerDay + ' hours per day × ' + assignmentDays + ' assigned day(s). You may edit this offer.';
         hourlyRateHelp.classList.remove('d-none');
     }
 
+    function updateAssignmentSchedule(selected) {
+        assignmentSchedule.classList.remove('d-none');
+        assignmentStartDate.min = selected.dataset.date;
+        assignmentStartDate.max = selected.dataset.endDate;
+        assignmentEndDate.min = selected.dataset.date;
+        assignmentEndDate.max = selected.dataset.endDate;
+
+        if (!assignmentStartDate.value || assignmentStartDate.value < selected.dataset.date || assignmentStartDate.value > selected.dataset.endDate) {
+            assignmentStartDate.value = selected.dataset.date;
+        }
+
+        if (!assignmentEndDate.value || assignmentEndDate.value < assignmentStartDate.value || assignmentEndDate.value > selected.dataset.endDate) {
+            assignmentEndDate.value = selected.dataset.endDate;
+        }
+    }
+
+    function updateHourlyOfferForAssignment() {
+        const selected = selector.options[selector.selectedIndex];
+
+        if (!selected.dataset.id) {
+            return;
+        }
+
+        if (selected.dataset.compensationType === 'hourly') {
+            showHourlySuggestion(selected);
+        }
+    }
+
     selector.addEventListener('change', updateSelectedEvent);
+    assignmentStartDate.addEventListener('change', function () {
+        if (assignmentEndDate.value < assignmentStartDate.value) {
+            assignmentEndDate.value = assignmentStartDate.value;
+        }
+
+        updateHourlyOfferForAssignment();
+    });
+    assignmentEndDate.addEventListener('change', updateHourlyOfferForAssignment);
     updateSelectedEvent();
 
     });

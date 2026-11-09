@@ -36,7 +36,7 @@
 
             <div class="flex-grow-1">
                 <strong>{{ $performerName }}</strong>
-                <small class="text-muted d-block">{{ $booking->event_name }} · {{ $booking->dateRangeLabel() }}</small>
+                <small class="text-muted d-block">{{ $booking->event_name }} · Assigned: {{ $booking->assignmentDateRangeLabel() }}</small>
                 <small class="text-muted d-block mt-1">Requested {{ $booking->cancel_requested_at->diffForHumans() }}</small>
                 <p class="small mb-0 mt-2"><strong>Reason:</strong> {{ $booking->cancel_reason }}</p>
             </div>

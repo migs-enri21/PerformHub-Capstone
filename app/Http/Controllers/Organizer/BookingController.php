@@ -57,6 +57,7 @@ class BookingController extends Controller
         }
 
         $validated = $this->validateBooking($request, $event);
+        $this->ensureAssignmentDatesAreInsideEvent($validated, $event);
         $validated = $this->bookingDetailsFromEvent($event, $validated);
 
         if ($event->compensation_type === 'contest') {
@@ -69,24 +70,19 @@ class BookingController extends Controller
             return back()->with('error', $this->existingBookingMessage($existingBooking));
         }
 
-        $endDate = $validated['event_date'];
-
-        if (! empty($validated['end_date'])) {
-            $endDate = $validated['end_date'];
-        }
         $sameDayBooking = Booking::where('performer_id', $performer->user_id)
-            ->overlappingDates($validated['event_date'], $endDate)
+            ->overlappingAssignmentDates($validated['assigned_start_date'], $validated['assigned_end_date'])
             ->lockingDate()
             ->first();
 
         if ($sameDayBooking) {
             return back()->with('error',
-                'This performer already has "'.$sameDayBooking->event_name.'" during the selected event dates. PerformHub allows 1 event per day.'
+                'This performer already has "'.$sameDayBooking->event_name.'" during the selected assignment dates. PerformHub allows 1 event per day.'
             );
         }
 
-        if (! $this->performerIsAvailableForEvent($performer, $event)) {
-            return back()->with('error', 'This performer is unavailable on one or more dates of the selected event.');
+        if (! $this->performerIsAvailableForDates($performer, $validated['assigned_start_date'], $validated['assigned_end_date'])) {
+            return back()->with('error', 'This performer is unavailable on one or more assigned dates.');
         }
 
         $validated['organizer_id'] = Auth::id();
@@ -345,6 +341,8 @@ class BookingController extends Controller
         $rules = [
             'notes' => ['nullable', 'string', 'max:1000'],
             'budget' => ['required', 'numeric', 'min:0'],
+            'assigned_start_date' => ['required', 'date'],
+            'assigned_end_date' => ['required', 'date', 'after_or_equal:assigned_start_date'],
             'event_id' => [
                 'required',
                 Rule::exists('events', 'id')->where(function ($query) {
@@ -358,6 +356,18 @@ class BookingController extends Controller
         }
 
         return $request->validate($rules);
+    }
+
+    private function ensureAssignmentDatesAreInsideEvent(array $bookingDetails, Event $event): void
+    {
+        $assignedStart = Carbon::parse($bookingDetails['assigned_start_date']);
+        $assignedEnd = Carbon::parse($bookingDetails['assigned_end_date']);
+
+        if ($assignedStart->lessThan($event->event_date) || $assignedEnd->greaterThan($event->end_date)) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'assigned_start_date' => 'Assignment dates must be within the selected event dates.',
+            ]);
+        }
     }
 
     private function bookingDetailsFromEvent(Event $event, array $bookingDetails): array
@@ -386,11 +396,8 @@ class BookingController extends Controller
             ->first();
     }
 
-    private function performerIsAvailableForEvent(PerformerProfile $performer, Event $event): bool
+    private function performerIsAvailableForDates(PerformerProfile $performer, string $startDate, string $endDate): bool
     {
-        $startDate = $event->event_date->toDateString();
-        $endDate = $event->end_date->toDateString();
-
         $hasUnavailableDate = $performer->availabilitySchedules()
             ->whereBetween('date', [$startDate, $endDate])
             ->where('is_available', false)

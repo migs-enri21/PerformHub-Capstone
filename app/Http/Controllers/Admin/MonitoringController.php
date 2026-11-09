@@ -32,14 +32,14 @@ class MonitoringController extends Controller
         }
 
         if ($request->filled('date_from')) {
-            $query->whereDate('end_date', '>=', $request->date_from);
+            $query->whereDate('assigned_end_date', '>=', $request->date_from);
         }
 
         if ($request->filled('date_to')) {
-            $query->whereDate('event_date', '<=', $request->date_to);
+            $query->whereDate('assigned_start_date', '<=', $request->date_to);
         }
 
-        $bookings = $query->orderBy('event_name')->orderBy('event_date')->paginate(20);
+        $bookings = $query->orderBy('event_name')->orderBy('assigned_start_date')->paginate(20);
         $organizers = User::where('role', User::ROLE_ORGANIZER)->orderBy('first_name')->get();
 
         $eventPerformerCounts = Booking::query()
