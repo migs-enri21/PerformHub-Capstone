@@ -16,6 +16,7 @@ class Event extends Model
         'title',
         'description',
         'event_date',
+        'end_date',
         'start_time',
         'end_time',
         'venue',
@@ -26,11 +27,14 @@ class Event extends Model
         'second_prize',
         'third_prize',
         'rate_per_hour',
+        'work_hours_per_day',
         'status',
         'cover_photo',
     ];
 
     protected $casts = [
+        'event_date' => 'date',
+        'end_date' => 'date',
         'preferred_genres' => 'array',
         'event_date' => 'date',
     ];
@@ -63,15 +67,6 @@ class Event extends Model
     public function photos(): HasMany
     {
         return $this->hasMany(EventPhoto::class)->orderBy('sort_order');
-    }
-
-    public function hasGalleryPhotos(): bool
-    {
-        if ($this->relationLoaded('photos')) {
-            return $this->photos->isNotEmpty() || $this->cover_photo !== null;
-        }
-
-        return $this->photos()->exists() || $this->cover_photo !== null;
     }
 
     public static function refreshStatuses(): int
@@ -113,7 +108,15 @@ class Event extends Model
     public function endsAt(): Carbon
     {
         $endTime = $this->end_time ?: $this->start_time;
-        $end = $this->dateTimeOnEventDate($endTime);
+        $endDate = $this->end_date instanceof Carbon
+            ? $this->end_date->toDateString()
+            : ($this->end_date
+                ? Carbon::parse($this->end_date)->toDateString()
+                : ($this->event_date instanceof Carbon
+                    ? $this->event_date->toDateString()
+                    : Carbon::parse($this->event_date)->toDateString()));
+
+        $end = Carbon::parse($endDate.' '.$this->normalizeTimeString($endTime));
         $start = $this->startsAt();
 
         // Legacy overnight rows only — new events must end same day.
@@ -155,6 +158,17 @@ class Event extends Model
         }
 
         return $time;
+    }
+
+    public function dateRangeLabel(string $format = 'F j, Y'): string
+    {
+        $endDate = $this->end_date;
+
+        if ($this->event_date->isSameDay($endDate)) {
+            return $this->event_date->format($format);
+        }
+
+        return $this->event_date->format($format).' - '.$endDate->format($format);
     }
 
     public function coverPhotoUrl(): ?string

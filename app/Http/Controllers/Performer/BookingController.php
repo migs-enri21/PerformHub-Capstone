@@ -29,9 +29,9 @@ class BookingController extends Controller
             $query->cancelRequested();
             $listFilter = 'cancel';
         } elseif ($status === 'accepted') {
-            // Match dashboard "Upcoming Bookings": accepted + booked (completed), future dates.
+            // Match dashboard "Upcoming Bookings": accepted + booked (completed), still ongoing by assignment end.
             $query->whereIn('status', ['accepted', 'completed'])
-                ->whereDate('event_date', '>=', today());
+                ->whereDate('assigned_end_date', '>=', today());
             $listFilter = 'accepted';
         } elseif (in_array($status, ['pending', 'completed', 'finished', 'rejected', 'cancelled', 'expired'], true)) {
             $query->where('status', $status);
@@ -41,9 +41,9 @@ class BookingController extends Controller
         }
 
         if (in_array($listFilter, ['accepted', 'pending', 'cancel'], true)) {
-            $query->orderBy('event_date')->orderBy('event_time')->orderBy('id');
+            $query->orderBy('assigned_start_date')->orderBy('event_time')->orderBy('id');
         } else {
-            $query->orderByDesc('event_date')->orderByDesc('event_time')->orderByDesc('id');
+            $query->orderByDesc('assigned_start_date')->orderByDesc('event_time')->orderByDesc('id');
         }
         
         $bookings = $query->paginate(10)->withQueryString();
@@ -69,8 +69,8 @@ class BookingController extends Controller
         abort_unless($booking->performer_id === Auth::id(), 403);
         abort_unless($booking->status === 'pending', 400);
 
-        if ($booking->eventHasEnded()) {
-            return back()->with('warning', 'This event has already ended.');
+        if ($booking->eventHasStarted()) {
+            return back()->with('warning', 'This event has already started, so the booking can no longer be accepted.');
         }
 
         $conflict = $booking->sameDayConfirmedConflict();
@@ -78,7 +78,7 @@ class BookingController extends Controller
         if ($conflict) {
             return back()->with(
                 'warning',
-                'You already have "'.$conflict->event_name.'" on '.$booking->event_date->format('F d, Y').'. PerformHub allows 1 event per day.'
+                'You already have "'.$conflict->event_name.'" during '.$booking->assignmentDateRangeLabel().'. PerformHub allows 1 event per day.'
             );
         }
 
@@ -169,10 +169,10 @@ class BookingController extends Controller
         abort_unless($booking->performer_id === Auth::id(), 403);
         abort_unless($booking->status === 'accepted' && $booking->signwell_document_id, 400);
 
-        if ($booking->eventHasEnded()) {
+        if ($booking->eventHasStarted()) {
             return redirect()
                 ->route('performer.bookings.show', $booking)
-                ->with('warning', 'This event has already ended, so it can no longer be signed.');
+                ->with('warning', 'This event has already started, so it can no longer be signed.');
         }
 
         try {

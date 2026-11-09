@@ -40,7 +40,9 @@ class EventController extends Controller
 
         $this->applyEventFilter($query, $request->status);
 
-        $events = $query->latest()->get();
+        $events = $query->latest()
+            ->paginate(6)
+            ->withQueryString();
 
         foreach ($events as $event) {
             if ($event->cover_photo && $event->photos->isEmpty()) {
@@ -115,7 +117,11 @@ class EventController extends Controller
         $contestPrizePool = null;
         $hasFullAccess = ! Auth::user()->hasLimitedAccess();
         $canEditEvent = $hasFullAccess && $this->eventCanBeEdited($event);
-        $applicationsClosed = strtolower($event->status) === 'open' && $event->hasStarted();
+        $applicationsClosed = true;
+
+        if (strtolower($event->status) === 'open' && ! $event->hasStarted()) {
+            $applicationsClosed = false;
+        }
         $hasParticipants = $this->eventHasParticipants($event);
         $hasPendingCancellationRequest = $this->hasPendingCancellationRequest($event);
         $canDeleteEvent = $hasFullAccess && $this->eventCanBeDeleted($event, $hasParticipants);
@@ -180,6 +186,9 @@ class EventController extends Controller
         $eventTypeRequests = $this->featureRequestsFor(FeatureRequest::TYPE_EVENT_TYPE);
         $categoryRequests = $this->featureRequestsFor(FeatureRequest::TYPE_CATEGORY);
         $hasParticipants = $this->eventHasParticipants($event);
+        $confirmedBookingBudget = Booking::where('event_id', $event->id)
+            ->where('status', 'completed')
+            ->sum('budget');
         $canCancelEvent = $hasParticipants
             && strtolower($event->status) === 'open'
             && ! Auth::user()->hasLimitedAccess();
@@ -192,6 +201,7 @@ class EventController extends Controller
             'eventTypeRequests',
             'categoryRequests',
             'hasParticipants',
+            'confirmedBookingBudget',
             'canCancelEvent'
         ));
     }
@@ -223,7 +233,22 @@ class EventController extends Controller
 
         $event->update($validated);
 
-        if ($event->wasChanged(['title', 'description', 'event_date', 'start_time', 'end_time', 'venue'])) {
+        if ($event->wasChanged([
+            'title',
+            'description',
+            'event_date',
+            'end_date',
+            'start_time',
+            'end_time',
+            'venue',
+            'compensation_type',
+            'budget',
+            'rate_per_hour',
+            'work_hours_per_day',
+            'first_prize',
+            'second_prize',
+            'third_prize',
+        ])) {
             $this->syncActiveBookingsAndNotifyPerformers($event);
         }
 
@@ -378,6 +403,7 @@ class EventController extends Controller
     {
         $this->authorizeEvent($event);
         Event::refreshStatuses();
+        Booking::sweepPastBookings();
         $event->refresh();
 
         if (strtolower($event->status) === 'completed') {
@@ -455,7 +481,7 @@ class EventController extends Controller
         $message = 'The details for "'.$event->title.'" have been updated. Please review the event information.';
         $notifiedPerformerIds = [];
         $bookings = Booking::where('event_id', $event->id)
-            ->whereIn('status', ['pending', 'accepted'])
+            ->whereIn('status', ['pending', 'accepted', 'completed'])
             ->with('performer')
             ->get();
 
@@ -463,6 +489,7 @@ class EventController extends Controller
             $booking->update([
                 'event_name' => $event->title,
                 'event_date' => $event->event_date,
+                'end_date' => $event->end_date,
                 'event_time' => Carbon::parse($event->start_time)->format('H:i'),
                 'end_time' => Carbon::parse($event->end_time)->format('H:i'),
                 'venue' => $event->venue,
@@ -549,18 +576,16 @@ class EventController extends Controller
             'videos.*' => ['file', 'mimes:mp4,webm', 'max:25600'],
             'description' => ['required', 'string', 'max:2000'],
             'event_date' => $eventDateRules,
+            'end_date' => ['required', 'date', 'after_or_equal:event_date'],
             'start_time' => ['required', 'date_format:H:i'],
-            'end_time' => [
-                'required',
-                'date_format:H:i',
-                'after:start_time',
-            ],
+            'end_time' => ['required', 'date_format:H:i'],
             'venue' => ['required', 'string', 'max:255'],
             'budget' => ['nullable', 'numeric'],
             'first_prize' => ['nullable', 'numeric', 'min:0'],
             'second_prize' => ['nullable', 'numeric', 'min:0'],
             'third_prize' => ['nullable', 'numeric', 'min:0'],
             'rate_per_hour' => ['nullable', 'numeric', 'min:0'],
+            'work_hours_per_day' => ['nullable', 'integer', 'min:1', 'max:24'],
         ];
 
         $compensationType = $request->input('compensation_type');
@@ -574,15 +599,29 @@ class EventController extends Controller
         if ($compensationType === 'hourly') {
             $rules['budget'] = ['required', 'numeric', 'min:0'];
             $rules['rate_per_hour'] = ['required', 'numeric', 'min:0'];
+            $rules['work_hours_per_day'] = ['required', 'integer', 'min:1', 'max:24'];
         }
 
         if ($compensationType === 'fixed') {
             $rules['budget'] = ['required', 'numeric', 'min:0'];
         }
 
-        $validated = $request->validate($rules, [
-            'end_time.after' => 'End time must be later than start time on the same day. Overnight events are not allowed.',
-        ]);
+        $validated = $request->validate($rules);
+
+        if ($validated['event_date'] === $validated['end_date'] && $validated['end_time'] <= $validated['start_time']) {
+            throw ValidationException::withMessages([
+                'end_time' => 'End time must be later than start time for a one-day event.',
+            ]);
+        }
+
+        $eventStartDate = Carbon::parse($validated['event_date']);
+        $eventEndDate = Carbon::parse($validated['end_date']);
+
+        if ($eventStartDate->diffInDays($eventEndDate) >= 31) {
+            throw ValidationException::withMessages([
+                'end_date' => 'An event can last up to 31 consecutive days.',
+            ]);
+        }
 
         $this->validateContestPrizeOrder($validated);
 
@@ -591,6 +630,7 @@ class EventController extends Controller
         }
 
         $this->clearUnusedCompensationFields($validated, $validated['compensation_type']);
+        $this->ensureConfirmedBookingsFitEditedBudget($validated, $event);
         $this->ensureOrganizerScheduleAvailable($validated, $event);
 
         return $validated;
@@ -615,16 +655,51 @@ class EventController extends Controller
         }
     }
 
+    private function ensureConfirmedBookingsFitEditedBudget(array $eventDetails, ?Event $event): void
+    {
+        if (! $event) {
+            return;
+        }
+
+        $confirmedBookings = Booking::where('event_id', $event->id)
+            ->where('status', 'completed');
+
+        if (! $confirmedBookings->exists()) {
+            return;
+        }
+
+        if ($eventDetails['compensation_type'] !== $event->compensation_type) {
+            throw ValidationException::withMessages([
+                'compensation_type' => 'Compensation type cannot be changed after performer bookings are confirmed.',
+            ]);
+        }
+
+        if ($eventDetails['compensation_type'] === 'contest') {
+            return;
+        }
+
+        $allocatedBudget = (float) $confirmedBookings->sum('budget');
+        $eventBudget = (float) $eventDetails['budget'];
+
+        if ($eventBudget < $allocatedBudget) {
+            throw ValidationException::withMessages([
+                'budget' => 'The total budget cannot be lower than PHP '.number_format($allocatedBudget, 2).' already allocated to confirmed bookings.',
+            ]);
+        }
+    }
+
     private function ensureOrganizerScheduleAvailable(array $eventDetails, ?Event $event): void
     {
         $eventDate = $eventDetails['event_date'];
+        $endDate = $eventDetails['end_date'];
 
         if ($eventDate < today()->toDateString()) {
             return;
         }
 
         $scheduledEvents = Event::where('organizer_id', Auth::id())
-            ->whereDate('event_date', $eventDate)
+            ->whereDate('event_date', '<=', $endDate)
+            ->whereDate('end_date', '>=', $eventDate)
             ->whereIn('status', ['Open', 'open']);
 
         if ($event) {
@@ -633,33 +708,48 @@ class EventController extends Controller
 
         $scheduledEvents = $scheduledEvents->get();
 
-        if ($scheduledEvents->count() >= self::MAX_EVENTS_PER_DAY) {
+        $newStart = $this->eventDateTime($eventDate, $eventDetails['start_time']);
+        $newEnd = $this->eventDateTime($endDate, $eventDetails['end_time']);
+
+        if ($newEnd->lessThanOrEqualTo($newStart)) {
             throw ValidationException::withMessages([
-                'event_date' => 'You can schedule up to 3 active events on one day.',
+                'end_date' => 'The event end must be after its start.',
             ]);
         }
 
-        $newStart = $this->eventDateTime($eventDate, $eventDetails['start_time']);
-        $newEnd = $this->eventDateTime($eventDate, $eventDetails['end_time']);
+        $this->ensureConfirmedPerformersAreAvailable($eventDate, $endDate, $event);
 
-        // Events must stay on one calendar day (no overnight / next-day end times).
-        if ($newEnd->lessThanOrEqualTo($newStart)) {
-            throw ValidationException::withMessages([
-                'end_time' => 'End time must be later than start time on the same day. Overnight events are not allowed.',
-            ]);
+        $date = Carbon::parse($eventDate);
+        $lastDate = Carbon::parse($endDate);
+
+        while ($date->lessThanOrEqualTo($lastDate)) {
+            $eventsOnDate = $scheduledEvents->filter(function (Event $scheduledEvent) use ($date) {
+                $scheduledEndDate = $scheduledEvent->end_date;
+
+                return $scheduledEvent->event_date->lessThanOrEqualTo($date)
+                    && $scheduledEndDate->greaterThanOrEqualTo($date);
+            });
+
+            if ($eventsOnDate->count() >= self::MAX_EVENTS_PER_DAY) {
+                throw ValidationException::withMessages([
+                    'event_date' => 'You can schedule up to 3 active events on '.$date->format('F j, Y').'.',
+                ]);
+            }
+
+            $date->addDay();
         }
 
         foreach ($scheduledEvents as $scheduledEvent) {
-            $scheduledStart = $this->eventDateTime($eventDate, $scheduledEvent->start_time);
+            $scheduledStart = $this->eventDateTime($scheduledEvent->event_date->toDateString(), $scheduledEvent->start_time);
             $scheduledEndTime = $scheduledEvent->end_time;
 
             if (! $scheduledEndTime) {
                 $scheduledEndTime = $scheduledEvent->start_time;
             }
 
-            $scheduledEnd = $this->eventDateTime($eventDate, $scheduledEndTime);
+            $scheduledEndDate = $scheduledEvent->end_date;
+            $scheduledEnd = $this->eventDateTime($scheduledEndDate->toDateString(), $scheduledEndTime);
 
-            // Skip corrupt overnight rows so they don't break new scheduling checks.
             if ($scheduledEnd->lessThanOrEqualTo($scheduledStart)) {
                 continue;
             }
@@ -671,10 +761,10 @@ class EventController extends Controller
             }
         }
 
-        $this->ensureGoogleCalendarGap($eventDate, $newStart, $newEnd);
+        $this->ensureGoogleCalendarGap($eventDate, $endDate, $newStart, $newEnd);
     }
 
-    private function ensureGoogleCalendarGap(string $eventDate, Carbon $newStart, Carbon $newEnd): void
+    private function ensureGoogleCalendarGap(string $eventDate, string $endDate, Carbon $newStart, Carbon $newEnd): void
     {
         $profile = OrganizerProfile::where('user_id', Auth::id())->first();
 
@@ -683,7 +773,8 @@ class EventController extends Controller
         }
 
         $busyDates = $profile->googleCalendarBusyDates()
-            ->whereDate('date', $eventDate)
+            ->whereDate('date', '>=', $eventDate)
+            ->whereDate('date', '<=', $endDate)
             ->get();
 
         foreach ($busyDates as $busyDate) {
@@ -693,8 +784,9 @@ class EventController extends Controller
                 ]);
             }
 
-            $busyStart = $this->eventDateTime($eventDate, $busyDate->start_time);
-            $busyEnd = $this->eventDateTime($eventDate, $busyDate->end_time);
+            $busyDateValue = $busyDate->date->toDateString();
+            $busyStart = $this->eventDateTime($busyDateValue, $busyDate->start_time);
+            $busyEnd = $this->eventDateTime($busyDateValue, $busyDate->end_time);
 
             if ($busyEnd->lessThanOrEqualTo($busyStart)) {
                 $busyEnd->addDay();
@@ -709,6 +801,51 @@ class EventController extends Controller
 
                 throw ValidationException::withMessages([
                     'start_time' => 'Leave at least a 3-hour gap from '.$summary.'.',
+                ]);
+            }
+        }
+    }
+
+    private function ensureConfirmedPerformersAreAvailable(string $eventDate, string $endDate, ?Event $event): void
+    {
+        if (! $event) {
+            return;
+        }
+
+        $activeBookings = Booking::where('event_id', $event->id)
+            ->whereIn('status', ['pending', 'accepted', 'completed'])
+            ->with('performer')
+            ->get();
+
+        foreach ($activeBookings as $booking) {
+            $assignedStartDate = $booking->assignmentStartDate()->toDateString();
+            $assignedEndDate = $booking->assignmentEndDate()->toDateString();
+
+            if ($assignedStartDate < $eventDate || $assignedEndDate > $endDate) {
+                $performerName = 'a performer';
+
+                if ($booking->performer) {
+                    $performerName = $booking->performer->name;
+                }
+
+                throw ValidationException::withMessages([
+                    'event_date' => 'The event dates cannot exclude '.$performerName.'\'s assigned dates.',
+                ]);
+            }
+
+            if ($booking->status !== 'completed') {
+                continue;
+            }
+
+            $conflict = Booking::where('performer_id', $booking->performer_id)
+                ->overlappingAssignmentDates($assignedStartDate, $assignedEndDate)
+                ->lockingDate()
+                ->where('id', '!=', $booking->id)
+                ->first();
+
+            if ($conflict) {
+                throw ValidationException::withMessages([
+                    'event_date' => 'This change conflicts with '.$booking->performer->name.'\'s confirmed booking for "'.$conflict->event_name.'".',
                 ]);
             }
         }
@@ -736,6 +873,7 @@ class EventController extends Controller
         if ($compensationType === 'contest') {
             $eventDetails['budget'] = null;
             $eventDetails['rate_per_hour'] = null;
+            $eventDetails['work_hours_per_day'] = null;
         }
 
         if ($compensationType === 'hourly') {
@@ -749,6 +887,7 @@ class EventController extends Controller
             $eventDetails['second_prize'] = null;
             $eventDetails['third_prize'] = null;
             $eventDetails['rate_per_hour'] = null;
+            $eventDetails['work_hours_per_day'] = null;
         }
     }
 

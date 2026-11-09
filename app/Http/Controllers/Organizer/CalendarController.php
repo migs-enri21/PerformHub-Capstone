@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Organizer;
 use App\Http\Controllers\Controller;
 use App\Models\Event;
 use App\Models\OrganizerProfile;
+use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
@@ -44,16 +45,23 @@ class CalendarController extends Controller
         $calendarEvents = [];
 
         foreach ($events as $event) {
-            $date = (string) $event->event_date;
+            $startDate = Carbon::parse($event->event_date);
+            $endDate = Carbon::parse($event->end_date);
 
-            $calendarEvents[$date][] = [
-                'title' => $event->title,
-                'start_time' => $event->start_time,
-                'end_time' => $event->end_time,
-                'venue' => $event->venue,
-                'status' => $event->status,
-                'url' => route('organizer.events.show', $event),
-            ];
+            while ($startDate->lessThanOrEqualTo($endDate)) {
+                $date = $startDate->toDateString();
+
+                $calendarEvents[$date][] = [
+                    'title' => $event->title,
+                    'start_time' => $event->start_time,
+                    'end_time' => $event->end_time,
+                    'venue' => $event->venue,
+                    'status' => $event->status,
+                    'url' => route('organizer.events.show', $event),
+                ];
+
+                $startDate->addDay();
+            }
         }
 
         return $calendarEvents;

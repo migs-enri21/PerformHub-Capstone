@@ -57,6 +57,7 @@ class BookingController extends Controller
         }
 
         $validated = $this->validateBooking($request, $event);
+        $this->ensureAssignmentDatesAreInsideEvent($validated, $event);
         $validated = $this->bookingDetailsFromEvent($event, $validated);
 
         if ($event->compensation_type === 'contest') {
@@ -70,14 +71,18 @@ class BookingController extends Controller
         }
 
         $sameDayBooking = Booking::where('performer_id', $performer->user_id)
-            ->whereDate('event_date', $validated['event_date'])
+            ->overlappingAssignmentDates($validated['assigned_start_date'], $validated['assigned_end_date'])
             ->lockingDate()
             ->first();
 
         if ($sameDayBooking) {
             return back()->with('error',
-                'This performer already has "'.$sameDayBooking->event_name.'" on that date. PerformHub allows 1 event per day.'
+                'This performer already has "'.$sameDayBooking->event_name.'" during the selected assignment dates. PerformHub allows 1 event per day.'
             );
+        }
+
+        if (! $this->performerIsAvailableForDates($performer, $validated['assigned_start_date'], $validated['assigned_end_date'])) {
+            return back()->with('error', 'This performer is unavailable on one or more assigned dates.');
         }
 
         $validated['organizer_id'] = Auth::id();
@@ -124,8 +129,8 @@ class BookingController extends Controller
             return back()->with('warning', 'Only an active booking can receive a contract.');
         }
 
-        if ($booking->eventHasEnded()) {
-            return back()->with('warning', 'This event has already ended.');
+        if ($booking->eventHasStarted()) {
+            return back()->with('warning', 'This event has already started, so a contract can no longer be uploaded.');
         }
 
         if (! $signWell->isConfigured()) {
@@ -164,8 +169,8 @@ class BookingController extends Controller
         $this->ensureBookingOwner($booking);
         abort_unless($booking->status === 'accepted' && $booking->hasContract(), 400);
 
-        if ($booking->eventHasEnded()) {
-            return back()->with('warning', 'This event has already ended.');
+        if ($booking->eventHasStarted()) {
+            return back()->with('warning', 'This event has already started, so a contract can no longer be sent for signature.');
         }
 
         if ($booking->signwell_document_id) {
@@ -215,8 +220,8 @@ class BookingController extends Controller
             return back()->with('warning', 'This booking is no longer active and cannot be confirmed.');
         }
 
-        if ($booking->eventHasEnded()) {
-            return back()->with('warning', 'This event has already ended, so the booking can no longer be confirmed.');
+        if ($booking->eventHasStarted()) {
+            return back()->with('warning', 'This event has already started, so the booking can no longer be confirmed.');
         }
 
         if ($booking->signwell_document_id && ! $booking->isSigned()) {
@@ -315,7 +320,7 @@ class BookingController extends Controller
         $events = Event::with(['eventType', 'photos'])
             ->where('organizer_id', Auth::id())
             ->whereIn('status', ['Open', 'open'])
-            ->whereDate('event_date', '>=', today())
+            ->whereDate('end_date', '>=', today())
             ->orderBy('event_date')
             ->orderBy('start_time')
             ->get();
@@ -336,6 +341,8 @@ class BookingController extends Controller
         $rules = [
             'notes' => ['nullable', 'string', 'max:1000'],
             'budget' => ['required', 'numeric', 'min:0'],
+            'assigned_start_date' => ['required', 'date'],
+            'assigned_end_date' => ['required', 'date', 'after_or_equal:assigned_start_date'],
             'event_id' => [
                 'required',
                 Rule::exists('events', 'id')->where(function ($query) {
@@ -351,10 +358,23 @@ class BookingController extends Controller
         return $request->validate($rules);
     }
 
+    private function ensureAssignmentDatesAreInsideEvent(array $bookingDetails, Event $event): void
+    {
+        $assignedStart = Carbon::parse($bookingDetails['assigned_start_date']);
+        $assignedEnd = Carbon::parse($bookingDetails['assigned_end_date']);
+
+        if ($assignedStart->lessThan($event->event_date) || $assignedEnd->greaterThan($event->end_date)) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'assigned_start_date' => 'Assignment dates must be within the selected event dates.',
+            ]);
+        }
+    }
+
     private function bookingDetailsFromEvent(Event $event, array $bookingDetails): array
     {
         $bookingDetails['event_name'] = $event->title;
         $bookingDetails['event_date'] = $event->event_date;
+        $bookingDetails['end_date'] = $event->end_date;
         $bookingDetails['event_time'] = Carbon::parse($event->start_time)->format('H:i');
         $bookingDetails['end_time'] = Carbon::parse($event->end_time)->format('H:i');
         $bookingDetails['venue'] = $event->venue;
@@ -374,6 +394,28 @@ class BookingController extends Controller
             ->where('event_id', $event->id)
             ->whereIn('status', ['pending', 'accepted', 'completed', 'finished'])
             ->first();
+    }
+
+    private function performerIsAvailableForDates(PerformerProfile $performer, string $startDate, string $endDate): bool
+    {
+        $hasUnavailableDate = $performer->availabilitySchedules()
+            ->whereBetween('date', [$startDate, $endDate])
+            ->where('is_available', false)
+            ->exists();
+
+        if ($hasUnavailableDate) {
+            return false;
+        }
+
+        $hasGoogleBusyDate = $performer->googleCalendarBusyDates()
+            ->whereBetween('date', [$startDate, $endDate])
+            ->exists();
+
+        if ($hasGoogleBusyDate) {
+            return false;
+        }
+
+        return true;
     }
 
     private function bookingFitsEventBudget(Booking $booking): bool

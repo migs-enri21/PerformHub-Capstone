@@ -62,7 +62,7 @@ class AvailabilityController extends Controller
         $validated['is_available'] = $request->boolean('is_available', true);
 
         $hasConfirmedBooking = Booking::where('performer_id', Auth::id())
-            ->whereDate('event_date', $validated['date'])
+            ->overlappingAssignmentDates($validated['date'], $validated['date'])
             ->lockingDate()
             ->exists();
 
@@ -114,7 +114,7 @@ class AvailabilityController extends Controller
         abort_unless($schedule->performer_profile_id === Auth::user()->performerProfile->id, 403);
 
         $hasConfirmedBooking = Booking::where('performer_id', Auth::id())
-            ->whereDate('event_date', $schedule->date)
+            ->overlappingAssignmentDates($schedule->date, $schedule->date)
             ->lockingDate()
             ->exists();
 
@@ -136,7 +136,7 @@ class AvailabilityController extends Controller
         $pendingBookings = Booking::query()
             ->with('organizer')
             ->where('performer_id', Auth::id())
-            ->whereDate('event_date', $date)
+            ->overlappingAssignmentDates($date, $date)
             ->where('status', 'pending')
             ->get();
 
@@ -174,16 +174,9 @@ class AvailabilityController extends Controller
 
             $date = $schedule->date->toDateString();
 
-            $hasConfirmed = $bookings->contains(
-                function ($booking) use ($date) {
-                    if (! $booking->locksTheDate() || ! $booking->event_date) {
-                        return false;
-                    }
-
-                    return $booking->resolvedEventDate()->toDateString() === $date
-                        || $booking->resolvedEndDate()->toDateString() === $date;
-                }
-            );
+            $hasConfirmed = $bookings->contains(function ($booking) use ($date) {
+                return $booking->locksTheDate() && $booking->assignmentCoversDate($date);
+            });
 
             if ($hasConfirmed) {
                 continue;
@@ -196,7 +189,7 @@ class AvailabilityController extends Controller
                     }
 
                     return in_array($booking->status, ['pending', 'accepted'], true)
-                        && $booking->resolvedEventDate()->toDateString() === $date
+                        && $booking->assignmentCoversDate($date)
                         && strcasecmp(trim((string) $booking->event_name), trim((string) $schedule->notes)) === 0;
                 }
             );

@@ -104,7 +104,7 @@
 
                 @if($nextBooking)
                     <a href="{{ route('performer.bookings.show', $nextBooking) }}" class="org-list-item">
-                        <span class="org-event-date">{{ $nextBooking->event_date->format('d M') }}</span>
+                        <span class="org-event-date">{{ $nextBooking->assignmentStartDate()->format('d M') }}</span>
                         <div>
                             <strong>{{ $nextBooking->event_name }}</strong>
                             <small class="text-muted d-block">{{ $nextBooking->venue ?? 'Venue TBD' }}</small>

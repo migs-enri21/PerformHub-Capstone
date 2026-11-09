@@ -40,7 +40,8 @@
     <div class="col-lg-8">
         <div class="ph-card p-4 mb-4">
             <p><strong>Performer:</strong> {{ $performerName }}</p>
-            <p><strong>Date:</strong> {{ $booking->event_date->format('F d, Y') }}</p>
+            <p><strong>Event Dates:</strong> {{ $booking->dateRangeLabel() }}</p>
+            <p><strong>Performer Assignment:</strong> {{ $booking->assignmentDateRangeLabel() }}</p>
             <p><strong>Venue:</strong> {{ $venue }}</p>
             <p><strong>Requirements:</strong> {{ $requirements }}</p>
             @if(filled($booking->notes))
@@ -75,7 +76,7 @@
                     </form>
                 </div>
             @else
-                @if(in_array($booking->status, ['pending', 'accepted'], true) && ! $booking->eventHasEnded())
+                @if(in_array($booking->status, ['pending', 'accepted'], true) && ! $booking->eventHasStarted())
                 <form method="POST" action="{{ route('organizer.bookings.contract', $booking) }}" enctype="multipart/form-data" class="border-top pt-3">
                     @csrf
                     @if($booking->hasContract())
@@ -136,7 +137,7 @@
                 <div class="d-flex gap-2">
                     <form method="POST" action="{{ route('organizer.bookings.cancel.approve', $booking) }}" class="flex-grow-1">
                         @csrf
-                        <button class="btn btn-danger w-100">Approve</button>
+                        <button class="btn ph-btn-danger w-100">Approve Cancellation</button>
                     </form>
                     <form method="POST" action="{{ route('organizer.bookings.cancel.decline', $booking) }}" class="flex-grow-1">
                         @csrf
@@ -189,10 +190,12 @@
         @if($booking->status === 'accepted')
             <div class="ph-card p-4">
                 <h5 class="fw-semibold mb-3">Confirm Booking</h5>
-                @if($booking->isSigned())
+                @if($booking->eventHasStarted())
+                    <p class="text-muted small mb-0">This event has started, so this booking can no longer be confirmed.</p>
+                @elseif($booking->isSigned())
                     <form method="POST" action="{{ route('organizer.bookings.complete', $booking) }}">
                         @csrf
-                        <button class="btn btn-success w-100">Confirm Booking</button>
+                        <button class="btn ph-btn-success w-100">Confirm Booking</button>
                     </form>
                 @else
                     @if($booking->signwell_document_id)

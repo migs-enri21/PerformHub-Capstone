@@ -71,7 +71,10 @@
                     <tr>
                         <td>{{ $booking->event_name }}</td>
                         <td>{{ $booking->organizer->organizerProfile?->organization_name ?? $booking->organizer->name }}</td>
-                        <td>{{ $booking->event_date->format('M d, Y') }}</td>
+                        <td>
+                            <div>{{ $booking->assignmentDateRangeLabel() }}</div>
+                            <div class="small text-muted">Event: {{ $booking->dateRangeLabel() }}</div>
+                        </td>
                         <td>
                             <span class="badge {{ $booking->statusBadgeClass() }}">{{ $booking->statusLabel() }}</span>
                             @if($booking->hasCancelRequest())

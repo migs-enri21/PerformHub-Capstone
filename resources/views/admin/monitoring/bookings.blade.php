@@ -91,7 +91,8 @@
                         @endif
                     </td>
                     <td>
-                        {{ optional($b->event_date)->format('M d, Y') }}
+                        {{ $b->assignmentDateRangeLabel() }}
+                        <div class="small text-muted">Event: {{ $b->dateRangeLabel() }}</div>
                         @if($b->event_time)<div class="small text-muted">{{ \Carbon\Carbon::parse($b->event_time)->format('g:i A') }}</div>@endif
                     </td>
                     <td><span class="badge {{ $b->statusBadgeClass() }}">{{ $b->statusLabel() }}</span></td>

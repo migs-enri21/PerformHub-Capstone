@@ -37,6 +37,12 @@
     if (! $endTime && $event->end_time) {
         $endTime = \Illuminate\Support\Carbon::parse($event->end_time)->format('H:i');
     }
+
+    $confirmedBudgetMinimum = '';
+
+    if ($confirmedBookingBudget > 0) {
+        $confirmedBudgetMinimum = number_format($confirmedBookingBudget, 2, '.', '');
+    }
 @endphp
 
 <div class="container organizer-event-form">
@@ -47,7 +53,7 @@
         </div>
         @if($hasParticipants)
             @if($canCancelEvent)
-                <form method="POST" action="{{ route('organizer.events.cancel', $event) }}" class="organizer-confirm-form" data-confirm-title="Cancel Event" data-confirm-message="Cancel this event? Affected performers will be notified and active bookings will be cancelled." data-confirm-button="Cancel Event">
+                <form method="POST" action="{{ route('organizer.events.cancel', $event) }}" class="organizer-confirm-form" data-confirm-title="Cancel Event" data-confirm-message="Cancel this event? Affected performers will be notified and active bookings will be cancelled." data-confirm-button="Cancel Event" data-confirm-style="ph-btn-danger">
                     @csrf
                     @method('PATCH')
                     <button type="submit" class="btn ph-btn-danger">Cancel Event</button>
@@ -76,7 +82,7 @@
                                                 <img src="{{ $photo->fileUrl() }}" alt="Event photo" class="rounded w-100 organizer-event-thumb">
                                             </button>
                                         @endif
-                                        <form method="POST" action="{{ route('organizer.events.media.destroy', [$event, $photo]) }}" class="organizer-edit-media-remove organizer-confirm-form" data-confirm-title="Remove Media" data-confirm-message="Remove this media from the event? This cannot be undone." data-confirm-button="Remove Media">
+                                        <form method="POST" action="{{ route('organizer.events.media.destroy', [$event, $photo]) }}" class="organizer-edit-media-remove organizer-confirm-form" data-confirm-title="Remove Media" data-confirm-message="Remove this media from the event? This cannot be undone." data-confirm-button="Remove Media" data-confirm-style="ph-btn-danger">
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit" aria-label="Remove event media">&times;</button>
@@ -189,14 +195,15 @@
                     @error('preferred_genres.*')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
                 </div>
 
-                <div class="col-md-4">
-                    <label class="form-label">Event Date</label>
-                    <input type="date" class="form-control ph-input @error('event_date') is-invalid @enderror" name="event_date" value="{{ old('event_date', \Illuminate\Support\Carbon::parse($event->event_date)->format('Y-m-d')) }}" min="{{ now()->toDateString() }}">
+                <div class="col-md-3">
+                    <label class="form-label">Start Date</label>
+                    <input type="date" id="event_date" class="form-control ph-input @error('event_date') is-invalid @enderror" name="event_date" value="{{ old('event_date', \Illuminate\Support\Carbon::parse($event->event_date)->format('Y-m-d')) }}" min="{{ now()->toDateString() }}">
                     @error('event_date')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     <small class="text-muted d-block mt-1">Up to 3 active events may be scheduled on one day, with a 3-hour gap between them.</small>
                 </div>
-                <div class="col-md-4"><label class="form-label">Start Time</label><input type="time" class="form-control ph-input @error('start_time') is-invalid @enderror" name="start_time" value="{{ $startTime }}">@error('start_time')<div class="invalid-feedback">{{ $message }}</div>@enderror</div>
-                <div class="col-md-4"><label class="form-label">End Time</label><input type="time" class="form-control ph-input @error('end_time') is-invalid @enderror" name="end_time" value="{{ $endTime }}">@error('end_time')<div class="invalid-feedback">{{ $message }}</div>@enderror</div>
+                <div class="col-md-3"><label class="form-label">End Date</label><input type="date" id="end_date" class="form-control ph-input @error('end_date') is-invalid @enderror" name="end_date" value="{{ old('end_date', $event->end_date->format('Y-m-d')) }}" min="{{ now()->toDateString() }}"><small class="text-muted d-block mt-1">Maximum: 31 consecutive days.</small>@error('end_date')<div class="invalid-feedback">{{ $message }}</div>@enderror</div>
+                <div class="col-md-3"><label class="form-label">Start Time</label><input type="time" class="form-control ph-input @error('start_time') is-invalid @enderror" name="start_time" value="{{ $startTime }}">@error('start_time')<div class="invalid-feedback">{{ $message }}</div>@enderror</div>
+                <div class="col-md-3"><label class="form-label">End Time</label><input type="time" class="form-control ph-input @error('end_time') is-invalid @enderror" name="end_time" value="{{ $endTime }}">@error('end_time')<div class="invalid-feedback">{{ $message }}</div>@enderror</div>
 
                 <div class="col-12"><label class="form-label">Venue / Location</label><input type="text" class="form-control ph-input @error('venue') is-invalid @enderror" name="venue" value="{{ old('venue', $event->venue) }}">@error('venue')<div class="invalid-feedback">{{ $message }}</div>@enderror</div>
                 <div class="col-12"><label class="form-label">Event Description</label><textarea class="form-control ph-input @error('description') is-invalid @enderror" rows="4" name="description" placeholder="Describe the event, performer needs, or other important details.">{{ old('description', $event->description) }}</textarea>@error('description')<div class="invalid-feedback">{{ $message }}</div>@enderror</div>
@@ -205,8 +212,40 @@
                     <h5>Compensation Details</h5>
                     <p class="organizer-form-help">Choose a compensation type to show the correct payment fields.</p>
                     <div class="row g-4" id="compensationFields">
-                        <div class="col-md-6 compensation-field d-none" data-compensation-type="fixed"><label class="form-label">Fixed Budget (&#8369;)</label><input type="number" class="form-control ph-input @error('budget') is-invalid @enderror" name="budget" value="{{ old('budget', $event->budget) }}" step="0.01">@error('budget')<div class="invalid-feedback">{{ $message }}</div>@enderror</div>
-                        <div class="col-12 compensation-field d-none" data-compensation-type="hourly"><div class="row g-4"><div class="col-md-6"><label class="form-label">Total Hourly Budget (&#8369;)</label><input type="number" class="form-control ph-input @error('budget') is-invalid @enderror" name="budget" value="{{ old('budget', $event->budget) }}" step="0.01">@error('budget')<div class="invalid-feedback">{{ $message }}</div>@enderror</div><div class="col-md-6"><label class="form-label">Rate per Hour (&#8369;)</label><input type="number" class="form-control ph-input @error('rate_per_hour') is-invalid @enderror" name="rate_per_hour" value="{{ old('rate_per_hour', $event->rate_per_hour) }}" step="0.01">@error('rate_per_hour')<div class="invalid-feedback">{{ $message }}</div>@enderror</div></div></div>
+                        <div class="col-md-6 compensation-field d-none" data-compensation-type="fixed">
+                            <label class="form-label">Fixed Budget (&#8369;)</label>
+                            <input type="number" class="form-control ph-input @error('budget') is-invalid @enderror" name="budget" value="{{ old('budget', $event->budget) }}" step="0.01"
+                                @if($confirmedBudgetMinimum !== '') min="{{ $confirmedBudgetMinimum }}" @endif>
+                            @if($confirmedBudgetMinimum !== '')
+                                <small class="text-muted">Minimum: PHP {{ number_format($confirmedBookingBudget, 2) }} already allocated to confirmed bookings.</small>
+                            @endif
+                            @error('budget')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        </div>
+                        <div class="col-12 compensation-field d-none" data-compensation-type="hourly">
+                            <div class="row g-4">
+                                <div class="col-md-4">
+                                    <label class="form-label">Total Hourly Budget (&#8369;)</label>
+                                    <input type="number" class="form-control ph-input @error('budget') is-invalid @enderror" name="budget" value="{{ old('budget', $event->budget) }}" step="0.01"
+                                        @if($confirmedBudgetMinimum !== '') min="{{ $confirmedBudgetMinimum }}" @endif>
+                                    <small class="text-muted">Your total payment cap across all performers for this event.</small>
+                                    @if($confirmedBudgetMinimum !== '')
+                                        <small class="text-muted d-block">Minimum: PHP {{ number_format($confirmedBookingBudget, 2) }} already allocated to confirmed bookings.</small>
+                                    @endif
+                                    @error('budget')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Rate per Hour (&#8369;)</label>
+                                    <input type="number" class="form-control ph-input @error('rate_per_hour') is-invalid @enderror" name="rate_per_hour" value="{{ old('rate_per_hour', $event->rate_per_hour) }}" step="0.01">
+                                    @error('rate_per_hour')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Work Hours per Day</label>
+                                    <input type="number" class="form-control ph-input @error('work_hours_per_day') is-invalid @enderror" name="work_hours_per_day" value="{{ old('work_hours_per_day', $event->work_hours_per_day) }}" min="1" max="24" step="1">
+                                    <small class="text-muted">Used to calculate the suggested offer for each performer.</small>
+                                    @error('work_hours_per_day')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                </div>
+                            </div>
+                        </div>
                         <div class="col-12 compensation-field d-none" data-compensation-type="contest"><div class="row g-4">
                             <div class="col-md-4"><label class="form-label">First Prize (&#8369;)</label><input type="number" class="form-control ph-input @error('first_prize') is-invalid @enderror" name="first_prize" id="first_prize" value="{{ old('first_prize', $event->first_prize) }}" step="0.01">@error('first_prize')<div class="invalid-feedback">{{ $message }}</div>@enderror</div>
                             <div class="col-md-4"><label class="form-label">Second Prize (&#8369;)</label><input type="number" class="form-control ph-input @error('second_prize') is-invalid @enderror" name="second_prize" id="second_prize" value="{{ old('second_prize', $event->second_prize) }}" step="0.01">@error('second_prize')<div class="invalid-feedback">{{ $message }}</div>@enderror</div>
@@ -217,7 +256,7 @@
 
             </div>
 
-            <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top"><a href="{{ route('organizer.events.index') }}" class="btn ph-btn-secondary">Cancel</a><button type="submit" class="btn ph-btn-primary">Save Changes</button></div>
+<div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top"><a href="{{ route('organizer.events.index') }}" class="btn ph-btn-outline">Cancel</a><button type="submit" class="btn ph-btn-primary">Save Changes</button></div>
         </form>
     </div>
 </div>
@@ -243,7 +282,7 @@
         <input type="hidden" name="type" id="featureRequestType" value="category">
         <div class="modal-header"><h5 class="modal-title fw-bold" id="featureRequestModalLabel">Request an option</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
         <div class="modal-body"><p class="text-muted small">Tell the admin what is missing. It will appear here after approval.</p><label class="form-label" for="featureRequestName">Name</label><input type="text" name="name" id="featureRequestName" class="form-control ph-input mb-3 @error('name') is-invalid @enderror" placeholder="Option name">@error('name')<div class="invalid-feedback mb-3">{{ $message }}</div>@enderror<label class="form-label" for="featureRequestDescription">Description <span class="text-muted fw-normal">(Optional)</span></label><textarea name="description" id="featureRequestDescription" class="form-control ph-input" rows="3" placeholder="What is it used for?"></textarea></div>
-        <div class="modal-footer"><button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button><button type="submit" class="btn ph-btn-primary">Send Request</button></div>
+<div class="modal-footer"><button type="button" class="btn ph-btn-outline" data-bs-dismiss="modal">Cancel</button><button type="submit" class="btn ph-btn-primary">Send Request</button></div>
     </form></div>
 </div>
 
@@ -453,6 +492,37 @@ document.addEventListener('DOMContentLoaded', function () {
     firstPrize.addEventListener('input', checkPrizeOrder);
     secondPrize.addEventListener('input', checkPrizeOrder);
     thirdPrize.addEventListener('input', checkPrizeOrder);
+    const eventDate = document.getElementById('event_date');
+    const endDate = document.getElementById('end_date');
+
+    eventDate.addEventListener('change', function () {
+        if (!eventDate.value) {
+            return;
+        }
+
+        const maximumEndDate = new Date(eventDate.value + 'T00:00:00');
+        maximumEndDate.setDate(maximumEndDate.getDate() + 30);
+        let month = maximumEndDate.getMonth() + 1;
+        let day = maximumEndDate.getDate();
+
+        if (month < 10) {
+            month = '0' + month;
+        }
+
+        if (day < 10) {
+            day = '0' + day;
+        }
+
+        const maximumEndDateValue = maximumEndDate.getFullYear() + '-' + month + '-' + day;
+
+        endDate.min = eventDate.value;
+        endDate.max = maximumEndDateValue;
+
+        if (!endDate.value || endDate.value < eventDate.value || endDate.value > maximumEndDateValue) {
+            endDate.value = eventDate.value;
+        }
+    });
+    eventDate.dispatchEvent(new Event('change'));
     showCompensationFields();
     showRelevantGenres();
 

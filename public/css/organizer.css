@@ -63,6 +63,20 @@
     color: #ffffff;
 }
 
+.ph-btn-danger-outline {
+    background: transparent;
+    border: 1px solid #dc3545;
+    border-radius: 10px;
+    color: #dc3545;
+    font-weight: 600;
+}
+
+.ph-btn-danger-outline:hover {
+    background: #fff1f2;
+    border-color: #bb2d3b;
+    color: #bb2d3b;
+}
+
 .ph-card .form-control,
 .ph-card .form-select,
 .ph-card textarea{

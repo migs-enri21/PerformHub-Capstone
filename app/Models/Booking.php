@@ -17,6 +17,8 @@ class Booking extends Model
         'event_name',
         'event_date',
         'end_date',
+        'assigned_start_date',
+        'assigned_end_date',
         'event_time',
         'end_time',
         'venue',
@@ -45,6 +47,8 @@ class Booking extends Model
         return [
             'event_date' => 'date',
             'end_date' => 'date',
+            'assigned_start_date' => 'date',
+            'assigned_end_date' => 'date',
             'signed_contract_uploaded_at' => 'datetime',
             'cancel_requested_at' => 'datetime',
             'signwell_sent_at' => 'datetime',
@@ -184,21 +188,17 @@ class Booking extends Model
 
     public function eventHasEnded(): bool
     {
-        if (! $this->event_date) {
-            return false;
-        }
-
-        $startDate = $this->resolvedEventDate()->toDateString();
-        $endDate = $this->resolvedEndDate()->toDateString();
+        $startDate = $this->assignmentStartDate();
+        $endDate = $this->assignmentEndDate();
 
         $startTime = $this->normalizeTimeString($this->event_time);
         $endTime = $this->normalizeTimeString($this->end_time ?: $this->event_time);
 
-        $start = Carbon::parse($startDate.' '.$startTime);
-        $end = Carbon::parse($endDate.' '.$endTime);
+        $start = Carbon::parse($startDate->toDateString().' '.$startTime);
+        $end = Carbon::parse($endDate->toDateString().' '.$endTime);
 
         // Legacy overnight rows that only stored one date.
-        if ($endDate === $startDate && $end->lessThanOrEqualTo($start)) {
+        if ($endDate->isSameDay($startDate) && $end->lessThanOrEqualTo($start)) {
             $end->addDay();
         }
 
@@ -226,6 +226,79 @@ class Booking extends Model
         return $time;
     }
 
+    public function eventHasStarted(): bool
+    {
+        $startDate = $this->assignmentStartDate();
+        $startTime = $this->normalizeTimeString($this->event_time);
+        $start = Carbon::parse($startDate->toDateString().' '.$startTime);
+
+        return now()->greaterThanOrEqualTo($start);
+    }
+
+    public function dateRangeLabel(string $format = 'F j, Y'): string
+    {
+        $startDate = $this->resolvedEventDate();
+        $endDate = $this->resolvedEndDate();
+
+        if ($startDate->isSameDay($endDate)) {
+            return $startDate->format($format);
+        }
+
+        return $startDate->format($format).' - '.$endDate->format($format);
+    }
+
+    public function assignmentStartDate(): Carbon
+    {
+        if ($this->assigned_start_date instanceof Carbon) {
+            return $this->assigned_start_date->copy()->startOfDay();
+        }
+
+        if ($this->assigned_start_date) {
+            return Carbon::parse($this->assigned_start_date)->startOfDay();
+        }
+
+        return $this->resolvedEventDate();
+    }
+
+    public function assignmentEndDate(): Carbon
+    {
+        if ($this->assigned_end_date instanceof Carbon) {
+            return $this->assigned_end_date->copy()->startOfDay();
+        }
+
+        if ($this->assigned_end_date) {
+            return Carbon::parse($this->assigned_end_date)->startOfDay();
+        }
+
+        return $this->resolvedEndDate();
+    }
+
+    public function assignmentDateRangeLabel(string $format = 'F j, Y'): string
+    {
+        $startDate = $this->assignmentStartDate();
+        $endDate = $this->assignmentEndDate();
+
+        if ($startDate->isSameDay($endDate)) {
+            return $startDate->format($format);
+        }
+
+        return $startDate->format($format).' - '.$endDate->format($format);
+    }
+
+    public function coversDate($date): bool
+    {
+        $checkedDate = Carbon::parse($date)->startOfDay();
+
+        return $checkedDate->betweenIncluded($this->resolvedEventDate(), $this->resolvedEndDate());
+    }
+
+    public function assignmentCoversDate($date): bool
+    {
+        $checkedDate = Carbon::parse($date)->startOfDay();
+
+        return $checkedDate->betweenIncluded($this->assignmentStartDate(), $this->assignmentEndDate());
+    }
+
     public static function sweepPastBookings(): void
     {
         static::expirePastUnconfirmed();
@@ -237,7 +310,7 @@ class Booking extends Model
         $bookings = static::query()
             ->with(['organizer', 'performer'])
             ->whereIn('status', ['pending', 'accepted'])
-            ->whereDate('event_date', '<=', today())
+            ->whereDate('end_date', '<=', today())
             ->get();
 
         $count = 0;
@@ -284,7 +357,7 @@ class Booking extends Model
     {
         $bookings = static::query()
             ->where('status', 'completed')
-            ->whereDate('event_date', '<=', today())
+            ->whereDate('assigned_end_date', '<=', today())
             ->get();
 
         $count = 0;
@@ -362,9 +435,12 @@ class Booking extends Model
 
     public function sameDayConfirmedConflict(): ?self
     {
+        $startDate = $this->assignmentStartDate();
+        $endDate = $this->assignmentEndDate();
+
         return static::query()
             ->where('performer_id', $this->performer_id)
-            ->whereDate('event_date', $this->event_date)
+            ->overlappingAssignmentDates($startDate, $endDate)
             ->lockingDate()
             ->where('id', '!=', $this->id)
             ->first();
@@ -372,10 +448,13 @@ class Booking extends Model
 
     public function dropSameDayCompetitors(): void
     {
+        $startDate = $this->assignmentStartDate();
+        $endDate = $this->assignmentEndDate();
+
         $others = static::query()
             ->with('organizer')
             ->where('performer_id', $this->performer_id)
-            ->whereDate('event_date', $this->event_date)
+            ->overlappingAssignmentDates($startDate, $endDate)
             ->whereIn('status', ['pending', 'accepted'])
             ->where('id', '!=', $this->id)
             ->get();
@@ -406,6 +485,20 @@ class Booking extends Model
         }
     
         return ! $this->eventHasEnded();
+    }
+
+    public function scopeOverlappingDates($query, $startDate, $endDate)
+    {
+        return $query
+            ->whereDate('event_date', '<=', $endDate)
+            ->whereDate('end_date', '>=', $startDate);
+    }
+
+    public function scopeOverlappingAssignmentDates($query, $startDate, $endDate)
+    {
+        return $query
+            ->whereDate('assigned_start_date', '<=', $endDate)
+            ->whereDate('assigned_end_date', '>=', $startDate);
     }
 
     public function hasCancelRequest(): bool

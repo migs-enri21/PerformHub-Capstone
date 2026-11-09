@@ -69,12 +69,14 @@ class PerformerSearchController extends Controller
         $this->applySpecialtyFilter($query, $request->specialty);
         $this->applyGenreFilter($query, $request->genre);
 
-        $date = $request->available_date;
+        $startDate = $request->available_date;
+        $endDate = $request->available_date;
 
-        if (!$date && $selectedEvent) {
-            $date = $selectedEvent->event_date;
+        if (!$startDate && $selectedEvent) {
+            $startDate = $selectedEvent->event_date->toDateString();
+            $endDate = $selectedEvent->end_date->toDateString();
         }
-        $this->applyAvailabilityFilter($query, $date);
+        $this->applyAvailabilityFilter($query, $startDate, $endDate);
 
         return $query->orderBy('stage_name')->paginate(12)->withQueryString();
     }
@@ -118,27 +120,23 @@ class PerformerSearchController extends Controller
         }
     }
 
-    private function applyAvailabilityFilter($query, ?string $date): void
+    private function applyAvailabilityFilter($query, ?string $startDate, ?string $endDate): void
     {
-        if (!$date) {
+        if (!$startDate || !$endDate) {
             return;
         }
 
-        $query->where(function ($performer) use ($date) {
-            $performer->whereDoesntHave('bookings', function ($booking) use ($date) {
-                return $booking->whereDate('event_date', $date)
+        $query->where(function ($performer) use ($startDate, $endDate) {
+            $performer->whereDoesntHave('bookings', function ($booking) use ($startDate, $endDate) {
+                return $booking->overlappingDates($startDate, $endDate)
                     ->lockingDate();
             })
-                ->where(function ($schedule) use ($date) {
-                    $schedule->whereDoesntHave('availabilitySchedules', function ($item) use ($date) {
-                        return $item->whereDate('date', $date);
-                    })->orWhereHas('availabilitySchedules', function ($item) use ($date) {
-                        return $item->whereDate('date', $date)
-                            ->where('is_available', true);
-                    });
+                ->whereDoesntHave('availabilitySchedules', function ($schedule) use ($startDate, $endDate) {
+                    return $schedule->whereBetween('date', [$startDate, $endDate])
+                        ->where('is_available', false);
                 })
-                ->whereDoesntHave('googleCalendarBusyDates', function ($busyDate) use ($date) {
-                    return $busyDate->whereDate('date', $date);
+                ->whereDoesntHave('googleCalendarBusyDates', function ($busyDate) use ($startDate, $endDate) {
+                    return $busyDate->whereBetween('date', [$startDate, $endDate]);
                 });
         });
     }
