@@ -166,7 +166,7 @@ class PerformerSearchController extends Controller
         $booking = Booking::where('organizer_id', Auth::id())
             ->where('performer_id', $performer->user_id)
             ->where('event_id', $eventId)
-            ->whereIn('status', ['pending', 'accepted', 'completed'])
+            ->whereIn('status', ['pending', 'accepted', 'completed', 'finished'])
             ->first();
 
         if (!$booking) {

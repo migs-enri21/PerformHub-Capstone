@@ -33,28 +33,48 @@
         ])
         ->all();
 
-    $pendingMap = $bookingCalendar
-        ->where('status', 'pending')
-        ->mapWithKeys(fn ($booking) => [
-            $booking->event_date->format('Y-m-d') => [
-                'label' => 'Pending',
-                'event_name' => $booking->event_name,
-            ],
-        ])
-        ->all();
+    $bookingDayEntries = function ($bookings, callable $payload) {
+        $map = [];
 
-        $confirmedMap = $bookingCalendar
-        ->filter(fn ($booking) => $booking->locksTheDate())
-        ->mapWithKeys(fn ($booking) => [
-            $booking->event_date->format('Y-m-d') => [
-                'event_name' => $booking->event_name,
-                'event_time' => $formatTime($booking->event_time),
-                'end_time' => $formatTime($booking->end_time),
-                'venue' => $booking->venue,
-                'url' => $editable ? route('performer.bookings.show', $booking) : null,
-            ],
-        ])
-        ->all();
+        foreach ($bookings as $booking) {
+            if (! $booking->event_date) {
+                continue;
+            }
+
+            $startDay = $booking->resolvedEventDate()->copy()->startOfDay();
+            $endDay = $booking->resolvedEndDate()->copy()->startOfDay();
+
+            // Guard bad/legacy rows where end is before start.
+            if ($endDay->lt($startDay)) {
+                $endDay = $startDay->copy();
+            }
+
+            for ($day = $startDay->copy(); $day->lte($endDay); $day->addDay()) {
+                $map[$day->format('Y-m-d')] = $payload($booking);
+            }
+        }
+
+        return $map;
+    };
+
+    $pendingMap = $bookingDayEntries(
+        $bookingCalendar->where('status', 'pending'),
+        fn ($booking) => [
+            'label' => 'Pending',
+            'event_name' => $booking->event_name,
+        ]
+    );
+
+    $confirmedMap = $bookingDayEntries(
+        $bookingCalendar->filter(fn ($booking) => $booking->locksTheDate()),
+        fn ($booking) => [
+            'event_name' => $booking->event_name,
+            'event_time' => $formatTime($booking->event_time),
+            'end_time' => $formatTime($booking->end_time),
+            'venue' => $booking->venue,
+            'url' => $editable ? route('performer.bookings.show', $booking) : null,
+        ]
+    );
 @endphp
 
 <div

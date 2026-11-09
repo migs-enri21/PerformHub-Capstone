@@ -124,11 +124,8 @@ class EventController extends Controller
             && ! Auth::user()->hasLimitedAccess();
 
         foreach ($bookings as $booking) {
-            if ($booking->status === 'completed') {
+            if (in_array($booking->status, ['completed', 'finished'], true)) {
                 $hasConfirmedBooking = true;
-            }
-
-            if ($booking->status === 'completed') {
                 $reservedBudget += (float) $booking->budget;
             }
         }
@@ -326,7 +323,7 @@ class EventController extends Controller
         }
 
         $bookings = Booking::where('event_id', $event->id)
-            ->whereIn('status', ['pending', 'accepted', 'completed'])
+            ->whereIn('status', ['pending', 'accepted', 'completed', 'finished'])
             ->with('performer')
             ->get();
         $applications = EventApplication::where('event_id', $event->id)
@@ -400,7 +397,7 @@ class EventController extends Controller
         }
 
         $hasConfirmedBooking = Booking::where('event_id', $event->id)
-            ->where('status', 'completed')
+            ->whereIn('status', ['completed', 'finished'])
             ->exists();
 
         if (! $hasConfirmedBooking) {

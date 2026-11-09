@@ -959,13 +959,79 @@ input[type="file"].ph-input::file-selector-button:hover {
     color: #fff;
 }
 
+/* Completed = event already done (distinct from green Booked) */
+.ph-badge-finished {
+    background: #1d4ed8;
+    color: #fff;
+}
+
 .ph-badge-contract {
     background: transparent;
     color: var(--ph-purple);
     border-color: var(--ph-purple);
 }
 
-/* Pagination — match PerformHub buttons/cards */
+/* Bookings list — compact so table + pagination fit one screen */
+.ph-bookings-page .table > :not(caption) > * > * {
+    padding: 0.55rem 0.75rem;
+    vertical-align: middle;
+}
+
+.ph-bookings-page .booking-view-btn {
+    white-space: nowrap;
+}
+
+/* Pagination — match PerformHub buttons/cards, one centered row */
+.ph-pagination {
+    display: flex;
+    justify-content: center;
+    margin-top: 0.85rem;
+}
+
+.ph-pagination > nav {
+    width: 100%;
+    justify-content: center !important;
+}
+
+/* Keep Laravel's mobile Prev/Next hidden on desktop */
+.ph-pagination > nav > .d-sm-none {
+    display: none !important;
+}
+
+@media (max-width: 575.98px) {
+    .ph-pagination > nav > .d-sm-none {
+        display: flex !important;
+        width: 100%;
+        justify-content: center !important;
+    }
+
+    .ph-pagination > nav > .d-sm-flex {
+        display: none !important;
+    }
+}
+
+/* Desktop: page numbers only, centered */
+.ph-pagination > nav > .d-sm-flex {
+    width: auto !important;
+    max-width: 100%;
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: wrap !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 0;
+}
+
+/* Hide Laravel's "Showing X to Y of Z results" */
+.ph-pagination > nav > .d-sm-flex > div:first-child {
+    display: none !important;
+}
+
+.ph-pagination .pagination {
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+}
+
 .pagination {
     --bs-pagination-padding-x: 0.75rem;
     --bs-pagination-padding-y: 0.45rem;
@@ -990,6 +1056,7 @@ input[type="file"].ph-input::file-selector-button:hover {
     gap: 0.35rem;
     margin-top: 1.25rem;
     flex-wrap: wrap;
+    justify-content: center;
 }
 
 .pagination .page-item .page-link {

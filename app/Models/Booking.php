@@ -16,6 +16,7 @@ class Booking extends Model
         'event_id',
         'event_name',
         'event_date',
+        'end_date',
         'event_time',
         'end_time',
         'venue',
@@ -43,6 +44,7 @@ class Booking extends Model
     {
         return [
             'event_date' => 'date',
+            'end_date' => 'date',
             'signed_contract_uploaded_at' => 'datetime',
             'cancel_requested_at' => 'datetime',
             'signwell_sent_at' => 'datetime',
@@ -85,6 +87,8 @@ class Booking extends Model
                 return 'Rejected';
             case 'completed':
                 return 'Booked';
+            case 'finished':
+                return 'Completed';
             case 'expired':
                 return 'Expired';
             default:
@@ -105,6 +109,8 @@ class Booking extends Model
                 return 'ph-badge ph-badge-rejected';
             case 'completed':
                 return 'ph-badge ph-badge-success';
+            case 'finished':
+                return 'ph-badge ph-badge-finished';
             case 'expired':
                 return 'ph-badge ph-badge-expired';
             default:
@@ -143,27 +149,87 @@ class Booking extends Model
         return $this->hasSignedContract() || $this->isSignWellCompleted();
     }
 
+    public function resolvedEndDate(): Carbon
+    {
+        $endDate = $this->end_date ?: $this->event_date;
+
+        if ($endDate === null) {
+            return $this->resolvedEventDate();
+        }
+
+        if ($endDate instanceof Carbon) {
+            return $endDate->copy()->startOfDay();
+        }
+
+        return Carbon::parse($endDate)->startOfDay();
+    }
+
+    public function resolvedEventDate(): Carbon
+    {
+        if ($this->event_date instanceof Carbon) {
+            return $this->event_date->copy()->startOfDay();
+        }
+
+        if ($this->event_date === null) {
+            return now()->startOfDay();
+        }
+
+        return Carbon::parse($this->event_date)->startOfDay();
+    }
+
+    public function isSingleDayEvent(): bool
+    {
+        return $this->resolvedEventDate()->isSameDay($this->resolvedEndDate());
+    }
+
     public function eventHasEnded(): bool
     {
-        $date = $this->event_date->toDateString();
-        $start = Carbon::parse($date.' '.$this->event_time);
-        $endTime = $this->end_time;
-
-        if (! $endTime) {
-            $endTime = $this->event_time;
+        if (! $this->event_date) {
+            return false;
         }
-        $end = Carbon::parse($date.' '.$endTime);
 
-        if ($end->lessThanOrEqualTo($start)) {
+        $startDate = $this->resolvedEventDate()->toDateString();
+        $endDate = $this->resolvedEndDate()->toDateString();
+
+        $startTime = $this->normalizeTimeString($this->event_time);
+        $endTime = $this->normalizeTimeString($this->end_time ?: $this->event_time);
+
+        $start = Carbon::parse($startDate.' '.$startTime);
+        $end = Carbon::parse($endDate.' '.$endTime);
+
+        // Legacy overnight rows that only stored one date.
+        if ($endDate === $startDate && $end->lessThanOrEqualTo($start)) {
             $end->addDay();
         }
 
         return now()->greaterThanOrEqualTo($end);
     }
 
+    private function normalizeTimeString(mixed $time): string
+    {
+        if ($time instanceof Carbon) {
+            return $time->format('H:i:s');
+        }
+
+        $time = trim((string) $time);
+
+        if ($time === '') {
+            return '00:00:00';
+        }
+
+        if (str_contains($time, ' ')) {
+            $parts = explode(' ', $time);
+
+            return end($parts) ?: '00:00:00';
+        }
+
+        return $time;
+    }
+
     public static function sweepPastBookings(): void
     {
         static::expirePastUnconfirmed();
+        static::finishPastBooked();
     }
 
     public static function expirePastUnconfirmed(): int
@@ -214,14 +280,39 @@ class Booking extends Model
         return $count;
     }
 
+    public static function finishPastBooked(): int
+    {
+        $bookings = static::query()
+            ->where('status', 'completed')
+            ->whereDate('event_date', '<=', today())
+            ->get();
+
+        $count = 0;
+
+        foreach ($bookings as $booking) {
+            if (! $booking->eventHasEnded()) {
+                continue;
+            }
+
+            $booking->update([
+                'status' => 'finished',
+                'cancel_requested_at' => null,
+            ]);
+
+            $count++;
+        }
+
+        return $count;
+    }
+
     public function locksTheDate(): bool
     {
-        return $this->status === 'completed';
+        return in_array($this->status, ['completed', 'finished'], true);
     }
 
     public function scopeLockingDate($query)
     {
-        return $query->where('status', 'completed');
+        return $query->whereIn('status', ['completed', 'finished']);
     }
 
     public function markCompletedFromSignature(): bool

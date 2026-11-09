@@ -175,7 +175,14 @@ class AvailabilityController extends Controller
             $date = $schedule->date->toDateString();
 
             $hasConfirmed = $bookings->contains(
-                fn ($booking) => $booking->locksTheDate() && $booking->event_date->toDateString() === $date
+                function ($booking) use ($date) {
+                    if (! $booking->locksTheDate() || ! $booking->event_date) {
+                        return false;
+                    }
+
+                    return $booking->resolvedEventDate()->toDateString() === $date
+                        || $booking->resolvedEndDate()->toDateString() === $date;
+                }
             );
 
             if ($hasConfirmed) {
@@ -184,8 +191,12 @@ class AvailabilityController extends Controller
 
             $copiedFromOpenBooking = $bookings->contains(
                 function ($booking) use ($date, $schedule) {
+                    if (! $booking->event_date) {
+                        return false;
+                    }
+
                     return in_array($booking->status, ['pending', 'accepted'], true)
-                        && $booking->event_date->toDateString() === $date
+                        && $booking->resolvedEventDate()->toDateString() === $date
                         && strcasecmp(trim((string) $booking->event_name), trim((string) $schedule->notes)) === 0;
                 }
             );
