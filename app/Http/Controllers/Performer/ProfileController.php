@@ -68,10 +68,10 @@ class ProfileController extends Controller
             ->get();
 
         $validated = $request->validate(array_merge([
-            'first_name' => ['required', 'string', 'max:100'],
-            'last_name' => ['required', 'string', 'max:100'],
+            'first_name' => ['required', 'string', 'max:100', "regex:/^[a-zA-Z\\s\\-']+$/"],
+            'last_name' => ['required', 'string', 'max:100', "regex:/^[a-zA-Z\\s\\-']+$/"],
             'phone' => PhoneNumbers::rules(required: true),
-            'stage_name' => ['required', 'string', 'max:255'],
+            'stage_name' => ['required', 'string', 'max:255', "regex:/^[a-zA-Z\\s\\-']+$/"],
             'bio' => ['nullable', 'string', 'max:2000'],
             'genre' => ['nullable', 'array', 'max:8'],
             'genre.*' => ['string', 'max:100', Rule::in(PerformerOptionGuide::allowedNames($selectedCategories, $profile->genreList()))],
@@ -121,6 +121,9 @@ class ProfileController extends Controller
             'banner_position_y' => ['nullable', 'integer', 'min:0', 'max:100'],
         ], PhilippineLocations::locationFieldsRules(required: false)), [
             'phone.regex' => PhoneNumbers::message(),
+            'first_name.regex' => 'First name may only contain letters, spaces, hyphens, and apostrophes.',
+            'last_name.regex' => 'Last name may only contain letters, spaces, hyphens, and apostrophes.',
+            'stage_name.regex' => 'Stage name may only contain letters, spaces, hyphens, and apostrophes.',
             'social_facebook.required' => 'Add a Facebook link when you enter followers.',
             'social_instagram.required' => 'Add an Instagram link when you enter followers.',
             'social_youtube.required' => 'Add a YouTube link when you enter subscribers.',
@@ -168,6 +171,9 @@ class ProfileController extends Controller
         if (! empty($validated['region']) && ! empty($validated['city'])) {
             $profile->update(PhilippineLocations::profileLocationAttributes($validated));
         }
+
+        $user = Auth::user()->fresh(['performerProfile.categories']);
+        $user?->markProfileDetailsComplete();
 
         return redirect()->route('performer.profile.show')->with('success', 'Profile updated successfully.');
     }

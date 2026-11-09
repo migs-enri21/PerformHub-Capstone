@@ -135,6 +135,54 @@ class User extends Authenticatable implements CanResetPassword
         return $this->onboarding_step >= self::ONBOARDING_COMPLETE;
     }
 
+    public function hasCompletedProfileDetails(): bool
+    {
+        if ($this->isPerformer()) {
+            $profile = $this->relationLoaded('performerProfile')
+                ? $this->performerProfile
+                : $this->performerProfile()->with('categories')->first();
+
+            if ($profile && ! $profile->relationLoaded('categories')) {
+                $profile->load('categories');
+            }
+
+            return filled($this->first_name)
+                && filled($this->last_name)
+                && filled($this->phone)
+                && filled($profile?->stage_name)
+                && filled($profile?->region)
+                && filled($profile?->city)
+                && $profile->categories->isNotEmpty();
+        }
+
+        if ($this->isOrganizer()) {
+            $profile = $this->organizerProfile;
+
+            return filled($this->first_name)
+                && filled($this->last_name)
+                && filled($this->phone)
+                && filled($profile?->organization_name)
+                && filled($profile?->organization_type)
+                && filled($profile?->region)
+                && filled($profile?->city);
+        }
+
+        return false;
+    }
+
+    public function markProfileDetailsComplete(): bool
+    {
+        if (! $this->hasCompletedProfileDetails()) {
+            return false;
+        }
+
+        if ($this->onboarding_step < self::ONBOARDING_VERIFICATION) {
+            $this->update(['onboarding_step' => self::ONBOARDING_VERIFICATION]);
+        }
+
+        return true;
+    }
+
     public function hasLimitedAccess(): bool
     {
         if ($this->isAdmin() || $this->isPerformerVerified()) {
