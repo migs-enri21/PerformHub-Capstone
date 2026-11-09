@@ -164,6 +164,13 @@ class Booking extends Model
         return now()->greaterThanOrEqualTo($end);
     }
 
+    public function eventHasStarted(): bool
+    {
+        $start = Carbon::parse($this->event_date->toDateString().' '.$this->event_time);
+
+        return now()->greaterThanOrEqualTo($start);
+    }
+
     public function dateRangeLabel(string $format = 'F j, Y'): string
     {
         $endDate = $this->end_date;

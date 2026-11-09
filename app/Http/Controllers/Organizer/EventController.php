@@ -117,7 +117,11 @@ class EventController extends Controller
         $contestPrizePool = null;
         $hasFullAccess = ! Auth::user()->hasLimitedAccess();
         $canEditEvent = $hasFullAccess && $this->eventCanBeEdited($event);
-        $applicationsClosed = strtolower($event->status) === 'open' && $event->hasStarted();
+        $applicationsClosed = true;
+
+        if (strtolower($event->status) === 'open' && ! $event->hasStarted()) {
+            $applicationsClosed = false;
+        }
         $hasParticipants = $this->eventHasParticipants($event);
         $hasPendingCancellationRequest = $this->hasPendingCancellationRequest($event);
         $canDeleteEvent = $hasFullAccess && $this->eventCanBeDeleted($event, $hasParticipants);
@@ -402,6 +406,7 @@ class EventController extends Controller
     {
         $this->authorizeEvent($event);
         Event::refreshStatuses();
+        Booking::sweepPastBookings();
         $event->refresh();
 
         if (strtolower($event->status) === 'completed') {

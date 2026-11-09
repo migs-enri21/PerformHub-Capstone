@@ -85,6 +85,10 @@ class BookingController extends Controller
             );
         }
 
+        if (! $this->performerIsAvailableForEvent($performer, $event)) {
+            return back()->with('error', 'This performer is unavailable on one or more dates of the selected event.');
+        }
+
         $validated['organizer_id'] = Auth::id();
         $validated['performer_id'] = $performer->user_id;
         $validated['source'] = 'invite';
@@ -129,8 +133,8 @@ class BookingController extends Controller
             return back()->with('warning', 'Only an active booking can receive a contract.');
         }
 
-        if ($booking->eventHasEnded()) {
-            return back()->with('warning', 'This event has already ended.');
+        if ($booking->eventHasStarted()) {
+            return back()->with('warning', 'This event has already started, so a contract can no longer be uploaded.');
         }
 
         if (! $signWell->isConfigured()) {
@@ -169,8 +173,8 @@ class BookingController extends Controller
         $this->ensureBookingOwner($booking);
         abort_unless($booking->status === 'accepted' && $booking->hasContract(), 400);
 
-        if ($booking->eventHasEnded()) {
-            return back()->with('warning', 'This event has already ended.');
+        if ($booking->eventHasStarted()) {
+            return back()->with('warning', 'This event has already started, so a contract can no longer be sent for signature.');
         }
 
         if ($booking->signwell_document_id) {
@@ -220,8 +224,8 @@ class BookingController extends Controller
             return back()->with('warning', 'This booking is no longer active and cannot be confirmed.');
         }
 
-        if ($booking->eventHasEnded()) {
-            return back()->with('warning', 'This event has already ended, so the booking can no longer be confirmed.');
+        if ($booking->eventHasStarted()) {
+            return back()->with('warning', 'This event has already started, so the booking can no longer be confirmed.');
         }
 
         if ($booking->signwell_document_id && ! $booking->isSigned()) {
@@ -380,6 +384,31 @@ class BookingController extends Controller
             ->where('event_id', $event->id)
             ->whereIn('status', ['pending', 'accepted', 'completed'])
             ->first();
+    }
+
+    private function performerIsAvailableForEvent(PerformerProfile $performer, Event $event): bool
+    {
+        $startDate = $event->event_date->toDateString();
+        $endDate = $event->end_date->toDateString();
+
+        $hasUnavailableDate = $performer->availabilitySchedules()
+            ->whereBetween('date', [$startDate, $endDate])
+            ->where('is_available', false)
+            ->exists();
+
+        if ($hasUnavailableDate) {
+            return false;
+        }
+
+        $hasGoogleBusyDate = $performer->googleCalendarBusyDates()
+            ->whereBetween('date', [$startDate, $endDate])
+            ->exists();
+
+        if ($hasGoogleBusyDate) {
+            return false;
+        }
+
+        return true;
     }
 
     private function bookingFitsEventBudget(Booking $booking): bool

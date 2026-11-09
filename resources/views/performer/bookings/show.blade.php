@@ -24,6 +24,9 @@
 @if($booking->status === 'pending')
     <div class="ph-card p-4 mb-4">
         <h5 class="fw-semibold mb-3">Respond to Booking</h5>
+        @if($booking->eventHasStarted())
+            <p class="text-muted mb-0">This event has started, so this booking can no longer be accepted or declined.</p>
+        @else
         @if($dayConflict)
             <div class="alert alert-warning small mb-3">
                 You already have <strong>{{ $dayConflict->event_name }}</strong> on
@@ -41,6 +44,7 @@
                 <button class="btn ph-btn-outline booking-respond-btn">Decline</button>
             </form>
         </div>
+        @endif
     </div>
 @endif
 
@@ -83,7 +87,7 @@
                     <p class="text-success small mb-2">Your electronic signature is complete.</p>
                 @else
                     <p class="text-primary small mb-2">SignWell status: {{ ucfirst($booking->signwell_status) }}</p>
-                    @if($booking->status === 'accepted' && ! $booking->eventHasEnded())
+                    @if($booking->status === 'accepted' && ! $booking->eventHasStarted())
                         <a href="{{ route('performer.bookings.sign', $booking) }}" class="btn ph-btn-primary btn-sm">Sign Contract</a>
                     @endif
                 @endif

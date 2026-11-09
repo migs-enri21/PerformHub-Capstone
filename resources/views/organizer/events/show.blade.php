@@ -319,7 +319,9 @@
 
                 <div class="organizer-applicant-actions">
                     @if($application->status === 'pending')
-                        @if(auth()->user()->hasLimitedAccess())
+                        @if($applicationsClosed)
+                            <span class="btn ph-btn-outline btn-sm disabled">Applications Closed</span>
+                        @elseif(auth()->user()->hasLimitedAccess())
                             <span class="btn ph-btn-outline btn-sm disabled"><i class="fas fa-lock me-1"></i>Pending Verification</span>
                         @else
                             <a href="{{ route('organizer.bookings.create', ['performer' => $application->performer->performerProfile, 'event' => $event->id, 'from_application' => 1]) }}" class="btn ph-btn-primary btn-sm">

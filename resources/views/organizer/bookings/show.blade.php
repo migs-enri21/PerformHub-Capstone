@@ -75,7 +75,7 @@
                     </form>
                 </div>
             @else
-                @if(in_array($booking->status, ['pending', 'accepted'], true) && ! $booking->eventHasEnded())
+                @if(in_array($booking->status, ['pending', 'accepted'], true) && ! $booking->eventHasStarted())
                 <form method="POST" action="{{ route('organizer.bookings.contract', $booking) }}" enctype="multipart/form-data" class="border-top pt-3">
                     @csrf
                     @if($booking->hasContract())
@@ -187,7 +187,9 @@
         @if($booking->status === 'accepted')
             <div class="ph-card p-4">
                 <h5 class="fw-semibold mb-3">Confirm Booking</h5>
-                @if($booking->isSigned())
+                @if($booking->eventHasStarted())
+                    <p class="text-muted small mb-0">This event has started, so this booking can no longer be confirmed.</p>
+                @elseif($booking->isSigned())
                     <form method="POST" action="{{ route('organizer.bookings.complete', $booking) }}">
                         @csrf
                         <button class="btn ph-btn-success w-100">Confirm Booking</button>
