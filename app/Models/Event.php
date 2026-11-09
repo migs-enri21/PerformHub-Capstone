@@ -91,7 +91,7 @@ class Event extends Model
 
     public function hasStarted(): bool
     {
-        $start = Carbon::parse($this->event_date.' '.$this->start_time);
+        $start = Carbon::parse($this->event_date->toDateString().' '.$this->start_time);
 
         return now()->greaterThanOrEqualTo($start);
     }
