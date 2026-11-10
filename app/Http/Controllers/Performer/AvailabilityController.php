@@ -184,6 +184,10 @@ class AvailabilityController extends Controller
 
             $copiedFromOpenBooking = $bookings->contains(
                 function ($booking) use ($date, $schedule) {
+                    if (! $booking->event_date) {
+                        return false;
+                    }
+
                     return in_array($booking->status, ['pending', 'accepted'], true)
                         && $booking->assignmentCoversDate($date)
                         && strcasecmp(trim((string) $booking->event_name), trim((string) $schedule->notes)) === 0;

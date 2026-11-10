@@ -392,7 +392,7 @@ class BookingController extends Controller
         return Booking::where('organizer_id', Auth::id())
             ->where('performer_id', $performer->user_id)
             ->where('event_id', $event->id)
-            ->whereIn('status', ['pending', 'accepted', 'completed'])
+            ->whereIn('status', ['pending', 'accepted', 'completed', 'finished'])
             ->first();
     }
 
@@ -431,7 +431,7 @@ class BookingController extends Controller
         }
 
         $allocatedBudget = Booking::where('event_id', $event->id)
-            ->where('status', 'completed')
+            ->whereIn('status', ['completed', 'finished'])
             ->where('id', '!=', $booking->id)
             ->sum('budget');
 

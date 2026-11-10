@@ -29,10 +29,11 @@ class BookingController extends Controller
             $query->cancelRequested();
             $listFilter = 'cancel';
         } elseif ($status === 'accepted') {
-            $query->where('status', 'accepted')
+            // Match dashboard "Upcoming Bookings": accepted + booked (completed), still ongoing by assignment end.
+            $query->whereIn('status', ['accepted', 'completed'])
                 ->whereDate('assigned_end_date', '>=', today());
             $listFilter = 'accepted';
-        } elseif (in_array($status, ['pending', 'completed', 'rejected', 'cancelled', 'expired'], true)) {
+        } elseif (in_array($status, ['pending', 'completed', 'finished', 'rejected', 'cancelled', 'expired'], true)) {
             $query->where('status', $status);
             $listFilter = $status;
         } else {
@@ -44,7 +45,7 @@ class BookingController extends Controller
         } else {
             $query->orderByDesc('assigned_start_date')->orderByDesc('event_time')->orderByDesc('id');
         }
-
+        
         $bookings = $query->paginate(10)->withQueryString();
 
         return view('performer.bookings.index', compact('bookings', 'listFilter'));

@@ -9,3 +9,13 @@
 .admin-onboarding-modal-content {
 	min-height: 320px;
 }
+
+.admin-user-actions .admin-user-action-btn {
+	min-width: 140px;
+	height: 42px;
+	padding: 0.65rem 1.25rem;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	white-space: nowrap;
+}

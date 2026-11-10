@@ -39,8 +39,12 @@
     $confirmedMap = [];
 
     foreach ($bookingCalendar as $booking) {
-        $date = $booking->assignmentStartDate()->copy();
-        $endDate = $booking->assignmentEndDate();
+        $date = $booking->assignmentStartDate()->copy()->startOfDay();
+        $endDate = $booking->assignmentEndDate()->copy()->startOfDay();
+
+        if ($endDate->lt($date)) {
+            $endDate = $date->copy();
+        }
 
         while ($date->lessThanOrEqualTo($endDate)) {
             $dateKey = $date->format('Y-m-d');
@@ -53,18 +57,12 @@
             }
 
             if ($booking->locksTheDate()) {
-                $bookingUrl = null;
-
-                if ($editable) {
-                    $bookingUrl = route('performer.bookings.show', $booking);
-                }
-
                 $confirmedMap[$dateKey] = [
                     'event_name' => $booking->event_name,
                     'event_time' => $formatTime($booking->event_time),
                     'end_time' => $formatTime($booking->end_time),
                     'venue' => $booking->venue,
-                    'url' => $bookingUrl,
+                    'url' => $editable ? route('performer.bookings.show', $booking) : null,
                 ];
             }
 

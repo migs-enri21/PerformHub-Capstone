@@ -38,9 +38,11 @@ Artisan::command('events:refresh-statuses', function () {
 
 Artisan::command('bookings:expire-past', function () {
     $expired = Booking::expirePastUnconfirmed();
+    $finished = Booking::finishPastBooked();
 
     $this->info($expired.' unconfirmed booking(s) expired.');
-})->purpose('Expire unconfirmed bookings after their event ends');
+    $this->info($finished.' booked event(s) marked completed.');
+})->purpose('Expire unconfirmed bookings and mark finished booked events');
 
 Schedule::command('events:refresh-statuses')->everyMinute();
 Schedule::command('bookings:expire-past')->everyMinute();

@@ -91,6 +91,8 @@ class Booking extends Model
                 return 'Rejected';
             case 'completed':
                 return 'Booked';
+            case 'finished':
+                return 'Completed';
             case 'expired':
                 return 'Expired';
             default:
@@ -111,6 +113,8 @@ class Booking extends Model
                 return 'ph-badge ph-badge-rejected';
             case 'completed':
                 return 'ph-badge ph-badge-success';
+            case 'finished':
+                return 'ph-badge ph-badge-finished';
             case 'expired':
                 return 'ph-badge ph-badge-expired';
             default:
@@ -149,59 +153,124 @@ class Booking extends Model
         return $this->hasSignedContract() || $this->isSignWellCompleted();
     }
 
+    public function resolvedEndDate(): Carbon
+    {
+        $endDate = $this->end_date ?: $this->event_date;
+
+        if ($endDate === null) {
+            return $this->resolvedEventDate();
+        }
+
+        if ($endDate instanceof Carbon) {
+            return $endDate->copy()->startOfDay();
+        }
+
+        return Carbon::parse($endDate)->startOfDay();
+    }
+
+    public function resolvedEventDate(): Carbon
+    {
+        if ($this->event_date instanceof Carbon) {
+            return $this->event_date->copy()->startOfDay();
+        }
+
+        if ($this->event_date === null) {
+            return now()->startOfDay();
+        }
+
+        return Carbon::parse($this->event_date)->startOfDay();
+    }
+
+    public function isSingleDayEvent(): bool
+    {
+        return $this->resolvedEventDate()->isSameDay($this->resolvedEndDate());
+    }
+
     public function eventHasEnded(): bool
     {
-        $endTime = $this->end_time;
+        $startDate = $this->assignmentStartDate();
+        $endDate = $this->assignmentEndDate();
 
-        if (! $endTime) {
-            $endTime = $this->event_time;
-        }
-        $endDate = $this->end_date;
+        $startTime = $this->normalizeTimeString($this->event_time);
+        $endTime = $this->normalizeTimeString($this->end_time ?: $this->event_time);
+
+        $start = Carbon::parse($startDate->toDateString().' '.$startTime);
         $end = Carbon::parse($endDate->toDateString().' '.$endTime);
 
-        $start = Carbon::parse($this->event_date->toDateString().' '.$this->event_time);
-
-        if ($endDate->isSameDay($this->event_date) && $end->lessThanOrEqualTo($start)) {
+        // Legacy overnight rows that only stored one date.
+        if ($endDate->isSameDay($startDate) && $end->lessThanOrEqualTo($start)) {
             $end->addDay();
         }
 
         return now()->greaterThanOrEqualTo($end);
     }
 
+    private function normalizeTimeString(mixed $time): string
+    {
+        if ($time instanceof Carbon) {
+            return $time->format('H:i:s');
+        }
+
+        $time = trim((string) $time);
+
+        if ($time === '') {
+            return '00:00:00';
+        }
+
+        if (str_contains($time, ' ')) {
+            $parts = explode(' ', $time);
+
+            return end($parts) ?: '00:00:00';
+        }
+
+        return $time;
+    }
+
     public function eventHasStarted(): bool
     {
-        $start = Carbon::parse($this->event_date->toDateString().' '.$this->event_time);
+        $startDate = $this->assignmentStartDate();
+        $startTime = $this->normalizeTimeString($this->event_time);
+        $start = Carbon::parse($startDate->toDateString().' '.$startTime);
 
         return now()->greaterThanOrEqualTo($start);
     }
 
     public function dateRangeLabel(string $format = 'F j, Y'): string
     {
-        $endDate = $this->end_date;
+        $startDate = $this->resolvedEventDate();
+        $endDate = $this->resolvedEndDate();
 
-        if ($this->event_date->isSameDay($endDate)) {
-            return $this->event_date->format($format);
+        if ($startDate->isSameDay($endDate)) {
+            return $startDate->format($format);
         }
 
-        return $this->event_date->format($format).' - '.$endDate->format($format);
+        return $startDate->format($format).' - '.$endDate->format($format);
     }
 
     public function assignmentStartDate(): Carbon
     {
-        if ($this->assigned_start_date) {
-            return $this->assigned_start_date;
+        if ($this->assigned_start_date instanceof Carbon) {
+            return $this->assigned_start_date->copy()->startOfDay();
         }
 
-        return $this->event_date;
+        if ($this->assigned_start_date) {
+            return Carbon::parse($this->assigned_start_date)->startOfDay();
+        }
+
+        return $this->resolvedEventDate();
     }
 
     public function assignmentEndDate(): Carbon
     {
-        if ($this->assigned_end_date) {
-            return $this->assigned_end_date;
+        if ($this->assigned_end_date instanceof Carbon) {
+            return $this->assigned_end_date->copy()->startOfDay();
         }
 
-        return $this->end_date;
+        if ($this->assigned_end_date) {
+            return Carbon::parse($this->assigned_end_date)->startOfDay();
+        }
+
+        return $this->resolvedEndDate();
     }
 
     public function assignmentDateRangeLabel(string $format = 'F j, Y'): string
@@ -218,15 +287,14 @@ class Booking extends Model
 
     public function coversDate($date): bool
     {
-        $checkedDate = Carbon::parse($date);
-        $endDate = $this->end_date;
+        $checkedDate = Carbon::parse($date)->startOfDay();
 
-        return $checkedDate->betweenIncluded($this->event_date, $endDate);
+        return $checkedDate->betweenIncluded($this->resolvedEventDate(), $this->resolvedEndDate());
     }
 
     public function assignmentCoversDate($date): bool
     {
-        $checkedDate = Carbon::parse($date);
+        $checkedDate = Carbon::parse($date)->startOfDay();
 
         return $checkedDate->betweenIncluded($this->assignmentStartDate(), $this->assignmentEndDate());
     }
@@ -234,6 +302,7 @@ class Booking extends Model
     public static function sweepPastBookings(): void
     {
         static::expirePastUnconfirmed();
+        static::finishPastBooked();
     }
 
     public static function expirePastUnconfirmed(): int
@@ -284,14 +353,39 @@ class Booking extends Model
         return $count;
     }
 
+    public static function finishPastBooked(): int
+    {
+        $bookings = static::query()
+            ->where('status', 'completed')
+            ->whereDate('assigned_end_date', '<=', today())
+            ->get();
+
+        $count = 0;
+
+        foreach ($bookings as $booking) {
+            if (! $booking->eventHasEnded()) {
+                continue;
+            }
+
+            $booking->update([
+                'status' => 'finished',
+                'cancel_requested_at' => null,
+            ]);
+
+            $count++;
+        }
+
+        return $count;
+    }
+
     public function locksTheDate(): bool
     {
-        return $this->status === 'completed';
+        return in_array($this->status, ['completed', 'finished'], true);
     }
 
     public function scopeLockingDate($query)
     {
-        return $query->where('status', 'completed');
+        return $query->whereIn('status', ['completed', 'finished']);
     }
 
     public function markCompletedFromSignature(): bool

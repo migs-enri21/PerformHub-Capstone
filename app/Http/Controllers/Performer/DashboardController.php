@@ -45,8 +45,8 @@ class DashboardController extends Controller
         $activeBookingsByEvent = Booking::query()
             ->where('performer_id', $user->id)
             ->whereNotNull('event_id')
-            ->whereIn('status', ['pending', 'accepted', 'completed'])
-            ->orderByRaw("case status when 'completed' then 1 when 'accepted' then 2 else 3 end")
+            ->whereIn('status', ['pending', 'accepted', 'completed', 'finished'])
+            ->orderByRaw("case status when 'completed' then 1 when 'finished' then 1 when 'accepted' then 2 else 3 end")
             ->get(['event_id', 'status'])
             ->unique('event_id')
             ->keyBy('event_id');
@@ -94,7 +94,8 @@ class DashboardController extends Controller
         $cancelRequests = Booking::where('performer_id', $user->id)
             ->cancelRequested()
             ->count();
-
+            
+        //Upnext
         $nextBooking = Booking::where('performer_id', $user->id)
             ->whereIn('status', ['accepted', 'completed'])
             ->whereDate('assigned_end_date', '>=', today())

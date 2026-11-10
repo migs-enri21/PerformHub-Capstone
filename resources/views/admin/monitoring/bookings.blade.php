@@ -24,8 +24,10 @@
                 <option value="pending" @selected(request('status') === 'pending')>Pending</option>
                 <option value="accepted" @selected(request('status') === 'accepted')>Accepted</option>
                 <option value="rejected" @selected(request('status') === 'rejected')>Rejected</option>
-                <option value="completed" @selected(request('status') === 'completed')>Completed</option>
+                <option value="completed" @selected(request('status') === 'completed')>Booked</option>
+                <option value="finished" @selected(request('status') === 'finished')>Completed</option>
                 <option value="expired" @selected(request('status') === 'expired')>Expired</option>
+                <option value="cancelled" @selected(request('status') === 'cancelled')>Cancelled</option>
             </select>
         </div>
         <div class="col-md-3">

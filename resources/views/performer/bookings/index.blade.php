@@ -13,13 +13,15 @@
         'pending' => 'Pending Requests',
         'accepted' => 'Upcoming Bookings',
         'completed' => 'Booked',
+        'finished' => 'Completed',
         'cancelled' => 'Cancelled',
         'expired' => 'Expired',
         default => 'Booking History',
     };
 @endphp
 
-<div class="d-flex justify-content-between align-items-center mb-4">
+<div class="ph-bookings-page">
+<div class="d-flex justify-content-between align-items-center mb-3">
     <h2 class="fw-bold mb-0">{{ $heading }}</h2>
 </div>
 
@@ -32,6 +34,7 @@
                 <option value="pending" @selected(($listFilter ?? '') === 'pending')>Pending</option>
                 <option value="accepted" @selected(($listFilter ?? '') === 'accepted')>Upcoming</option>
                 <option value="completed" @selected(($listFilter ?? '') === 'completed')>Booked</option>
+                <option value="finished" @selected(($listFilter ?? '') === 'finished')>Completed</option>
                 <option value="cancel" @selected(($listFilter ?? '') === 'cancel')>Cancel requests</option>
                 <option value="cancelled" @selected(($listFilter ?? '') === 'cancelled')>Cancelled</option>
             </select>
@@ -110,5 +113,8 @@
     </div>
 </div>
 
-{{ $bookings->links() }}
+<div class="ph-pagination">
+    {{ $bookings->links() }}
+</div>
+</div>
 @endsection

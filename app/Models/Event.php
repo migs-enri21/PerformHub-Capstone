@@ -36,6 +36,7 @@ class Event extends Model
         'event_date' => 'date',
         'end_date' => 'date',
         'preferred_genres' => 'array',
+        'event_date' => 'date',
     ];
 
     public function organizer()
@@ -91,29 +92,72 @@ class Event extends Model
 
     public function hasStarted(): bool
     {
-        $start = Carbon::parse($this->event_date->toDateString().' '.$this->start_time);
-
-        return now()->greaterThanOrEqualTo($start);
+        return now()->greaterThanOrEqualTo($this->startsAt());
     }
 
     public function hasEnded(): bool
     {
-        $endTime = $this->end_time;
+        return now()->greaterThanOrEqualTo($this->endsAt());
+    }
 
-        if (! $endTime) {
-            $endTime = $this->start_time;
-        }
+    public function startsAt(): Carbon
+    {
+        return $this->dateTimeOnEventDate($this->start_time);
+    }
 
-        $endDate = $this->end_date;
-        $end = Carbon::parse($endDate->toDateString().' '.$endTime);
+    public function endsAt(): Carbon
+    {
+        $endTime = $this->end_time ?: $this->start_time;
+        $endDate = $this->end_date instanceof Carbon
+            ? $this->end_date->toDateString()
+            : ($this->end_date
+                ? Carbon::parse($this->end_date)->toDateString()
+                : ($this->event_date instanceof Carbon
+                    ? $this->event_date->toDateString()
+                    : Carbon::parse($this->event_date)->toDateString()));
 
-        $start = Carbon::parse($this->event_date->toDateString().' '.$this->start_time);
+        $end = Carbon::parse($endDate.' '.$this->normalizeTimeString($endTime));
+        $start = $this->startsAt();
 
-        if ($endDate->isSameDay($this->event_date) && $end->lessThanOrEqualTo($start)) {
+        // Legacy overnight rows only — new events must end same day.
+        if ($end->lessThanOrEqualTo($start)) {
             $end->addDay();
         }
 
-        return now()->greaterThanOrEqualTo($end);
+        return $end;
+    }
+
+    private function dateTimeOnEventDate(mixed $time): Carbon
+    {
+        $date = $this->event_date instanceof Carbon
+            ? $this->event_date->toDateString()
+            : Carbon::parse($this->event_date)->toDateString();
+
+        $time = $this->normalizeTimeString($time);
+
+        return Carbon::parse($date.' '.$time);
+    }
+
+    private function normalizeTimeString(mixed $time): string
+    {
+        if ($time instanceof Carbon) {
+            return $time->format('H:i:s');
+        }
+
+        $time = trim((string) $time);
+
+        if ($time === '') {
+            return '00:00:00';
+        }
+
+        // If a full datetime somehow arrives, keep the time portion only.
+        if (str_contains($time, ' ')) {
+            $parts = explode(' ', $time);
+
+            return end($parts) ?: '00:00:00';
+        }
+
+        return $time;
     }
 
     public function dateRangeLabel(string $format = 'F j, Y'): string

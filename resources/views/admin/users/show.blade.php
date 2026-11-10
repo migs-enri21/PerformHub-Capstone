@@ -15,7 +15,9 @@
 <div class="ph-card p-4 mb-4">
     @php
         $isOrganizer = $user->isOrganizer();
+        $profileFieldsComplete = $user->hasCompletedProfileDetails();
         $profileComplete = $isOrganizer || $user->onboarding_step >= \App\Models\User::ONBOARDING_VERIFICATION;
+        $canVerify = $isOrganizer || $profileComplete || $profileFieldsComplete;
         $verificationComplete = $user->is_verified;
         $onboardingComplete = $profileComplete && $verificationComplete;
     @endphp
@@ -84,18 +86,18 @@
             <div class="d-flex flex-column gap-3 mt-3">
                 @unless($isOrganizer)
                 <div class="d-flex align-items-center gap-2">
-                    <i class="fas {{ $profileComplete ? 'fa-circle-check text-success' : 'fa-circle-xmark text-danger' }}"></i>
+                    <i class="fas {{ $profileComplete ? 'fa-circle-check text-success' : ($profileFieldsComplete ? 'fa-circle-check text-warning' : 'fa-circle-xmark text-danger') }}"></i>
                     <div>
                         <div class="fw-semibold">1. Profile Details</div>
-                        <small class="text-muted">{{ $profileComplete ? 'Complete' : 'Incomplete' }}</small>
+                        <small class="text-muted">{{ $profileComplete ? 'Complete' : ($profileFieldsComplete ? 'Filled — click Check Profile or Verify' : 'Incomplete') }}</small>
                     </div>
                 </div>
                 @endunless
                 <div class="d-flex align-items-center gap-2">
-                    <i class="fas {{ $verificationComplete ? 'fa-circle-check text-success' : (!$profileComplete ? 'fa-lock text-muted' : 'fa-circle-xmark text-danger') }}"></i>
+                    <i class="fas {{ $verificationComplete ? 'fa-circle-check text-success' : (! $canVerify ? 'fa-lock text-muted' : 'fa-circle-xmark text-danger') }}"></i>
                     <div>
-                        <div class="fw-semibold {{ !$profileComplete && !$verificationComplete ? 'text-muted' : '' }}">{{ $isOrganizer ? '1' : '2' }}. Admin Verification</div>
-                        <small class="text-muted">{{ $verificationComplete ? 'Complete' : (!$profileComplete ? 'Locked until Profile Details are complete' : 'Incomplete') }}</small>
+                        <div class="fw-semibold {{ ! $canVerify && ! $verificationComplete ? 'text-muted' : '' }}">{{ $isOrganizer ? '1' : '2' }}. Admin Verification</div>
+                        <small class="text-muted">{{ $verificationComplete ? 'Complete' : (! $canVerify ? 'Locked until Profile Details are complete' : 'Ready to verify') }}</small>
                     </div>
                 </div>
             </div>
@@ -250,16 +252,24 @@
     @endif
 </div>
 
-<div class="d-flex gap-2">
+<div class="d-flex gap-2 flex-wrap admin-user-actions">
+    @if(!$isOrganizer && !$profileComplete)
+        <form method="POST" action="{{ route('admin.users.check-profile', $user) }}">
+            @csrf
+            <button type="submit" class="btn ph-btn-primary admin-user-action-btn" @if(!$profileFieldsComplete) disabled title="Required profile fields are still missing." @endif>
+                Check Profile
+            </button>
+        </form>
+    @endif
     @if(!$user->is_verified)
         <form method="POST" action="{{ route('admin.users.verify', $user) }}">
             @csrf
-            <button class="btn btn-success" @if(!$profileComplete) disabled title="Complete Profile Details before verification." @endif>Verify User</button>
+            <button class="btn btn-success admin-user-action-btn" @if(!$canVerify) disabled title="Complete Profile Details before verification." @endif>Verify User</button>
         </form>
     @endif
     <form method="POST" action="{{ route('admin.users.toggle', $user) }}">
         @csrf
-        <button class="btn btn-outline-warning">{{ $user->is_active ? 'Suspend' : 'Activate' }}</button>
+        <button class="btn btn-outline-warning admin-user-action-btn">{{ $user->is_active ? 'Suspend' : 'Activate' }}</button>
     </form>
 </div>
 @endsection
