@@ -123,15 +123,15 @@
                         </div>
 
                         <div class="organizer-event-actions">
-                            <a href="{{ route('organizer.events.show', $event) }}" class="btn ph-btn-primary btn-sm">View Event</a>
+                            <a href="{{ route('organizer.events.show', $event) }}" class="btn ph-btn-primary btn-sm organizer-action-button">View Event</a>
                             @if(! auth()->user()->hasLimitedAccess() && strtolower($event->status) === 'open' && ! $event->hasStarted())
-                                <a href="{{ route('organizer.events.edit', $event) }}" class="btn ph-btn-outline btn-sm">Edit</a>
+                                <a href="{{ route('organizer.events.edit', $event) }}" class="btn btn-sm organizer-action-button organizer-edit-action">Edit</a>
                             @endif
                             @if(! auth()->user()->hasLimitedAccess() && $canDeleteEvent)
                                 <form method="POST" action="{{ route('organizer.events.destroy', $event) }}" class="delete-event-form">
                                     @csrf
                                     @method('DELETE')
-                                    <button type="submit" class="btn btn-sm ph-btn-danger">Delete</button>
+                                    <button type="submit" class="btn btn-sm ph-btn-danger organizer-action-button">Delete</button>
                                 </form>
                             @endif
                             @if(strtolower($event->status) === 'open' && $event->hasStarted())
@@ -145,11 +145,8 @@
     </div>
 
     @if($events->hasPages())
-        <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3 mt-4">
-            <p class="text-muted mb-0 small">
-                Showing {{ $events->firstItem() }} to {{ $events->lastItem() }} of {{ $events->total() }} events
-            </p>
-            {{ $events->links() }}
+        <div class="organizer-event-pagination mt-4">
+            {{ $events->links('pagination::bootstrap-5') }}
         </div>
     @endif
 @endif

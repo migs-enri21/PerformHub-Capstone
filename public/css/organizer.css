@@ -77,6 +77,56 @@
     color: #bb2d3b;
 }
 
+.btn.ph-btn-primary,
+.btn.ph-btn-outline,
+.btn.ph-btn-success,
+.btn.ph-btn-danger,
+.btn.ph-btn-danger-outline {
+    align-items: center;
+    display: inline-flex;
+    justify-content: center;
+    text-align: center;
+}
+
+.organizer-action-button {
+    align-items: center;
+    display: inline-flex;
+    justify-content: center;
+    min-height: 2.75rem;
+}
+
+.organizer-action-button.btn-sm {
+    min-height: 2.4rem;
+    padding: 0.45rem 1rem;
+}
+
+.organizer-edit-action {
+    background: transparent;
+    border: 1px solid #6346ff;
+    border-radius: 10px;
+    color: #6346ff;
+    font-weight: 600;
+}
+
+.organizer-edit-action:hover {
+    background: #f1edff;
+    border-color: #6346ff;
+    color: #4d31d8;
+}
+
+.organizer-event-pagination nav,
+.organizer-event-pagination nav > .d-none {
+    justify-content: center !important;
+}
+
+.organizer-event-pagination nav > .d-none > div:first-child {
+    display: none;
+}
+
+.organizer-event-pagination .pagination {
+    margin-bottom: 0;
+}
+
 .ph-card .form-control,
 .ph-card .form-select,
 .ph-card textarea{

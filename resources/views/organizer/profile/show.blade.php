@@ -8,7 +8,7 @@
 
 @section('content')
 <div class="d-flex justify-content-end mb-2">
-    <a href="{{ route('organizer.profile.edit') }}" class="btn ph-btn-outline btn-sm">
+    <a href="{{ route('organizer.profile.edit') }}" class="btn btn-sm organizer-action-button organizer-edit-action">
         <i class="fas fa-pen me-1"></i> Edit Profile
     </a>
 </div>

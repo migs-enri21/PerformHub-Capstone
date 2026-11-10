@@ -43,27 +43,27 @@
                 <form method="POST" action="{{ route('organizer.events.complete', $event) }}" class="organizer-confirm-form" data-confirm-title="Mark Event Completed" data-confirm-message="Mark this event as completed? This means the event has finished." data-confirm-button="Mark Completed" data-confirm-style="ph-btn-success">
                     @csrf
                     @method('PATCH')
-                    <button type="submit" class="btn ph-btn-success btn-sm">Mark Event Completed</button>
+                    <button type="submit" class="btn ph-btn-success btn-sm organizer-action-button">Mark Event Completed</button>
                 </form>
             @endif
             @if($canCancelEvent)
                 <form method="POST" action="{{ route('organizer.events.cancel', $event) }}" class="organizer-confirm-form" data-confirm-title="Cancel Event" data-confirm-message="Cancel this event? Affected performers will be notified and active bookings will be cancelled." data-confirm-button="Cancel Event" data-confirm-style="ph-btn-danger">
                     @csrf
                     @method('PATCH')
-                    <button type="submit" class="btn ph-btn-danger btn-sm">Cancel Event</button>
+                    <button type="submit" class="btn ph-btn-danger btn-sm organizer-action-button">Cancel Event</button>
                 </form>
             @endif
             @if($canEditEvent)
-                <a href="{{ route('organizer.events.edit', $event) }}" class="btn ph-btn-primary btn-sm">Edit</a>
+                <a href="{{ route('organizer.events.edit', $event) }}" class="btn btn-sm organizer-action-button organizer-edit-action">Edit</a>
             @endif
             @if($canDeleteEvent)
                 <form method="POST" action="{{ route('organizer.events.destroy', $event) }}" class="organizer-confirm-form" data-confirm-title="Delete Event" data-confirm-message="Delete this unused event permanently? This cannot be undone." data-confirm-button="Delete Event" data-confirm-style="ph-btn-danger">
                     @csrf
                     @method('DELETE')
-                    <button type="submit" class="btn ph-btn-danger btn-sm">Delete Event</button>
+                    <button type="submit" class="btn ph-btn-danger btn-sm organizer-action-button">Delete Event</button>
                 </form>
             @endif
-            <a href="{{ route('organizer.events.index') }}" class="btn ph-btn-outline btn-sm">Back</a>
+            <a href="{{ route('organizer.events.index') }}" class="btn ph-btn-outline btn-sm organizer-action-button">Back</a>
         </div>
     </div>
 
