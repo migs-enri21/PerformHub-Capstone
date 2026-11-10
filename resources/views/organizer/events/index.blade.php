@@ -105,9 +105,6 @@
                         <div class="d-flex justify-content-between align-items-start gap-3 mb-2">
                             <h5 class="event-card-title mb-0">{{ $event->title }}</h5>
                             <span class="organizer-event-status {{ $statusClass }}">{{ ucfirst($event->status) }}</span>
-                            @if(strtolower($event->status) === 'open' && $event->hasStarted())
-                                <span class="badge text-bg-secondary">Applications Closed</span>
-                            @endif
                         </div>
 
                         @if($event->description)
@@ -136,6 +133,9 @@
                                     @method('DELETE')
                                     <button type="submit" class="btn btn-sm ph-btn-danger">Delete</button>
                                 </form>
+                            @endif
+                            @if(strtolower($event->status) === 'open' && $event->hasStarted())
+                                <span class="organizer-event-applications-closed">Applications Closed</span>
                             @endif
                         </div>
                     </div>
