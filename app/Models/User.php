@@ -135,6 +135,47 @@ class User extends Authenticatable implements CanResetPassword
         return $this->onboarding_step >= self::ONBOARDING_COMPLETE;
     }
 
+    public function hasCompletedProfileDetails(): bool
+    {
+        if (! filled($this->first_name)
+            || ! filled($this->last_name)
+            || ! filled($this->phone)) {
+            return false;
+        }
+
+        if ($this->isPerformer()) {
+            $profile = $this->performerProfile;
+
+            return $profile !== null
+                && filled($profile->stage_name)
+                && filled($profile->region)
+                && filled($profile->city)
+                && $profile->categories()->exists();
+        }
+
+        if ($this->isOrganizer()) {
+            $profile = $this->organizerProfile;
+
+            return $profile !== null
+                && filled($profile->organization_name)
+                && filled($profile->organization_type)
+                && filled($profile->region)
+                && filled($profile->city);
+        }
+
+        return false;
+    }
+
+    public function markProfileDetailsComplete(): void
+    {
+        if (! $this->hasCompletedProfileDetails()
+            || $this->onboarding_step >= self::ONBOARDING_VERIFICATION) {
+            return;
+        }
+
+        $this->update(['onboarding_step' => self::ONBOARDING_VERIFICATION]);
+    }
+
     public function hasLimitedAccess(): bool
     {
         if ($this->isAdmin() || $this->isPerformerVerified()) {

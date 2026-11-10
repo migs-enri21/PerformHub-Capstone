@@ -77,12 +77,18 @@
                         @php
                             $performerCount = $b->event_id ? ($eventPerformerCounts[$b->event_id] ?? 1) : 1;
                             $performerName = $b->performer?->fullName() ?? '—';
+                            $extraPerformers = collect($eventPerformers[$b->event_id] ?? [])
+                                ->reject(fn ($performer) => ($b->performer && $performer['email'] === $b->performer->email && $performer['name'] === $b->performer->fullName()))
+                                ->values()
+                                ->all();
                         @endphp
 
                         @if($performerCount > 1)
                             <span class="d-inline-flex align-items-center gap-2">
                                 <span>{{ $performerName }}</span>
-                                <span class="badge bg-light text-dark rounded-pill" title="{{ $performerCount }} performers booked for this event">+{{ $performerCount - 1 }}</span>
+                                <button type="button" class="btn btn-sm btn-light rounded-pill px-2 py-0 fw-semibold" data-bs-toggle="modal" data-bs-target="#eventPerformersModal-{{ $b->id }}" title="View additional performers">
+                                    +{{ count($extraPerformers) }}
+                                </button>
                             </span>
                         @else
                             {{ $performerName }}
@@ -110,4 +116,40 @@
 <div class="mt-4">
     {{ $bookings->appends(request()->query())->links() }}
 </div>
+
+@foreach($bookings as $b)
+    @php
+        $eventModalPerformers = collect($eventPerformers[$b->event_id] ?? [])
+            ->reject(fn ($performer) => ($b->performer && $performer['email'] === $b->performer->email && $performer['name'] === $b->performer->fullName()))
+            ->values()
+            ->all();
+    @endphp
+
+    @if(!empty($eventModalPerformers))
+        <div class="modal fade" id="eventPerformersModal-{{ $b->id }}" tabindex="-1" aria-labelledby="eventPerformersModalLabel-{{ $b->id }}" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="eventPerformersModalLabel-{{ $b->id }}">Additional Performers</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="list-group list-group-flush">
+                            @foreach($eventModalPerformers as $performer)
+                                <div class="list-group-item px-0 py-2">
+                                    <div class="fw-semibold">{{ $performer['name'] }}</div>
+                                    <div class="small text-muted">{{ $performer['email'] }}</div>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endif
+@endforeach
+
 @endsection

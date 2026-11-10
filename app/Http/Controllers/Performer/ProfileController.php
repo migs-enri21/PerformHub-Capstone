@@ -139,6 +139,12 @@ class ProfileController extends Controller
             $profile->update(PhilippineLocations::profileLocationAttributes($validated));
         }
 
+        $user = Auth::user();
+
+        if ($user->hasCompletedProfileDetails()) {
+            $user->markProfileDetailsComplete();
+        }
+
         return redirect()->route('performer.profile.show')->with('success', 'Profile updated successfully.');
     }
 }

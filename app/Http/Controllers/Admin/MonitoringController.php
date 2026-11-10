@@ -48,6 +48,21 @@ class MonitoringController extends Controller
             ->groupBy('event_id')
             ->pluck('performer_count', 'event_id');
 
-        return view('admin.monitoring.bookings', compact('bookings', 'organizers', 'eventPerformerCounts'));
+        $eventPerformers = Booking::query()
+            ->whereNotNull('event_id')
+            ->with('performer')
+            ->get()
+            ->groupBy('event_id')
+            ->map(fn ($eventBookings) => $eventBookings
+                ->filter(fn ($booking) => $booking->performer)
+                ->map(fn ($booking) => [
+                    'name' => $booking->performer->fullName(),
+                    'email' => $booking->performer->email,
+                ])
+                ->values()
+                ->all()
+            );
+
+        return view('admin.monitoring.bookings', compact('bookings', 'organizers', 'eventPerformerCounts', 'eventPerformers'));
     }
 }

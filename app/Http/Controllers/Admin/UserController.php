@@ -47,11 +47,16 @@ class UserController extends Controller
     {
         abort_unless(in_array($user->role, ['performer', 'organizer']), 400);
 
-        if ($user->isPerformer() && $user->onboarding_step < User::ONBOARDING_VERIFICATION) {
-            return back()->with('warning', 'Complete Profile Details before admin verification.');
+        if ($user->isPerformer()) {
+            $user->loadMissing('performerProfile');
+
+            if (! $user->hasCompletedProfileDetails()) {
+                return back()->with('warning', 'Complete Profile Details before admin verification.');
+            }
+
+            $user->markProfileDetailsComplete();
         }
 
-        $user->loadMissing('performerProfile');
         $user->update([
             'is_verified' => true,
             'onboarding_step' => User::ONBOARDING_COMPLETE,
@@ -68,21 +73,11 @@ class UserController extends Controller
     {
         abort_unless(in_array($user->role, ['performer', 'organizer']), 400);
 
-        $profile = $user->isPerformer() ? $user->performerProfile()->with('categories')->first() : $user->organizerProfile;
-        $hasLocation = filled($profile?->region) && filled($profile?->city);
-        $profileIsComplete = filled($user->first_name)
-            && filled($user->last_name)
-            && filled($user->phone)
-            && $hasLocation
-            && ($user->isPerformer()
-                ? filled($profile?->stage_name) && $profile->categories->isNotEmpty()
-                : filled($profile?->organization_name) && filled($profile?->organization_type));
-
-        if (! $profileIsComplete) {
+        if (! $user->hasCompletedProfileDetails()) {
             return back()->with('warning', 'Profile details are incomplete. The user must finish the required profile fields first.');
         }
 
-        $user->update(['onboarding_step' => User::ONBOARDING_VERIFICATION]);
+        $user->markProfileDetailsComplete();
 
         return back()->with('success', 'Profile checked successfully. Profile Details is now complete.');
     }

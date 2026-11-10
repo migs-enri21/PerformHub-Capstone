@@ -99,12 +99,10 @@ class AuthController extends Controller
             'password' => ['required', 'confirmed', Password::min(8)],
             'phone' => PhoneNumbers::rules(required: true),
             'role' => ['required', 'in:performer,organizer'],
-            'terms_accepted' => ['accepted'],
             'government_id' => ['required', 'array', 'min:1', 'max:5'],
             'government_id.*' => ['required', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'],
         ], PhilippineLocations::locationFieldsRules()), [
             'email.unique' => 'An account with this email already exists.',
-            'terms_accepted.accepted' => 'You must agree to the Terms & Agreement before continuing.',
             'password.confirmed' => 'Password and confirm password do not match.',
             'password.min' => 'Password must be at least 8 characters.',
             'phone.regex' => PhoneNumbers::message(),
