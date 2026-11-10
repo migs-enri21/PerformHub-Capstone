@@ -28,25 +28,42 @@
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
             <h2 class="fw-bold mb-1">{{ $event->title }}</h2>
-            <p class="text-muted mb-0">{{ ucfirst($event->status) }} event</p>
+            <p class="text-muted mb-0">
+                {{ ucfirst($event->status) }} event
+                @if($applicationsClosed)
+                    <span class="badge text-bg-secondary ms-1">Applications Closed</span>
+                @endif
+            </p>
+            @if($hasPendingCancellationRequest)
+                <p class="text-warning small mb-0">Resolve the pending performer cancellation request before completing this event.</p>
+            @endif
         </div>
         <div class="d-flex gap-2">
             @if($canCompleteEvent)
-                <form method="POST" action="{{ route('organizer.events.complete', $event) }}" class="organizer-confirm-form" data-confirm-title="Mark Event Completed" data-confirm-message="Mark this event as completed? This means the event has finished." data-confirm-button="Mark Completed">
+                <form method="POST" action="{{ route('organizer.events.complete', $event) }}" class="organizer-confirm-form" data-confirm-title="Mark Event Completed" data-confirm-message="Mark this event as completed? This means the event has finished." data-confirm-button="Mark Completed" data-confirm-style="ph-btn-success">
                     @csrf
                     @method('PATCH')
                     <button type="submit" class="btn ph-btn-success btn-sm">Mark Event Completed</button>
                 </form>
             @endif
             @if($canCancelEvent)
-                <form method="POST" action="{{ route('organizer.events.cancel', $event) }}" class="organizer-confirm-form" data-confirm-title="Cancel Event" data-confirm-message="Cancel this event? Affected performers will be notified and active bookings will be cancelled." data-confirm-button="Cancel Event">
+                <form method="POST" action="{{ route('organizer.events.cancel', $event) }}" class="organizer-confirm-form" data-confirm-title="Cancel Event" data-confirm-message="Cancel this event? Affected performers will be notified and active bookings will be cancelled." data-confirm-button="Cancel Event" data-confirm-style="ph-btn-danger">
                     @csrf
                     @method('PATCH')
-                    <button type="submit" class="btn btn-outline-danger btn-sm">Cancel Event</button>
+                    <button type="submit" class="btn ph-btn-danger btn-sm">Cancel Event</button>
                 </form>
             @endif
-            <a href="{{ route('organizer.events.edit', $event) }}" class="btn ph-btn-primary btn-sm">Edit</a>
-            <a href="{{ route('organizer.events.index') }}" class="btn ph-btn-secondary btn-sm">Back</a>
+            @if($canEditEvent)
+                <a href="{{ route('organizer.events.edit', $event) }}" class="btn ph-btn-primary btn-sm">Edit</a>
+            @endif
+            @if($canDeleteEvent)
+                <form method="POST" action="{{ route('organizer.events.destroy', $event) }}" class="organizer-confirm-form" data-confirm-title="Delete Event" data-confirm-message="Delete this unused event permanently? This cannot be undone." data-confirm-button="Delete Event" data-confirm-style="ph-btn-danger">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" class="btn ph-btn-danger btn-sm">Delete Event</button>
+                </form>
+            @endif
+            <a href="{{ route('organizer.events.index') }}" class="btn ph-btn-outline btn-sm">Back</a>
         </div>
     </div>
 
@@ -81,7 +98,7 @@
             <div class="row g-3">
                 <div class="col-md-6">
                     <strong class="event-detail-label d-block mb-1">Date</strong>
-                    <span class="text-muted">{{ \Illuminate\Support\Carbon::parse($event->event_date)->format('F j, Y') }}</span>
+                    <span class="text-muted">{{ $event->dateRangeLabel() }}</span>
                 </div>
                 <div class="col-md-6">
                     <strong class="event-detail-label d-block mb-1">Time</strong>
@@ -120,7 +137,7 @@
                         </span>
                     </div>
                 @endif
-                @if($event->compensation_type === 'fixed' && $event->budget)
+                @if($event->compensation_type === 'fixed' && $event->budget !== null)
                     <div class="col-12">
                         <div class="organizer-budget-summary">
                             <div>
@@ -142,11 +159,32 @@
                         </div>
                     </div>
                 @endif
-                @if($event->compensation_type === 'hourly' && $event->rate_per_hour)
-                    <div class="col-md-6"><strong class="event-detail-label d-block mb-1">Rate per Hour</strong><span class="text-muted">PHP {{ number_format((float) $event->rate_per_hour, 0) }}</span></div>
+                @if($event->compensation_type === 'hourly' && $event->budget !== null)
+                    <div class="col-12">
+                        <div class="organizer-budget-summary">
+                            <div><strong>Total Hourly Budget</strong><span>PHP {{ number_format((float) $event->budget, 0) }}</span></div>
+                            <div><strong>Rate per Hour</strong><span>PHP {{ number_format((float) $event->rate_per_hour, 0) }}</span></div>
+                            <div><strong>Work Hours per Day</strong><span>{{ $event->work_hours_per_day }} hours</span></div>
+                            <div><strong>Allocated to Confirmed Bookings</strong><span>PHP {{ number_format($reservedBudget, 0) }}</span></div>
+                            <div><strong>Remaining Budget</strong>
+                                @if($remainingBudget < 0)
+                                    <span class="text-danger">Over budget by PHP {{ number_format(abs($remainingBudget), 0) }}</span>
+                                @else
+                                    <span class="text-success">PHP {{ number_format($remainingBudget, 0) }}</span>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
                 @endif
                 @if($event->compensation_type === 'contest')
-                    <div class="col-md-6"><strong class="event-detail-label d-block mb-1">Contest Prizes</strong><span class="text-muted">First: PHP {{ number_format((float) $event->first_prize, 0) }}<br>Second: PHP {{ number_format((float) $event->second_prize, 0) }}<br>Third: PHP {{ number_format((float) $event->third_prize, 0) }}</span></div>
+                    <div class="col-12">
+                        <div class="organizer-budget-summary">
+                            <div><strong>Total Prize Pool</strong><span>PHP {{ number_format($contestPrizePool, 0) }}</span></div>
+                            <div><strong>First Prize</strong><span>PHP {{ number_format((float) $event->first_prize, 0) }}</span></div>
+                            <div><strong>Second Prize</strong><span>PHP {{ number_format((float) $event->second_prize, 0) }}</span></div>
+                            <div><strong>Third Prize</strong><span>PHP {{ number_format((float) $event->third_prize, 0) }}</span></div>
+                        </div>
+                    </div>
                 @endif
             </div>
         </div>
@@ -209,8 +247,11 @@
             if ($application->status === 'accepted' && isset($bookings[$application->performer_id])) {
                 $booking = $bookings[$application->performer_id];
 
-                if ($booking->status === 'expired') {
-                    $bookingMessage = 'Booking expired — event date passed before the contract was signed.';
+                if ($booking->status === 'cancelled') {
+                    $bookingMessage = 'Booking cancelled after the performer requested cancellation.';
+                    $bookingMessageClass = 'text-danger';
+                } elseif ($booking->status === 'expired') {
+                    $bookingMessage = 'Booking expired - event ended before the booking was confirmed.';
                     $bookingMessageClass = 'text-danger';
                 } elseif ($booking->status === 'completed') {
                     $bookingMessage = 'Booking confirmed';
@@ -278,21 +319,23 @@
 
                 <div class="organizer-applicant-actions">
                     @if($application->status === 'pending')
-                        @if(auth()->user()->hasLimitedAccess())
-                            <span class="btn ph-btn-secondary btn-sm disabled"><i class="fas fa-lock me-1"></i>Pending Verification</span>
+                        @if($applicationsClosed)
+                            <span class="btn ph-btn-outline btn-sm disabled">Applications Closed</span>
+                        @elseif(auth()->user()->hasLimitedAccess())
+                            <span class="btn ph-btn-outline btn-sm disabled"><i class="fas fa-lock me-1"></i>Pending Verification</span>
                         @else
                             <a href="{{ route('organizer.bookings.create', ['performer' => $application->performer->performerProfile, 'event' => $event->id, 'from_application' => 1]) }}" class="btn ph-btn-primary btn-sm">
                                 Accept Application
                             </a>
-                            <form method="POST" action="{{ route('organizer.events.applications.decline', [$event, $application]) }}" class="organizer-confirm-form" data-confirm-title="Decline Applicant" data-confirm-message="Decline this applicant?" data-confirm-button="Decline Applicant">
+                            <form method="POST" action="{{ route('organizer.events.applications.decline', [$event, $application]) }}" class="organizer-confirm-form" data-confirm-title="Decline Applicant" data-confirm-message="Decline this applicant?" data-confirm-button="Decline Applicant" data-confirm-style="ph-btn-danger">
                                 @csrf
-                                <button type="submit" class="btn btn-outline-danger btn-sm">Decline</button>
+                                <button type="submit" class="btn ph-btn-danger-outline btn-sm">Decline</button>
                             </form>
                         @endif
                     @elseif($application->status === 'accepted' && isset($bookings[$application->performer_id]))
                         @php($booking = $bookings[$application->performer_id])
                         @if($booking->hasCancelRequest())
-                            <a href="{{ route('organizer.bookings.show', $booking) }}" class="btn btn-outline-danger btn-sm">Review Cancellation</a>
+                            <a href="{{ route('organizer.bookings.show', $booking) }}" class="btn ph-btn-outline btn-sm">Review Cancellation</a>
                         @else
                             <a href="{{ route('organizer.bookings.show', $booking) }}" class="btn ph-btn-primary btn-sm">View Booking</a>
                         @endif

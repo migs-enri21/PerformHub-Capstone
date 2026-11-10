@@ -16,6 +16,13 @@ class EventApplicationController extends Controller
         abort_unless($event->organizer_id === Auth::id(), 403);
         abort_unless($application->event_id === $event->id, 404);
 
+        Event::refreshStatuses();
+        $event->refresh();
+
+        if (strtolower($event->status) !== 'open' || $event->hasStarted()) {
+            return back()->with('warning', 'Applications can no longer be managed because this event is closed.');
+        }
+
         if ($application->status !== 'pending') {
             return back()->with('warning', 'This application has already been processed.');
         }

@@ -47,14 +47,12 @@ class UserController extends Controller
     {
         abort_unless(in_array($user->role, ['performer', 'organizer']), 400);
 
-        if ($user->isPerformer()) {
-            $user->loadMissing('performerProfile');
+        $user->loadMissing(['performerProfile.categories', 'organizerProfile']);
 
-            if (! $user->hasCompletedProfileDetails()) {
+        if ($user->isPerformer()) {
+            if (! $user->markProfileDetailsComplete()) {
                 return back()->with('warning', 'Complete Profile Details before admin verification.');
             }
-
-            $user->markProfileDetailsComplete();
         }
 
         $user->update([
@@ -73,11 +71,11 @@ class UserController extends Controller
     {
         abort_unless(in_array($user->role, ['performer', 'organizer']), 400);
 
-        if (! $user->hasCompletedProfileDetails()) {
+        $user->loadMissing(['performerProfile.categories', 'organizerProfile']);
+
+        if (! $user->markProfileDetailsComplete()) {
             return back()->with('warning', 'Profile details are incomplete. The user must finish the required profile fields first.');
         }
-
-        $user->markProfileDetailsComplete();
 
         return back()->with('success', 'Profile checked successfully. Profile Details is now complete.');
     }

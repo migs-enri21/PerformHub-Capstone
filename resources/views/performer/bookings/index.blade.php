@@ -13,13 +13,15 @@
         'pending' => 'Pending Requests',
         'accepted' => 'Upcoming Bookings',
         'completed' => 'Booked',
+        'finished' => 'Completed',
         'cancelled' => 'Cancelled',
         'expired' => 'Expired',
         default => 'Booking History',
     };
 @endphp
 
-<div class="d-flex justify-content-between align-items-center mb-4">
+<div class="ph-bookings-page">
+<div class="d-flex justify-content-between align-items-center mb-3">
     <h2 class="fw-bold mb-0">{{ $heading }}</h2>
 </div>
 
@@ -32,6 +34,7 @@
                 <option value="pending" @selected(($listFilter ?? '') === 'pending')>Pending</option>
                 <option value="accepted" @selected(($listFilter ?? '') === 'accepted')>Upcoming</option>
                 <option value="completed" @selected(($listFilter ?? '') === 'completed')>Booked</option>
+                <option value="finished" @selected(($listFilter ?? '') === 'finished')>Completed</option>
                 <option value="cancel" @selected(($listFilter ?? '') === 'cancel')>Cancel requests</option>
                 <option value="cancelled" @selected(($listFilter ?? '') === 'cancelled')>Cancelled</option>
             </select>
@@ -63,27 +66,30 @@
                         $needsSignature = $booking->status === 'accepted'
                             && $booking->hasContract()
                             && ! $booking->isSigned()
-                            && ! $booking->eventDateHasPassed();
+                            && ! $booking->eventHasEnded();
                     @endphp
                     <tr>
                         <td>{{ $booking->event_name }}</td>
                         <td>{{ $booking->organizer->organizerProfile?->organization_name ?? $booking->organizer->name }}</td>
-                        <td>{{ $booking->event_date->format('M d, Y') }}</td>
+                        <td>
+                            <div>{{ $booking->assignmentDateRangeLabel() }}</div>
+                            <div class="small text-muted">Event: {{ $booking->dateRangeLabel() }}</div>
+                        </td>
                         <td>
                             <span class="badge {{ $booking->statusBadgeClass() }}">{{ $booking->statusLabel() }}</span>
                             @if($booking->hasCancelRequest())
-                                <span class="badge bg-warning text-dark">Cancel pending</span>
+                                <span class="badge ph-badge ph-badge-action">Cancel pending</span>
                             @endif
                         </td>
                         <td>
                             @if($booking->hasSignedContract())
-                                <span class="badge bg-success">Signed copy sent</span>
+                                <span class="badge ph-badge ph-badge-success">Signed copy sent</span>
                             @elseif($booking->isSignWellCompleted())
-                                <span class="badge bg-success">Signed</span>
+                                <span class="badge ph-badge ph-badge-success">Signed</span>
                             @elseif($needsSignature)
-                                <span class="badge bg-warning text-dark">Sign contract</span>
+                                <span class="badge ph-badge ph-badge-action">Sign contract</span>
                             @elseif($booking->hasContract())
-                                <span class="badge bg-info">Contract uploaded</span>
+                                <span class="badge ph-badge ph-badge-contract">Contract uploaded</span>
                             @else
                                 <span class="text-muted small">—</span>
                             @endif
@@ -107,5 +113,8 @@
     </div>
 </div>
 
-{{ $bookings->links() }}
+<div class="ph-pagination">
+    {{ $bookings->links() }}
+</div>
+</div>
 @endsection

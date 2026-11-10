@@ -12,6 +12,6 @@
     <form method="POST" action="{{ route('organizer.feature-requests.clear-reviewed', $requestType) }}" class="ms-auto me-3">
         @csrf
         @method('DELETE')
-        <button type="submit" class="btn btn-sm btn-outline-secondary">Clear approved and rejected</button>
+        <button type="submit" class="btn ph-btn-outline btn-sm">Clear approved and rejected</button>
     </form>
 @endif

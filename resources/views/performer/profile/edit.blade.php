@@ -163,7 +163,6 @@
 
             <div class="ph-card p-4 mt-3">
                 <h5 class="fw-semibold mb-1">Social Media</h5>
-                <p class="text-muted small mb-3">Paste the profile URL and follower count (e.g. <strong>19000</strong> = 19K).</p>
                 <div class="row g-3">
                     @php
                         $socialFields = [
@@ -180,7 +179,10 @@
                                 <label class="form-label text-muted small mb-2">{{ $meta['label'] }}</label>
                                 <div class="row g-2">
                                     <div class="col-md-8">
-                                        <input type="url" name="social_{{ $field }}" class="form-control ph-input" value="{{ old('social_'.$field, $profile->{'social_'.$field}) }}" placeholder="https://">
+                                        <input type="url" name="social_{{ $field }}" class="form-control ph-input @error('social_'.$field) is-invalid @enderror" value="{{ old('social_'.$field, $profile->{'social_'.$field}) }}" placeholder="https://">
+                                        @error('social_'.$field)
+                                            <div class="invalid-feedback d-block">{{ $message }}</div>
+                                        @enderror
                                     </div>
                                     <div class="col-md-4">
                                         <div class="input-group">

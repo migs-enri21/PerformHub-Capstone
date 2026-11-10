@@ -82,26 +82,48 @@
                 if ($event->compensation_type === 'contest') {
                     $compensationLabel = 'Contest Prizes';
                 }
+
+                $eventMediaUrl = '';
+                $eventMediaType = '';
+
+                if ($event->photos->isNotEmpty()) {
+                    $firstMedia = $event->photos->first();
+                    $eventMediaUrl = $firstMedia->fileUrl();
+
+                    if ($firstMedia->isVideo()) {
+                        $eventMediaType = 'video';
+                    } else {
+                        $eventMediaType = 'image';
+                    }
+                } elseif ($event->coverPhotoUrl()) {
+                    $eventMediaUrl = $event->coverPhotoUrl();
+                    $eventMediaType = 'image';
+                }
             @endphp
 
             <option
                 value="{{ $event->id }}"
                 data-id="{{ $event->id }}"
                 data-title="{{ $event->title }}"
-                data-date="{{ $event->event_date }}"
+                data-date="{{ $event->event_date->format('Y-m-d') }}"
+                data-end-date="{{ $event->end_date->format('Y-m-d') }}"
                 data-start="{{ $event->start_time }}"
                 data-end="{{ $event->end_time }}"
                 data-venue="{{ $event->venue }}"
                 data-description="{{ $event->description }}"
                 data-budget="{{ $event->budget }}"
+                data-rate-per-hour="{{ $event->rate_per_hour }}"
+                data-work-hours-per-day="{{ $event->work_hours_per_day }}"
                 data-compensation-type="{{ $event->compensation_type }}"
                 data-first-prize="{{ $event->first_prize }}"
                 data-second-prize="{{ $event->second_prize }}"
                 data-third-prize="{{ $event->third_prize }}"
-                data-date-label="{{ \Illuminate\Support\Carbon::parse($event->event_date)->format('M d, Y') }}"
+                data-date-label="{{ $event->dateRangeLabel() }}"
                 data-time-label="{{ \Illuminate\Support\Carbon::parse($event->start_time)->format('g:i A') }} - {{ \Illuminate\Support\Carbon::parse($event->end_time)->format('g:i A') }}"
                 data-event-type="{{ $eventTypeName }}"
                 data-compensation="{{ $compensationLabel }}"
+                data-media-url="{{ $eventMediaUrl }}"
+                data-media-type="{{ $eventMediaType }}"
                 @selected($eventDetails['id'] == $event->id)>
 
                 {{ $event->title }} — {{ \Illuminate\Support\Carbon::parse($event->event_date)->format('M d') }}, {{ \Illuminate\Support\Carbon::parse($event->start_time)->format('g:i A') }}
@@ -110,30 +132,70 @@
         @endforeach
 
             </select>
-            <small class="text-muted d-block mt-2">Only today’s and upcoming active events are shown.</small>
+            <small class="text-muted d-block mt-2">Only open events that have not started are shown.</small>
             <input type="hidden" name="event_id" id="event_id" value="{{ $eventDetails['id'] }}">
             @error('event_id')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
             </div>
 
             <div id="selectedEventSummary" class="organizer-booking-event-summary d-none">
-                <div class="organizer-booking-event-summary-title">Selected Event</div>
-                <div class="organizer-booking-event-summary-name" id="summaryEventName"></div>
-                <div class="organizer-booking-event-summary-details">
-                    <span id="summaryEventDate"></span>
-                    <span id="summaryEventTime"></span>
-                    <span id="summaryEventVenue"></span>
-                    <span id="summaryEventType"></span>
-                    <span id="summaryEventCompensation"></span>
+                <div class="organizer-booking-event-summary-content">
+                    <div class="organizer-booking-event-media d-none" id="summaryEventMedia">
+                        <img id="summaryEventImage" src="" alt="Selected event media">
+                        <div class="organizer-booking-event-video-preview d-none" id="summaryEventVideoPreview">
+                            <i class="fas fa-play" aria-hidden="true"></i>
+                            <span>Video</span>
+                        </div>
+                    </div>
+                    <div class="flex-grow-1 min-w-0">
+                        <div class="organizer-booking-event-summary-header">
+                            <div>
+                                <div class="organizer-booking-event-summary-title">Selected Event</div>
+                                <div class="organizer-booking-event-summary-name" id="summaryEventName"></div>
+                            </div>
+                            <div class="organizer-booking-event-summary-badges">
+                                <span class="organizer-booking-event-badge" id="summaryEventType"></span>
+                                <span class="organizer-booking-event-badge organizer-booking-event-badge--compensation" id="summaryEventCompensation"></span>
+                            </div>
+                        </div>
+                        <div class="organizer-booking-event-summary-details">
+                            <span><i class="fas fa-calendar-alt" aria-hidden="true"></i><span id="summaryEventDate"></span></span>
+                            <span><i class="far fa-clock" aria-hidden="true"></i><span id="summaryEventTime"></span></span>
+                            <span><i class="fas fa-map-marker-alt" aria-hidden="true"></i><span id="summaryEventVenue"></span></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12 d-none" id="assignmentSchedule">
+                <div class="organizer-booking-event-summary">
+                    <div class="organizer-booking-event-summary-title mb-3">Performer Assignment Schedule</div>
+                    <p class="text-muted small mb-3">Choose the dates this performer will work within the selected event.</p>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label text-muted small" for="assigned_start_date">Assignment Start Date</label>
+                            <input type="date" name="assigned_start_date" id="assigned_start_date" class="form-control ph-input @error('assigned_start_date') is-invalid @enderror" value="{{ old('assigned_start_date') }}" required>
+                            @error('assigned_start_date')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label text-muted small" for="assigned_end_date">Assignment End Date</label>
+                            <input type="date" name="assigned_end_date" id="assigned_end_date" class="form-control ph-input @error('assigned_end_date') is-invalid @enderror" value="{{ old('assigned_end_date') }}" required>
+                            @error('assigned_end_date')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        </div>
+                    </div>
                 </div>
             </div>
 
             <div class="col-12 d-none" id="contestPrizeNotice">
-                <div class="alert alert-info mb-0">
-                    <strong>Prize-based contest entry.</strong> Contestants do not receive a guaranteed booking fee. Only the winners receive prizes.
-                    <div class="small mt-1" id="contestPrizeDetails"></div>
+                <div class="organizer-contest-prize-notice" role="note">
+                    <div class="organizer-contest-prize-notice-icon"><i class="fas fa-trophy" aria-hidden="true"></i></div>
+                    <div>
+                        <strong>Prize-based contest entry</strong>
+                        <p>Contestants do not receive a guaranteed booking fee. Only the winners receive prizes.</p>
+                        <div class="organizer-contest-prize-details" id="contestPrizeDetails"></div>
+                    </div>
                 </div>
             </div>
-            <div class="col-md-4"><label class="form-label text-muted small">Budget Offer (₱)</label><input type="number" name="budget" id="budget" class="form-control ph-input @error('budget') is-invalid @enderror" value="{{ old('budget', $selectedEventBudget) }}" step="0.01">@error('budget')<div class="invalid-feedback">{{ $message }}</div>@enderror</div>
+            <div class="col-md-4"><label class="form-label text-muted small" id="budgetOfferLabel">Budget Offer (₱)</label><input type="number" name="budget" id="budget" class="form-control ph-input @error('budget') is-invalid @enderror" value="{{ old('budget', $selectedEventBudget) }}" step="0.01"><small class="text-muted d-none" id="hourlyRateHelp"></small>@error('budget')<div class="invalid-feedback">{{ $message }}</div>@enderror</div>
             <div class="col-12"><label class="form-label text-muted small">Notes for Performer (Optional)</label><textarea name="notes" class="form-control ph-input" rows="2">{{ old('notes') }}</textarea></div>
 
         </div>
@@ -155,8 +217,16 @@
     const selectedEventSummary = document.getElementById('selectedEventSummary');
     const budgetInput = document.getElementById('budget');
     const budgetOfferField = budgetInput.closest('.col-md-4');
+    const budgetOfferLabel = document.getElementById('budgetOfferLabel');
+    const hourlyRateHelp = document.getElementById('hourlyRateHelp');
     const contestPrizeNotice = document.getElementById('contestPrizeNotice');
     const contestPrizeDetails = document.getElementById('contestPrizeDetails');
+    const summaryEventMedia = document.getElementById('summaryEventMedia');
+    const summaryEventImage = document.getElementById('summaryEventImage');
+    const summaryEventVideoPreview = document.getElementById('summaryEventVideoPreview');
+    const assignmentSchedule = document.getElementById('assignmentSchedule');
+    const assignmentStartDate = document.getElementById('assigned_start_date');
+    const assignmentEndDate = document.getElementById('assigned_end_date');
 
     function updateSelectedEvent() {
 
@@ -165,6 +235,14 @@
             if (!selected.dataset.id) {
                 document.getElementById('event_id').value = '';
                 selectedEventSummary.classList.add('d-none');
+                budgetInput.value = '';
+                budgetOfferLabel.textContent = 'Budget Offer (₱)';
+                hourlyRateHelp.classList.add('d-none');
+                contestPrizeNotice.classList.add('d-none');
+                summaryEventMedia.classList.add('d-none');
+                assignmentSchedule.classList.add('d-none');
+                assignmentStartDate.value = '';
+                assignmentEndDate.value = '';
                 return;
             }
 
@@ -175,20 +253,51 @@
             document.getElementById('summaryEventVenue').textContent = selected.dataset.venue;
             document.getElementById('summaryEventType').textContent = selected.dataset.eventType;
             document.getElementById('summaryEventCompensation').textContent = selected.dataset.compensation;
+            updateEventMediaPreview(selected);
+            updateAssignmentSchedule(selected);
 
             if (selected.dataset.compensationType === 'contest') {
                 budgetInput.value = '';
                 budgetInput.disabled = true;
                 budgetOfferField.classList.add('d-none');
                 contestPrizeNotice.classList.remove('d-none');
+                hourlyRateHelp.classList.add('d-none');
                 showContestPrizes(selected);
             } else {
                 budgetInput.value = selected.dataset.budget || '';
                 budgetInput.disabled = false;
                 budgetOfferField.classList.remove('d-none');
                 contestPrizeNotice.classList.add('d-none');
+
+                if (selected.dataset.compensationType === 'hourly') {
+                    showHourlySuggestion(selected);
+                } else {
+                    budgetOfferLabel.textContent = 'Budget Offer (₱)';
+                    hourlyRateHelp.classList.add('d-none');
+                }
             }
             selectedEventSummary.classList.remove('d-none');
+    }
+
+    function updateEventMediaPreview(selected) {
+        const mediaUrl = selected.dataset.mediaUrl;
+
+        if (!mediaUrl) {
+            summaryEventMedia.classList.add('d-none');
+            return;
+        }
+
+        summaryEventMedia.classList.remove('d-none');
+
+        if (selected.dataset.mediaType === 'video') {
+            summaryEventImage.classList.add('d-none');
+            summaryEventVideoPreview.classList.remove('d-none');
+            return;
+        }
+
+        summaryEventImage.src = mediaUrl;
+        summaryEventImage.classList.remove('d-none');
+        summaryEventVideoPreview.classList.add('d-none');
     }
 
     function showContestPrizes(selected) {
@@ -209,7 +318,57 @@
         contestPrizeDetails.textContent = prizes.join(' · ');
     }
 
+    function showHourlySuggestion(selected) {
+        const startDate = new Date(assignmentStartDate.value + 'T00:00:00');
+        const endDate = new Date(assignmentEndDate.value + 'T00:00:00');
+        const assignmentDays = Math.round((endDate - startDate) / 86400000) + 1;
+        const rate = Number(selected.dataset.ratePerHour || 0);
+        const workHoursPerDay = Number(selected.dataset.workHoursPerDay || 0);
+        const suggestedOffer = rate * workHoursPerDay * assignmentDays;
+
+        budgetInput.value = suggestedOffer.toFixed(2);
+        budgetOfferLabel.textContent = 'Suggested Offer (₱)';
+        hourlyRateHelp.textContent = '₱' + rate.toLocaleString() + ' per hour × ' + workHoursPerDay + ' hours per day × ' + assignmentDays + ' assigned day(s). You may edit this offer.';
+        hourlyRateHelp.classList.remove('d-none');
+    }
+
+    function updateAssignmentSchedule(selected) {
+        assignmentSchedule.classList.remove('d-none');
+        assignmentStartDate.min = selected.dataset.date;
+        assignmentStartDate.max = selected.dataset.endDate;
+        assignmentEndDate.min = selected.dataset.date;
+        assignmentEndDate.max = selected.dataset.endDate;
+
+        if (!assignmentStartDate.value || assignmentStartDate.value < selected.dataset.date || assignmentStartDate.value > selected.dataset.endDate) {
+            assignmentStartDate.value = selected.dataset.date;
+        }
+
+        if (!assignmentEndDate.value || assignmentEndDate.value < assignmentStartDate.value || assignmentEndDate.value > selected.dataset.endDate) {
+            assignmentEndDate.value = selected.dataset.endDate;
+        }
+    }
+
+    function updateHourlyOfferForAssignment() {
+        const selected = selector.options[selector.selectedIndex];
+
+        if (!selected.dataset.id) {
+            return;
+        }
+
+        if (selected.dataset.compensationType === 'hourly') {
+            showHourlySuggestion(selected);
+        }
+    }
+
     selector.addEventListener('change', updateSelectedEvent);
+    assignmentStartDate.addEventListener('change', function () {
+        if (assignmentEndDate.value < assignmentStartDate.value) {
+            assignmentEndDate.value = assignmentStartDate.value;
+        }
+
+        updateHourlyOfferForAssignment();
+    });
+    assignmentEndDate.addEventListener('change', updateHourlyOfferForAssignment);
     updateSelectedEvent();
 
     });

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Organizer;
 use App\Http\Controllers\Controller;
 use App\Models\Event;
 use App\Models\OrganizerProfile;
+use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
@@ -13,6 +14,7 @@ class CalendarController extends Controller
 {
     public function index(): View
     {
+        Event::refreshStatuses();
         $profile = $this->getProfile();
         $events = $this->getEvents();
         $googleBusyDates = $profile->googleCalendarBusyDates()->orderBy('date')->get();
@@ -22,7 +24,7 @@ class CalendarController extends Controller
             'events' => $events,
             'calendarEvents' => $this->getCalendarEvents($events),
             'googleBusy' => $this->getGoogleBusyDates($googleBusyDates),
-            'upcomingEvents' => $this->getUpcomingEvents($events),
+            'openEvents' => $this->getOpenEvents($events),
         ]);
     }
 
@@ -43,12 +45,23 @@ class CalendarController extends Controller
         $calendarEvents = [];
 
         foreach ($events as $event) {
-            $date = (string) $event->event_date;
+            $startDate = Carbon::parse($event->event_date);
+            $endDate = Carbon::parse($event->end_date);
 
-            $calendarEvents[$date][] = [
-                'title' => $event->title,
-                'url' => route('organizer.events.show', $event),
-            ];
+            while ($startDate->lessThanOrEqualTo($endDate)) {
+                $date = $startDate->toDateString();
+
+                $calendarEvents[$date][] = [
+                    'title' => $event->title,
+                    'start_time' => $event->start_time,
+                    'end_time' => $event->end_time,
+                    'venue' => $event->venue,
+                    'status' => $event->status,
+                    'url' => route('organizer.events.show', $event),
+                ];
+
+                $startDate->addDay();
+            }
         }
 
         return $calendarEvents;
@@ -67,21 +80,19 @@ class CalendarController extends Controller
         return $googleBusy;
     }
 
-    private function getUpcomingEvents(Collection $events): array
+    private function getOpenEvents(Collection $events): array
     {
-        $upcomingEvents = [];
-        $today = now()->toDateString();
-
+        $openEvents = [];
         foreach ($events as $event) {
-            if ($event->event_date >= $today) {
-                $upcomingEvents[] = $event;
+            if (strtolower($event->status) === 'open' && ! $event->hasStarted()) {
+                $openEvents[] = $event;
             }
 
-            if (count($upcomingEvents) === 4) {
+            if (count($openEvents) === 4) {
                 break;
             }
         }
 
-        return $upcomingEvents;
+        return $openEvents;
     }
 }

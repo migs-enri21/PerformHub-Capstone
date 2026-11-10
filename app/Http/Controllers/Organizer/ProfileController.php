@@ -57,8 +57,8 @@ class ProfileController extends Controller
     private function validateProfile(Request $request): array
     {
         return $request->validate(array_merge([
-            'first_name' => ['required', 'string', 'max:100'],
-            'last_name' => ['required', 'string', 'max:100'],
+            'first_name' => ['required', 'string', 'max:100', "regex:/^[a-zA-Z\\s\\-']+$/"],
+            'last_name' => ['required', 'string', 'max:100', "regex:/^[a-zA-Z\\s\\-']+$/"],
             'organization_name' => ['required', 'string', 'max:255'],
             'organization_type' => ['required', 'in:freelancer,agency'],
             'bio' => ['nullable', 'string', 'max:2000'],
@@ -69,6 +69,8 @@ class ProfileController extends Controller
             'banner_position_y' => ['nullable', 'integer', 'min:0', 'max:100'],
         ], PhilippineLocations::locationFieldsRules(required: false)), [
             'phone.regex' => PhoneNumbers::message(),
+            'first_name.regex' => 'First name may only contain letters, spaces, hyphens, and apostrophes.',
+            'last_name.regex' => 'Last name may only contain letters, spaces, hyphens, and apostrophes.',
         ]);
     }
 
@@ -104,7 +106,11 @@ class ProfileController extends Controller
 
     private function updateProfileDetails(OrganizerProfile $profile, array $data): void
     {
-        $profile->update(collect($data)->except(['first_name', 'last_name', 'region','city','barangay',])->all());
+        $profileData = collect($data)
+            ->except(['first_name', 'last_name', 'region', 'city', 'barangay'])
+            ->all();
+
+        $profile->update($profileData);
 
         if (!empty($data['region']) && ! empty($data['city'])) {
             $profile->update(PhilippineLocations::profileLocationAttributes($data));

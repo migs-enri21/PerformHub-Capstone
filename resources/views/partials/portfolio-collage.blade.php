@@ -115,9 +115,19 @@
     @endif
 
     @if($editable)
+        @php
+            $deleteFormId = 'portfolio-delete-'.$items->first()->id;
+            $editFormId = 'portfolio-edit-form-'.$items->first()->id;
+        @endphp
         <div class="modal fade" id="{{ $editModalId }}" tabindex="-1" aria-hidden="true">
             <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
-                <form action="{{ route('performer.portfolio.update') }}" method="POST" enctype="multipart/form-data" class="modal-content portfolio-edit-form">
+                <form
+                    id="{{ $editFormId }}"
+                    action="{{ route('performer.portfolio.update') }}"
+                    method="POST"
+                    enctype="multipart/form-data"
+                    class="modal-content portfolio-edit-form"
+                >
                     @csrf
                     @foreach($items as $item)
                         <input type="hidden" name="item_ids[]" value="{{ $item->id }}">
@@ -147,8 +157,7 @@
                             <label class="form-label text-muted small" for="portfolioEditCaption-{{ $items->first()->id }}">Caption</label>
                             <textarea name="caption" id="portfolioEditCaption-{{ $items->first()->id }}" class="form-control ph-input mb-3" rows="3" maxlength="2000">{{ $caption }}</textarea>
 
-                            <label class="form-label text-muted small">Current photos/videos</label>
-                            <p class="text-muted small mb-2">Click the <i class="fas fa-times"></i> on an item to remove it from this post.</p>
+                            
                             <div class="portfolio-edit-grid mb-3">
                                 @foreach($items as $item)
                                     <div class="portfolio-edit-tile" data-item-id="{{ $item->id }}">
@@ -170,14 +179,35 @@
                                 name="files[]"
                                 id="portfolioEditFiles-{{ $items->first()->id }}"
                                 class="form-control ph-input"
-                                accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm,video/quicktime,video/*"
+                                accept="image/jpeg,image/png,video/mp4,video/quicktime"
                                 multiple
                             >
                         </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn ph-btn-outline" data-bs-dismiss="modal">Cancel</button>
-                            <button type="submit" class="btn ph-btn-primary">Save changes</button>
+                        <div class="modal-footer d-flex justify-content-between align-items-center gap-2 flex-wrap">
+                            <button
+                                type="submit"
+                                form="{{ $deleteFormId }}"
+                                class="btn ph-btn-outline portfolio-delete-btn"
+                            >
+                                Delete
+                            </button>
+                            <div class="d-flex gap-2 ms-auto">
+                                <button type="button" class="btn ph-btn-outline portfolio-edit-cancel-btn" data-bs-dismiss="modal">Cancel</button>
+                                <button type="submit" class="btn ph-btn-primary portfolio-save-btn">Save changes</button>
+                            </div>
                         </div>
+                </form>
+                <form
+                    id="{{ $deleteFormId }}"
+                    action="{{ route('performer.portfolio.destroy-batch') }}"
+                    method="POST"
+                    class="d-none portfolio-delete-form"
+                >
+                    @csrf
+                    @method('DELETE')
+                    @foreach($items as $item)
+                        <input type="hidden" name="item_ids[]" value="{{ $item->id }}">
+                    @endforeach
                 </form>
             </div>
         </div>
@@ -226,12 +256,52 @@
         });
 
         document.addEventListener('submit', (e) => {
-            if (!e.target.matches('.portfolio-edit-form')) return;
-            const btn = e.target.querySelector('button[type="submit"]');
+            if (e.target.matches('.portfolio-edit-form')) {
+                const btn = e.target.querySelector('.portfolio-save-btn');
+                if (btn) {
+                    btn.disabled = true;
+                    btn.textContent = 'Saving…';
+                }
+                return;
+            }
+
+            if (!e.target.matches('.portfolio-delete-form')) return;
+
+            e.preventDefault(); // stop delete until they confirm in the modal
+
+            const confirmModalEl = document.getElementById('portfolioDeleteConfirmModal');
+            const confirmBtn = document.getElementById('portfolioConfirmDeleteBtn');
+            if (!confirmModalEl || !confirmBtn || typeof bootstrap === 'undefined') return;
+
+            window.__pendingPortfolioDeleteForm = e.target;
+
+            // Close Edit first so the confirm modal is alone and readable.
+            const editModal = e.target.closest('.modal');
+            const showConfirm = () => {
+                bootstrap.Modal.getOrCreateInstance(confirmModalEl).show();
+            };
+
+            if (editModal && editModal.classList.contains('show')) {
+                editModal.addEventListener('hidden.bs.modal', showConfirm, { once: true });
+                bootstrap.Modal.getInstance(editModal)?.hide();
+            } else {
+                showConfirm();
+            }
+        });
+
+        document.getElementById('portfolioConfirmDeleteBtn')?.addEventListener('click', () => {
+            const form = window.__pendingPortfolioDeleteForm;
+            if (!form) return;
+
+            const btn = document.querySelector(`button.portfolio-delete-btn[form="${form.id}"]`);
             if (btn) {
                 btn.disabled = true;
-                btn.textContent = 'Saving…';
+                btn.textContent = 'Deleting…';
             }
+
+            bootstrap.Modal.getInstance(document.getElementById('portfolioDeleteConfirmModal'))?.hide();
+            window.__pendingPortfolioDeleteForm = null;
+            form.submit();
         });
         </script>
     @endpush

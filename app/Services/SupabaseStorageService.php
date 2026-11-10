@@ -44,15 +44,25 @@ class SupabaseStorageService
         // that uploads can be up to the Supabase project's 500 MB size ceiling.
         $stream = fopen($file->getRealPath(), 'r');
 
+        // Keep PHP alive for slow large-file transfers (matches the HTTP timeout below).
+        if (function_exists('set_time_limit')) {
+            set_time_limit(660);
+        }
+
         try {
-            $response = Http::withoutVerifying()->withHeaders([
-                'Authorization' => 'Bearer ' . $key,
-                'apikey'        => $key,
-                'x-upsert'      => 'true',
-                'Content-Type'  => $file->getMimeType(),
-            ])
-            ->withBody($stream, $file->getMimeType())
-            ->post("{$url}/storage/v1/object/{$bucket}/{$path}");
+            // Large portfolio videos easily exceed Laravel's default 30s HTTP timeout
+            // (cURL error 28). Allow up to 10 minutes for uploads near the 500 MB ceiling.
+            $response = Http::withoutVerifying()
+                ->timeout(600)
+                ->connectTimeout(60)
+                ->withHeaders([
+                    'Authorization' => 'Bearer ' . $key,
+                    'apikey'        => $key,
+                    'x-upsert'      => 'true',
+                    'Content-Type'  => $file->getMimeType(),
+                ])
+                ->withBody($stream, $file->getMimeType())
+                ->post("{$url}/storage/v1/object/{$bucket}/{$path}");
         } finally {
             if (is_resource($stream)) {
                 fclose($stream);
@@ -88,11 +98,14 @@ class SupabaseStorageService
         $safeName = preg_replace('/[^A-Za-z0-9._-]/', '-', $filename);
         $path = $folder.'/'.$userId.'/'.time().'_'.$safeName;
 
-        $response = Http::withoutVerifying()->withHeaders([
-            'Authorization' => 'Bearer '.$key,
-            'apikey' => $key,
-            'x-upsert' => 'true',
-        ])->withBody($contents, $mimeType)
+        $response = Http::withoutVerifying()
+            ->timeout(600)
+            ->connectTimeout(60)
+            ->withHeaders([
+                'Authorization' => 'Bearer '.$key,
+                'apikey' => $key,
+                'x-upsert' => 'true',
+            ])->withBody($contents, $mimeType)
             ->post("{$url}/storage/v1/object/{$bucket}/{$path}");
 
         if ($response->failed()) {

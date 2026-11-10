@@ -35,7 +35,7 @@
     $canApply = false;
 
     if ($eventDate && in_array($event->status, ['Open', 'open'], true)) {
-        if ($eventDate->toDateString() >= now()->toDateString()) {
+        if (! $event->hasStarted()) {
             $canApply = true;
         }
     }
@@ -91,6 +91,7 @@
             @endif
             @if($event->compensation_type === 'hourly' && $event->rate_per_hour)
                 <span>Rate per hour: PHP {{ number_format((float) $event->rate_per_hour, 0) }}</span>
+                <span>{{ $event->work_hours_per_day }} work hours per day</span>
             @endif
             @if($event->compensation_type === 'contest')
                 <span>Contest prizes available</span>

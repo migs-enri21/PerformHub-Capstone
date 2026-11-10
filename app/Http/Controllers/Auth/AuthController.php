@@ -93,8 +93,8 @@ class AuthController extends Controller
     public function register(Request $request): RedirectResponse
     {
         $validated = $request->validate(array_merge([
-            'first_name' => ['required', 'string', 'max:100'],
-            'last_name' => ['required', 'string', 'max:100'],
+            'first_name' => ['required', 'string', 'max:100', "regex:/^[a-zA-Z\\s\\-']+$/"],
+            'last_name' => ['required', 'string', 'max:100', "regex:/^[a-zA-Z\\s\\-']+$/"],
             'email' => ['required', 'email', 'max:255', 'unique:users,email'],
             'password' => ['required', 'confirmed', Password::min(8)],
             'phone' => PhoneNumbers::rules(required: true),
@@ -106,6 +106,8 @@ class AuthController extends Controller
             'password.confirmed' => 'Password and confirm password do not match.',
             'password.min' => 'Password must be at least 8 characters.',
             'phone.regex' => PhoneNumbers::message(),
+            'first_name.regex' => 'First name may only contain letters, spaces, hyphens, and apostrophes.',
+            'last_name.regex' => 'Last name may only contain letters, spaces, hyphens, and apostrophes.',
             'government_id.required' => 'Please upload at least one valid government ID file.',
         ]);
 

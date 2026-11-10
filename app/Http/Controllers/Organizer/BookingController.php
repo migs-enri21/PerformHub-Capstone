@@ -22,11 +22,9 @@ class BookingController extends Controller
     public function create(Request $request, PerformerProfile $performer): View
     {
         $this->ensurePerformerCanBeBooked($performer);
+        Event::refreshStatuses();
 
-        $events = $this->activeEvents()
-            ->orderBy('event_date')
-            ->orderBy('start_time')
-            ->get();
+        $events = $this->activeEvents();
         $selectedEvent = $this->getSelectedEvent($request);
         $existingBooking = $this->findActiveBooking($performer, $selectedEvent);
         $fromApplication = $request->boolean('from_application');
@@ -37,14 +35,29 @@ class BookingController extends Controller
     public function store(Request $request, PerformerProfile $performer): RedirectResponse
     {
         $this->ensurePerformerCanBeBooked($performer);
+        Event::refreshStatuses();
 
-        $event = $this->activeEvents()->find($request->input('event_id'));
+        $event = $this->activeEvents()->firstWhere('id', $request->input('event_id'));
 
         if (! $event) {
             return back()->with('error', 'Select an active event before sending a booking request.');
         }
 
+        $fromApplication = $request->boolean('from_application');
+
+        if ($fromApplication) {
+            $hasPendingApplication = EventApplication::where('event_id', $event->id)
+                ->where('performer_id', $performer->user_id)
+                ->where('status', 'pending')
+                ->exists();
+
+            if (! $hasPendingApplication) {
+                return back()->with('error', 'This performer does not have a pending application for the selected event.');
+            }
+        }
+
         $validated = $this->validateBooking($request, $event);
+        $this->ensureAssignmentDatesAreInsideEvent($validated, $event);
         $validated = $this->bookingDetailsFromEvent($event, $validated);
 
         if ($event->compensation_type === 'contest') {
@@ -58,19 +71,22 @@ class BookingController extends Controller
         }
 
         $sameDayBooking = Booking::where('performer_id', $performer->user_id)
-            ->whereDate('event_date', $validated['event_date'])
+            ->overlappingAssignmentDates($validated['assigned_start_date'], $validated['assigned_end_date'])
             ->lockingDate()
             ->first();
 
         if ($sameDayBooking) {
             return back()->with('error',
-                'This performer already has "'.$sameDayBooking->event_name.'" on that date. PerformHub allows 1 event per day.'
+                'This performer already has "'.$sameDayBooking->event_name.'" during the selected assignment dates. PerformHub allows 1 event per day.'
             );
+        }
+
+        if (! $this->performerIsAvailableForDates($performer, $validated['assigned_start_date'], $validated['assigned_end_date'])) {
+            return back()->with('error', 'This performer is unavailable on one or more assigned dates.');
         }
 
         $validated['organizer_id'] = Auth::id();
         $validated['performer_id'] = $performer->user_id;
-        $fromApplication = $request->boolean('from_application');
         $validated['source'] = 'invite';
         $validated['status'] = 'pending';
 
@@ -113,8 +129,8 @@ class BookingController extends Controller
             return back()->with('warning', 'Only an active booking can receive a contract.');
         }
 
-        if ($booking->eventDateHasPassed()) {
-            return back()->with('warning', 'This booking date has already passed.');
+        if ($booking->eventHasStarted()) {
+            return back()->with('warning', 'This event has already started, so a contract can no longer be uploaded.');
         }
 
         if (! $signWell->isConfigured()) {
@@ -153,8 +169,8 @@ class BookingController extends Controller
         $this->ensureBookingOwner($booking);
         abort_unless($booking->status === 'accepted' && $booking->hasContract(), 400);
 
-        if ($booking->eventDateHasPassed()) {
-            return back()->with('warning', 'This booking date has already passed.');
+        if ($booking->eventHasStarted()) {
+            return back()->with('warning', 'This event has already started, so a contract can no longer be sent for signature.');
         }
 
         if ($booking->signwell_document_id) {
@@ -197,7 +213,16 @@ class BookingController extends Controller
     public function complete(Booking $booking, SignWellService $signWell): RedirectResponse
     {
         $this->ensureBookingOwner($booking);
-        abort_unless($booking->status === 'accepted', 400);
+        Booking::sweepPastBookings();
+        $booking->refresh();
+
+        if ($booking->status !== 'accepted') {
+            return back()->with('warning', 'This booking is no longer active and cannot be confirmed.');
+        }
+
+        if ($booking->eventHasStarted()) {
+            return back()->with('warning', 'This event has already started, so the booking can no longer be confirmed.');
+        }
 
         if ($booking->signwell_document_id && ! $booking->isSigned()) {
             try {
@@ -212,6 +237,10 @@ class BookingController extends Controller
 
         if (! $booking->isSigned()) {
             return back()->with('warning', 'Wait for the signed contract before confirming this booking.');
+        }
+
+        if (! $this->bookingFitsEventBudget($booking)) {
+            return back()->with('warning', 'This booking amount is higher than the event\'s remaining budget.');
         }
 
         if (! $booking->markCompletedFromSignature()) {
@@ -229,7 +258,18 @@ class BookingController extends Controller
             return back()->with('warning', 'There is no cancellation request to approve.');
         }
 
-        $booking->update(['status' => 'cancelled']);
+        $booking->update([
+            'status' => 'cancelled',
+            'cancel_requested_at' => null,
+        ]);
+
+        // Booking cancelled but event may still be open — clear application so performer can apply again.
+        if ($booking->event_id) {
+            EventApplication::where('event_id', $booking->event_id)
+                ->where('performer_id', $booking->performer_id)
+                ->whereIn('status', ['pending', 'invited', 'accepted'])
+                ->delete();
+        }
 
         Notification::send($booking->performer, 'booking', 'Cancellation Approved',
             'Your cancellation request for '.$booking->event_name.' was approved.',
@@ -272,15 +312,28 @@ class BookingController extends Controller
             return null;
         }
 
-        return $this->activeEvents()->find($eventId);
+        return $this->activeEvents()->firstWhere('id', $eventId);
     }
 
     private function activeEvents()
     {
-        return Event::with('eventType')
+        $events = Event::with(['eventType', 'photos'])
             ->where('organizer_id', Auth::id())
-            ->whereIn('status', ['Open', 'open', 'Ongoing', 'ongoing'])
-            ->whereDate('event_date', '>=', today());
+            ->whereIn('status', ['Open', 'open'])
+            ->whereDate('end_date', '>=', today())
+            ->orderBy('event_date')
+            ->orderBy('start_time')
+            ->get();
+
+        $activeEvents = collect();
+
+        foreach ($events as $event) {
+            if (! $event->hasStarted()) {
+                $activeEvents->push($event);
+            }
+        }
+
+        return $activeEvents;
     }
 
     private function validateBooking(Request $request, Event $event): array
@@ -288,6 +341,8 @@ class BookingController extends Controller
         $rules = [
             'notes' => ['nullable', 'string', 'max:1000'],
             'budget' => ['required', 'numeric', 'min:0'],
+            'assigned_start_date' => ['required', 'date'],
+            'assigned_end_date' => ['required', 'date', 'after_or_equal:assigned_start_date'],
             'event_id' => [
                 'required',
                 Rule::exists('events', 'id')->where(function ($query) {
@@ -303,10 +358,23 @@ class BookingController extends Controller
         return $request->validate($rules);
     }
 
+    private function ensureAssignmentDatesAreInsideEvent(array $bookingDetails, Event $event): void
+    {
+        $assignedStart = Carbon::parse($bookingDetails['assigned_start_date']);
+        $assignedEnd = Carbon::parse($bookingDetails['assigned_end_date']);
+
+        if ($assignedStart->lessThan($event->event_date) || $assignedEnd->greaterThan($event->end_date)) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'assigned_start_date' => 'Assignment dates must be within the selected event dates.',
+            ]);
+        }
+    }
+
     private function bookingDetailsFromEvent(Event $event, array $bookingDetails): array
     {
         $bookingDetails['event_name'] = $event->title;
         $bookingDetails['event_date'] = $event->event_date;
+        $bookingDetails['end_date'] = $event->end_date;
         $bookingDetails['event_time'] = Carbon::parse($event->start_time)->format('H:i');
         $bookingDetails['end_time'] = Carbon::parse($event->end_time)->format('H:i');
         $bookingDetails['venue'] = $event->venue;
@@ -324,8 +392,50 @@ class BookingController extends Controller
         return Booking::where('organizer_id', Auth::id())
             ->where('performer_id', $performer->user_id)
             ->where('event_id', $event->id)
-            ->whereIn('status', ['pending', 'accepted', 'completed'])
+            ->whereIn('status', ['pending', 'accepted', 'completed', 'finished'])
             ->first();
+    }
+
+    private function performerIsAvailableForDates(PerformerProfile $performer, string $startDate, string $endDate): bool
+    {
+        $hasUnavailableDate = $performer->availabilitySchedules()
+            ->whereBetween('date', [$startDate, $endDate])
+            ->where('is_available', false)
+            ->exists();
+
+        if ($hasUnavailableDate) {
+            return false;
+        }
+
+        $hasGoogleBusyDate = $performer->googleCalendarBusyDates()
+            ->whereBetween('date', [$startDate, $endDate])
+            ->exists();
+
+        if ($hasGoogleBusyDate) {
+            return false;
+        }
+
+        return true;
+    }
+
+    private function bookingFitsEventBudget(Booking $booking): bool
+    {
+        $event = $booking->event;
+
+        if (! $event || ! in_array($event->compensation_type, ['fixed', 'hourly'], true)) {
+            return true;
+        }
+
+        if ($event->budget === null) {
+            return true;
+        }
+
+        $allocatedBudget = Booking::where('event_id', $event->id)
+            ->whereIn('status', ['completed', 'finished'])
+            ->where('id', '!=', $booking->id)
+            ->sum('budget');
+
+        return $allocatedBudget + (float) $booking->budget <= (float) $event->budget;
     }
 
     private function existingBookingMessage(Booking $booking): string

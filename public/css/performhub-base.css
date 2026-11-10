@@ -146,6 +146,18 @@ a:hover { color: var(--ph-purple-hover); }
 
 .ph-input::placeholder { color: #5c6378; }
 
+/* Hide number input spinner arrows (e.g. social followers) */
+input[type="number"].ph-input::-webkit-outer-spin-button,
+input[type="number"].ph-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+input[type="number"].ph-input {
+    -moz-appearance: textfield;
+    appearance: textfield;
+}
+
 .form-select.ph-input {
     appearance: none;
     -webkit-appearance: none;
@@ -906,4 +918,159 @@ input[type="file"].ph-input::file-selector-button:hover {
     justify-content: center;
     color: var(--ph-purple);
     font-size: 1.1rem;
+}
+
+/* Booking / status badges — clear meaning + PerformHub colors */
+.ph-badge {
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    border: 1px solid transparent;
+    padding: 0.4em 0.7em;
+}
+
+.ph-badge-action {
+    background: #f59e0b;
+    color: #1f1630;
+}
+
+.ph-badge-accepted {
+    background: var(--ph-purple);
+    color: #fff;
+    box-shadow: 0 4px 12px var(--ph-purple-glow);
+}
+
+.ph-badge-success {
+    background: #16a34a;
+    color: #fff;
+}
+
+.ph-badge-muted {
+    background: #6b7280;
+    color: #fff;
+}
+
+.ph-badge-rejected {
+    background: #e11d48;
+    color: #fff;
+}
+
+.ph-badge-expired {
+    background: #ea580c;
+    color: #fff;
+}
+
+/* Completed = event already done (distinct from green Booked) */
+.ph-badge-finished {
+    background: #1d4ed8;
+    color: #fff;
+}
+
+.ph-badge-contract {
+    background: transparent;
+    color: var(--ph-purple);
+    border-color: var(--ph-purple);
+}
+
+/* Bookings list — compact so table + pagination fit one screen */
+.ph-bookings-page .table > :not(caption) > * > * {
+    padding: 0.55rem 0.75rem;
+    vertical-align: middle;
+}
+
+.ph-bookings-page .booking-view-btn {
+    white-space: nowrap;
+}
+
+/* Pagination — match PerformHub buttons/cards, one centered row */
+.ph-pagination {
+    display: flex;
+    justify-content: center;
+    margin-top: 0.85rem;
+}
+
+.ph-pagination > nav {
+    width: 100%;
+    justify-content: center !important;
+}
+
+/* Keep Laravel's mobile Prev/Next hidden on desktop */
+.ph-pagination > nav > .d-sm-none {
+    display: none !important;
+}
+
+@media (max-width: 575.98px) {
+    .ph-pagination > nav > .d-sm-none {
+        display: flex !important;
+        width: 100%;
+        justify-content: center !important;
+    }
+
+    .ph-pagination > nav > .d-sm-flex {
+        display: none !important;
+    }
+}
+
+/* Desktop: page numbers only, centered */
+.ph-pagination > nav > .d-sm-flex {
+    width: auto !important;
+    max-width: 100%;
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: wrap !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 0;
+}
+
+/* Hide Laravel's "Showing X to Y of Z results" */
+.ph-pagination > nav > .d-sm-flex > div:first-child {
+    display: none !important;
+}
+
+.ph-pagination .pagination {
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+}
+
+.pagination {
+    --bs-pagination-padding-x: 0.75rem;
+    --bs-pagination-padding-y: 0.45rem;
+    --bs-pagination-font-size: 0.9rem;
+    --bs-pagination-color: var(--ph-text);
+    --bs-pagination-bg: var(--ph-bg-card);
+    --bs-pagination-border-width: 1px;
+    --bs-pagination-border-color: var(--ph-border);
+    --bs-pagination-border-radius: 10px;
+    --bs-pagination-hover-color: var(--ph-purple);
+    --bs-pagination-hover-bg: rgba(109, 61, 245, 0.08);
+    --bs-pagination-hover-border-color: var(--ph-purple);
+    --bs-pagination-focus-color: var(--ph-purple);
+    --bs-pagination-focus-bg: rgba(109, 61, 245, 0.08);
+    --bs-pagination-focus-box-shadow: 0 0 0 3px var(--ph-purple-glow);
+    --bs-pagination-active-color: #fff;
+    --bs-pagination-active-bg: var(--ph-purple);
+    --bs-pagination-active-border-color: var(--ph-purple);
+    --bs-pagination-disabled-color: var(--ph-text-muted);
+    --bs-pagination-disabled-bg: var(--ph-bg-input);
+    --bs-pagination-disabled-border-color: var(--ph-border);
+    gap: 0.35rem;
+    margin-top: 1.25rem;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.pagination .page-item .page-link {
+    min-width: 2.35rem;
+    text-align: center;
+    font-weight: 600;
+    border-radius: 10px !important;
+    transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.pagination .page-item.active .page-link {
+    box-shadow: 0 6px 16px var(--ph-purple-glow);
+}
+
+.pagination .page-item:not(:first-child) .page-link {
+    margin-left: 0;
 }

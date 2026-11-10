@@ -35,7 +35,7 @@
 @endphp
 
 <article class="portfolio-feed-post">
-    <div class="portfolio-feed-post-header px-3 py-3 d-flex align-items-center gap-3">
+    <div class="portfolio-feed-post-header px-3 py-3 d-flex align-items-center gap-3 flex-wrap">
         <a href="{{ $profileUrl }}" class="flex-shrink-0">
             <img src="{{ $photoUrl }}" alt="" class="rounded-circle portfolio-feed-avatar" width="44" height="44">
         </a>
@@ -53,23 +53,23 @@
             </small>
             <small class="text-muted">{{ $postedDate }}</small>
         </div>
+
+        @unless($editable || $isOwn)
+            @if(auth()->user()->isOrganizer())
+                <div class="ms-auto flex-shrink-0">
+                    @if(auth()->user()->hasLimitedAccess())
+                        <a href="{{ auth()->user()->onboardingRoute() }}" class="btn btn-sm ph-btn-primary">
+                            <i class="fas fa-lock me-1"></i> Pending Verification
+                        </a>
+                    @else
+                        <a href="{{ route('organizer.bookings.create', $performer) }}" class="btn btn-sm ph-btn-primary">
+                            Send Booking Request
+                        </a>
+                    @endif
+                </div>
+            @endif
+        @endunless
     </div>
 
     @include('partials.portfolio-collage', ['items' => $items, 'editable' => $editable])
-
-    @unless($editable || $isOwn)
-        <div class="portfolio-feed-post-actions p-3 pt-0 d-flex flex-wrap gap-2">
-            @if(auth()->user()->isOrganizer() && ! $isOwn)
-                @if(auth()->user()->hasLimitedAccess())
-                    <a href="{{ auth()->user()->onboardingRoute() }}" class="btn btn-sm ph-btn-primary">
-                        <i class="fas fa-lock me-1"></i> Pending Verification
-                    </a>
-                @else
-                    <a href="{{ route('organizer.bookings.create', $performer) }}" class="btn btn-sm ph-btn-primary">
-                        Send Booking Request
-                    </a>
-                @endif
-            @endif
-        </div>
-    @endunless
 </article>

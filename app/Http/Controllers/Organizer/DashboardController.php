@@ -22,7 +22,7 @@ class DashboardController extends Controller
     private function getDashboardData(PerformerRecommendationService $recommendations): array
     {
         $overviewData = $this->getOverviewData();
-        $recommendationEvent = $overviewData['upcomingEvents']->first();
+        $recommendationEvent = $overviewData['openEvents']->first();
         $recommendedPerformers = collect();
 
         if ($recommendationEvent) {
@@ -39,25 +39,36 @@ class DashboardController extends Controller
 
     private function getOverviewData(): array
     {
-        Event::markPastEventsEnded();
+        Event::refreshStatuses();
         Booking::sweepPastBookings();
 
-        $upcomingEvents = Event::where('organizer_id', Auth::id())
+        $events = Event::where('organizer_id', Auth::id())
             ->where('status', 'Open')
             ->whereDate('event_date', '>=', today())
             ->orderBy('event_date')
             ->orderBy('start_time')
-            ->take(3)
             ->get();
 
+        $openEvents = collect();
+
+        foreach ($events as $event) {
+            if (! $event->hasStarted()) {
+                $openEvents->push($event);
+            }
+
+            if ($openEvents->count() === 3) {
+                break;
+            }
+        }
+
         return [
-            'upcomingEvents' => $upcomingEvents,
+            'openEvents' => $openEvents,
             'pendingBookings' => Booking::where('organizer_id', Auth::id())
                 ->where('status', 'pending')
                 ->count(),
             'activeBookings' => Booking::where('organizer_id', Auth::id())
                 ->where('status', 'accepted')
-                ->whereDate('event_date', '>=', today())
+                ->whereDate('end_date', '>=', today())
                 ->count(),
             'cancelRequests' => Booking::where('organizer_id', Auth::id())
                 ->whereNotNull('cancel_requested_at')

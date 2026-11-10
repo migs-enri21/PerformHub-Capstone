@@ -9,6 +9,16 @@
 @section('content')
 @php
     $eventTypeName = 'N/A';
+    $hasActiveFilters = request()->filled('search')
+        || request()->filled('category_id')
+        || request()->filled('specialty')
+        || request()->filled('genre')
+        || request()->filled('available_date');
+    $clearFiltersUrl = route('organizer.performers.index');
+
+    if ($selectedEvent) {
+        $clearFiltersUrl = route('organizer.performers.index', ['event' => $selectedEvent->id]);
+    }
 
     if ($selectedEvent && $selectedEvent->eventType) {
         $eventTypeName = $selectedEvent->eventType->name;
@@ -28,7 +38,7 @@
         <i class="fas fa-wand-magic-sparkles"></i>
         <div>
             <strong>Recommended for {{ $selectedEvent->title }}</strong>
-            <small>{{ $eventTypeName }} · {{ \Carbon\Carbon::parse($selectedEvent->event_date)->format('F d, Y') }}</small>
+            <small>{{ $eventTypeName }} · {{ $selectedEvent->dateRangeLabel() }}</small>
         </div>
     </div>
 @endif
@@ -55,18 +65,28 @@
         </div>
         <div class="col-md-6 col-lg-2">
             <label class="form-label small fw-semibold">Genre</label>
-            @include('partials.genre-select', ['value' => request('genre'), 'placeholder' => 'All Genres'])
+            <div id="performerGenreFilter">
+                @include('partials.genre-select', ['value' => request('genre'), 'placeholder' => 'All Genres'])
+            </div>
         </div>
         <div class="col-md-6 col-lg-2"><label class="form-label small fw-semibold" for="availableDate">Available on</label>
             <input type="date" id="availableDate" name="available_date" class="form-control ph-input" value="{{ request('available_date') }}">
         </div>
-        <div class="col-md-6 col-lg-1 d-flex align-items-end">
+        <div class="col-md-6 col-lg-1 d-flex flex-column align-items-end justify-content-end">
+            @if($hasActiveFilters)
+                <a href="{{ $clearFiltersUrl }}" class="organizer-clear-filters">Clear filters</a>
+            @endif
             <button type="submit" class="btn ph-btn-primary w-100 organizer-performer-search-button">Search</button>
         </div>
     </form>
 </div>
 
-<p class="text-muted small mb-3">{{ $performers->total() }} verified performer(s) found</p>
+<p class="text-muted small mb-3">
+    {{ $performers->total() }} verified performer(s) found
+    @if($selectedEvent)
+        <span>available for {{ $selectedEvent->title }}.</span>
+    @endif
+</p>
 
 <div class="row g-4 organizer-performer-results">
     @forelse($performers as $performer)
@@ -102,7 +122,7 @@
                     @endforeach
                 </div>
 
-                <p class="text-muted small mb-3">{{ Str::limit($performer->bio, 105) }}</p>
+                <p class="text-muted small mb-3 organizer-performer-bio">{{ Str::limit($performer->bio, 105) }}</p>
 
                 @if($rateLines)
                     <p class="small mb-3"><strong>Rate:</strong> {{ implode(' · ', $rateLines) }}</p>
@@ -125,3 +145,35 @@
 
 {{ $performers->links() }}
 @endsection
+
+@push('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const category = document.getElementById('categoryId');
+        const genreSelect = document.querySelector('#performerGenreFilter [data-ph-select]');
+        const genres = {{ Illuminate\Support\Js::from($genres) }};
+
+        if (!category || !genreSelect || !window.PhSelect) {
+            return;
+        }
+
+        genreSelect.dataset.placeholder = 'All Genres';
+        genreSelect.dataset.emptyMessage = 'No genres available for this category';
+
+        function updateGenres() {
+            const options = [];
+
+            genres.forEach(function (genre) {
+                if (category.value === '' || String(genre.category_id) === category.value) {
+                    options.push(genre.name);
+                }
+            });
+
+            window.PhSelect.setGroups(genreSelect, [{ options: options }]);
+        }
+
+        category.addEventListener('change', updateGenres);
+        updateGenres();
+    });
+</script>
+@endpush

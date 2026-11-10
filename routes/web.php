@@ -69,12 +69,12 @@ Route::middleware(['auth', 'role:performer'])->prefix('performer')->name('perfor
     Route::get('/organizers/{organizer}', [PerformerOrganizerProfileController::class, 'show'])->name('organizers.show');
     Route::get('/profile/edit', [PerformerProfileController::class, 'edit'])->name('profile.edit');
     Route::put('/profile', [PerformerProfileController::class, 'update'])->name('profile.update');
-    Route::post('/feature-requests', [PerformerFeatureRequestController::class, 'store'])->name('feature-requests.store');
-    Route::delete('/feature-requests/{featureRequest}', [PerformerFeatureRequestController::class, 'destroy'])->name('feature-requests.destroy');
     Route::get('/portfolio', [PortfolioController::class, 'index'])->name('portfolio.index');
     Route::post('/portfolio', [PortfolioController::class, 'store'])->name('portfolio.store');
     Route::post('/portfolio/update', [PortfolioController::class, 'update'])->name('portfolio.update');
+    Route::delete('/portfolio/batch', [PortfolioController::class, 'destroyBatch'])->name('portfolio.destroy-batch');
     Route::delete('/portfolio/{portfolio}', [PortfolioController::class, 'destroy'])->name('portfolio.destroy');
+    
     Route::middleware('full.access')->group(function () {
         Route::post('/availability', [AvailabilityController::class, 'store'])->name('availability.store');
         Route::delete('/availability/{schedule}', [AvailabilityController::class, 'destroy'])->name('availability.destroy');
@@ -88,6 +88,8 @@ Route::middleware(['auth', 'role:performer'])->prefix('performer')->name('perfor
         Route::post('/bookings/{booking}/signature-status', [PerformerBookingController::class, 'syncElectronicSignature'])->name('bookings.signature.sync');
         Route::post('/events/{event}/apply', [EventApplicationController::class, 'store'])->name('events.apply');
         Route::delete('/events/{event}/apply', [EventApplicationController::class, 'destroy'])->name('events.apply.cancel');
+        Route::post('/feature-requests', [PerformerFeatureRequestController::class, 'store'])->name('feature-requests.store');
+        Route::delete('/feature-requests/{featureRequest}', [PerformerFeatureRequestController::class, 'destroy'])->name('feature-requests.destroy');
     });
     Route::get('/availability', [AvailabilityController::class, 'index'])->name('availability.index');
     Route::get('/bookings', [PerformerBookingController::class, 'index'])->name('bookings.index');
@@ -108,14 +110,14 @@ Route::middleware(['auth', 'role:organizer'])->prefix('organizer')->name('organi
     Route::post('/feature-requests', [OrganizerFeatureRequestController::class, 'store'])->name('feature-requests.store');
     Route::delete('/feature-requests/reviewed/{type}', [OrganizerFeatureRequestController::class, 'clearReviewed'])->name('feature-requests.clear-reviewed');
     Route::delete('/feature-requests/{featureRequest}', [OrganizerFeatureRequestController::class, 'destroy'])->name('feature-requests.destroy');
-    Route::get('/events/create', [OrganizerEventController::class, 'create'])->name('events.create');
-    Route::post('/events', [OrganizerEventController::class, 'store'])->name('events.store');
+    Route::get('/events/create', [OrganizerEventController::class, 'create'])->middleware('full.access')->name('events.create');
+    Route::post('/events', [OrganizerEventController::class, 'store'])->middleware('full.access')->name('events.store');
     Route::get('/events/{event}', [OrganizerEventController::class, 'show'])->name('events.show');
-    Route::get('/events/{event}/edit', [OrganizerEventController::class, 'edit'])->name('events.edit');
-    Route::put('/events/{event}', [OrganizerEventController::class, 'update'])->name('events.update');
-    Route::delete('/events/{event}/media/{photo}', [OrganizerEventController::class, 'destroyMedia'])->name('events.media.destroy');
-    Route::patch('/events/{event}/complete', [OrganizerEventController::class, 'complete'])->name('events.complete');
-    Route::delete('/events/{event}', [OrganizerEventController::class, 'destroy'])->name('events.destroy');
+    Route::get('/events/{event}/edit', [OrganizerEventController::class, 'edit'])->middleware('full.access')->name('events.edit');
+    Route::put('/events/{event}', [OrganizerEventController::class, 'update'])->middleware('full.access')->name('events.update');
+    Route::delete('/events/{event}/media/{photo}', [OrganizerEventController::class, 'destroyMedia'])->middleware('full.access')->name('events.media.destroy');
+    Route::patch('/events/{event}/complete', [OrganizerEventController::class, 'complete'])->middleware('full.access')->name('events.complete');
+    Route::delete('/events/{event}', [OrganizerEventController::class, 'destroy'])->middleware('full.access')->name('events.destroy');
     Route::get('/calendar', [CalendarController::class, 'index'])->name('calendar.index');
 
     Route::middleware('full.access')->group(function () {
@@ -132,7 +134,6 @@ Route::middleware(['auth', 'role:organizer'])->prefix('organizer')->name('organi
     });
     Route::prefix('calendar')->name('calendar.')->group(function () {
     Route::get('/connect', [OrganizerGoogleCalendarController::class, 'connect'])->name('connect');
-    Route::get('/callback', [OrganizerGoogleCalendarController::class, 'callback'])->name('callback');
     Route::post('/sync', [OrganizerGoogleCalendarController::class, 'sync'])->name('sync');
     Route::delete('/disconnect', [OrganizerGoogleCalendarController::class, 'disconnect'])->name('disconnect');
     });

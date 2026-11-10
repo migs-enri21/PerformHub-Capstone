@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Performer;
 use App\Http\Controllers\Controller;
 use App\Models\AvailabilitySchedule;
 use App\Models\Booking;
+use App\Models\EventApplication;
+use App\Models\Notification;
 use App\Models\PerformerProfile;
 use App\Services\GoogleCalendarService;
 use App\Support\AvailabilityCalendar;
@@ -60,14 +62,21 @@ class AvailabilityController extends Controller
         $validated['is_available'] = $request->boolean('is_available', true);
 
         $hasConfirmedBooking = Booking::where('performer_id', Auth::id())
-            ->whereDate('event_date', $validated['date'])
+            ->overlappingAssignmentDates($validated['date'], $validated['date'])
             ->lockingDate()
             ->exists();
 
         if ($hasConfirmedBooking) {
             return redirect()
                 ->route('performer.availability.index')
-                ->with('warning', 'That date already has a booking, so it cannot be set as available.');
+                ->with('warning', 'That date already has a confirmed booking, so availability cannot be changed.');
+        }
+
+        $declinedPending = 0;
+
+        // Day off / busy means not taking bookings — clear pending requests that day.
+        if (! $validated['is_available']) {
+            $declinedPending = $this->declinePendingBookingsForDate($validated['date']);
         }
 
         // it only ever stores exceptions to the default, not every single day
@@ -89,9 +98,15 @@ class AvailabilityController extends Controller
             $validated
         );
 
+        $success = 'Availability updated.';
+
+        if ($declinedPending > 0) {
+            $success = 'Availability updated. Pending booking request(s) on that day were declined.';
+        }
+
         return redirect()
             ->route('performer.availability.index')
-            ->with('success', 'Availability updated.');
+            ->with('success', $success);
     }
 
     public function destroy(AvailabilitySchedule $schedule): RedirectResponse
@@ -99,7 +114,7 @@ class AvailabilityController extends Controller
         abort_unless($schedule->performer_profile_id === Auth::user()->performerProfile->id, 403);
 
         $hasConfirmedBooking = Booking::where('performer_id', Auth::id())
-            ->whereDate('event_date', $schedule->date)
+            ->overlappingAssignmentDates($schedule->date, $schedule->date)
             ->lockingDate()
             ->exists();
 
@@ -116,6 +131,38 @@ class AvailabilityController extends Controller
             ->with('success', 'Date cleared — available by default again.');
     }
 
+    private function declinePendingBookingsForDate(string $date): int
+    {
+        $pendingBookings = Booking::query()
+            ->with('organizer')
+            ->where('performer_id', Auth::id())
+            ->overlappingAssignmentDates($date, $date)
+            ->where('status', 'pending')
+            ->get();
+
+        foreach ($pendingBookings as $booking) {
+            $booking->update(['status' => 'rejected']);
+
+            if ($booking->event_id) {
+                EventApplication::where('event_id', $booking->event_id)
+                    ->where('performer_id', $booking->performer_id)
+                    ->update(['status' => 'declined']);
+            }
+
+            if ($booking->organizer) {
+                Notification::send(
+                    $booking->organizer,
+                    'booking',
+                    'Booking Rejected',
+                    Auth::user()->name.' declined your booking for '.$booking->event_name.' (marked unavailable that day).',
+                    route('organizer.bookings.show', $booking)
+                );
+            }
+        }
+
+        return $pendingBookings->count();
+    }
+
     private function clearStaleBookingBlocks(PerformerProfile $profile): void
     {
         $bookings = $profile->bookings;
@@ -127,9 +174,9 @@ class AvailabilityController extends Controller
 
             $date = $schedule->date->toDateString();
 
-            $hasConfirmed = $bookings->contains(
-                fn ($booking) => $booking->locksTheDate() && $booking->event_date->toDateString() === $date
-            );
+            $hasConfirmed = $bookings->contains(function ($booking) use ($date) {
+                return $booking->locksTheDate() && $booking->assignmentCoversDate($date);
+            });
 
             if ($hasConfirmed) {
                 continue;
@@ -137,8 +184,12 @@ class AvailabilityController extends Controller
 
             $copiedFromOpenBooking = $bookings->contains(
                 function ($booking) use ($date, $schedule) {
+                    if (! $booking->event_date) {
+                        return false;
+                    }
+
                     return in_array($booking->status, ['pending', 'accepted'], true)
-                        && $booking->event_date->toDateString() === $date
+                        && $booking->assignmentCoversDate($date)
                         && strcasecmp(trim((string) $booking->event_name), trim((string) $schedule->notes)) === 0;
                 }
             );

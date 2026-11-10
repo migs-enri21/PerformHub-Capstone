@@ -9,7 +9,7 @@
                 <p class="mb-0" id="organizerConfirmMessage"></p>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn ph-btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn ph-btn-outline" data-bs-dismiss="modal">Cancel</button>
                 <button type="button" class="btn ph-btn-primary" id="organizerConfirmButton">Confirm</button>
             </div>
         </div>
@@ -38,6 +38,14 @@ document.addEventListener('DOMContentLoaded', function () {
             title.textContent = form.dataset.confirmTitle;
             message.textContent = form.dataset.confirmMessage;
             confirmButton.textContent = form.dataset.confirmButton;
+            confirmButton.classList.remove('ph-btn-primary', 'ph-btn-success', 'ph-btn-danger');
+
+            if (form.dataset.confirmStyle) {
+                confirmButton.classList.add(form.dataset.confirmStyle);
+            } else {
+                confirmButton.classList.add('ph-btn-primary');
+            }
+
             modal.show();
         });
     });

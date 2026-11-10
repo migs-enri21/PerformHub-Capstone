@@ -137,43 +137,50 @@ class User extends Authenticatable implements CanResetPassword
 
     public function hasCompletedProfileDetails(): bool
     {
-        if (! filled($this->first_name)
-            || ! filled($this->last_name)
-            || ! filled($this->phone)) {
-            return false;
-        }
-
         if ($this->isPerformer()) {
-            $profile = $this->performerProfile;
+            $profile = $this->relationLoaded('performerProfile')
+                ? $this->performerProfile
+                : $this->performerProfile()->with('categories')->first();
 
-            return $profile !== null
-                && filled($profile->stage_name)
-                && filled($profile->region)
-                && filled($profile->city)
-                && $profile->categories()->exists();
+            if ($profile && ! $profile->relationLoaded('categories')) {
+                $profile->load('categories');
+            }
+
+            return filled($this->first_name)
+                && filled($this->last_name)
+                && filled($this->phone)
+                && filled($profile?->stage_name)
+                && filled($profile?->region)
+                && filled($profile?->city)
+                && $profile->categories->isNotEmpty();
         }
 
         if ($this->isOrganizer()) {
             $profile = $this->organizerProfile;
 
-            return $profile !== null
-                && filled($profile->organization_name)
-                && filled($profile->organization_type)
-                && filled($profile->region)
-                && filled($profile->city);
+            return filled($this->first_name)
+                && filled($this->last_name)
+                && filled($this->phone)
+                && filled($profile?->organization_name)
+                && filled($profile?->organization_type)
+                && filled($profile?->region)
+                && filled($profile?->city);
         }
 
         return false;
     }
 
-    public function markProfileDetailsComplete(): void
+    public function markProfileDetailsComplete(): bool
     {
-        if (! $this->hasCompletedProfileDetails()
-            || $this->onboarding_step >= self::ONBOARDING_VERIFICATION) {
-            return;
+        if (! $this->hasCompletedProfileDetails()) {
+            return false;
         }
 
-        $this->update(['onboarding_step' => self::ONBOARDING_VERIFICATION]);
+        if ($this->onboarding_step < self::ONBOARDING_VERIFICATION) {
+            $this->update(['onboarding_step' => self::ONBOARDING_VERIFICATION]);
+        }
+
+        return true;
     }
 
     public function hasLimitedAccess(): bool

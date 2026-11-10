@@ -68,10 +68,10 @@ class ProfileController extends Controller
             ->get();
 
         $validated = $request->validate(array_merge([
-            'first_name' => ['required', 'string', 'max:100'],
-            'last_name' => ['required', 'string', 'max:100'],
+            'first_name' => ['required', 'string', 'max:100', "regex:/^[a-zA-Z\\s\\-']+$/"],
+            'last_name' => ['required', 'string', 'max:100', "regex:/^[a-zA-Z\\s\\-']+$/"],
             'phone' => PhoneNumbers::rules(required: true),
-            'stage_name' => ['required', 'string', 'max:255'],
+            'stage_name' => ['required', 'string', 'max:255', "regex:/^[a-zA-Z\\s\\-']+$/"],
             'bio' => ['nullable', 'string', 'max:2000'],
             'genre' => ['nullable', 'array', 'max:8'],
             'genre.*' => ['string', 'max:100', Rule::in(PerformerOptionGuide::allowedNames($selectedCategories, $profile->genreList()))],
@@ -81,21 +81,54 @@ class ProfileController extends Controller
             'category_ids.*' => ['integer', 'exists:categories,id'],
             'rate_per_hour' => ['nullable', 'numeric', 'min:0'],
             'rate_per_day' => ['nullable', 'numeric', 'min:0'],
-            'social_facebook' => ['nullable', 'url', 'max:255'],
+            'social_facebook' => [
+                Rule::requiredIf($this->hasSocialMetric($request, 'social_facebook_followers')),
+                'nullable',
+                'url',
+                'max:255',
+            ],
             'social_facebook_followers' => ['nullable', 'integer', 'min:0'],
-            'social_instagram' => ['nullable', 'url', 'max:255'],
+            'social_instagram' => [
+                Rule::requiredIf($this->hasSocialMetric($request, 'social_instagram_followers')),
+                'nullable',
+                'url',
+                'max:255',
+            ],
             'social_instagram_followers' => ['nullable', 'integer', 'min:0'],
-            'social_youtube' => ['nullable', 'url', 'max:255'],
+            'social_youtube' => [
+                Rule::requiredIf($this->hasSocialMetric($request, 'social_youtube_subscribers')),
+                'nullable',
+                'url',
+                'max:255',
+            ],
             'social_youtube_subscribers' => ['nullable', 'integer', 'min:0'],
-            'social_tiktok' => ['nullable', 'url', 'max:255'],
+            'social_tiktok' => [
+                Rule::requiredIf($this->hasSocialMetric($request, 'social_tiktok_followers')),
+                'nullable',
+                'url',
+                'max:255',
+            ],
             'social_tiktok_followers' => ['nullable', 'integer', 'min:0'],
-            'social_twitter' => ['nullable', 'url', 'max:255'],
+            'social_twitter' => [
+                Rule::requiredIf($this->hasSocialMetric($request, 'social_twitter_followers')),
+                'nullable',
+                'url',
+                'max:255',
+            ],
             'social_twitter_followers' => ['nullable', 'integer', 'min:0'],
             'profile_photo' => ['nullable', 'image', 'max:5120'], // 5MB
             'banner_photo' => ['nullable', 'image', 'max:5120'],
             'banner_position_y' => ['nullable', 'integer', 'min:0', 'max:100'],
         ], PhilippineLocations::locationFieldsRules(required: false)), [
             'phone.regex' => PhoneNumbers::message(),
+            'first_name.regex' => 'First name may only contain letters, spaces, hyphens, and apostrophes.',
+            'last_name.regex' => 'Last name may only contain letters, spaces, hyphens, and apostrophes.',
+            'stage_name.regex' => 'Stage name may only contain letters, spaces, hyphens, and apostrophes.',
+            'social_facebook.required' => 'Add a Facebook link when you enter followers.',
+            'social_instagram.required' => 'Add an Instagram link when you enter followers.',
+            'social_youtube.required' => 'Add a YouTube link when you enter subscribers.',
+            'social_tiktok.required' => 'Add a TikTok link when you enter followers.',
+            'social_twitter.required' => 'Add a Twitter/X link when you enter followers.',
         ]);
 
         $validated['genre'] = array_values($validated['genre'] ?? []);
@@ -139,12 +172,16 @@ class ProfileController extends Controller
             $profile->update(PhilippineLocations::profileLocationAttributes($validated));
         }
 
-        $user = Auth::user();
-
-        if ($user->hasCompletedProfileDetails()) {
-            $user->markProfileDetailsComplete();
-        }
+        $user = Auth::user()->fresh(['performerProfile.categories']);
+        $user?->markProfileDetailsComplete();
 
         return redirect()->route('performer.profile.show')->with('success', 'Profile updated successfully.');
+    }
+
+    private function hasSocialMetric(Request $request, string $field): bool
+    {
+        $value = $request->input($field);
+
+        return $value !== null && $value !== '' && (int) $value > 0;
     }
 }

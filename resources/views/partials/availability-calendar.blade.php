@@ -22,39 +22,53 @@
     }
 
     $scheduleMap = $schedules
-        ->mapWithKeys(fn ($schedule) => [
-            $schedule->date->format('Y-m-d') => [
+        ->mapWithKeys(function ($schedule) use ($formatTime) {
+            return [
+                $schedule->date->format('Y-m-d') => [
                 'id' => $schedule->id,
                 'is_available' => (bool) $schedule->is_available,
                 'start_time' => $formatTime($schedule->start_time),
                 'end_time' => $formatTime($schedule->end_time),
                 'notes' => $schedule->notes,
             ],
-        ])
+            ];
+        })
         ->all();
 
-    $pendingMap = $bookingCalendar
-        ->where('status', 'pending')
-        ->mapWithKeys(fn ($booking) => [
-            $booking->event_date->format('Y-m-d') => [
-                'label' => 'Pending',
-                'event_name' => $booking->event_name,
-            ],
-        ])
-        ->all();
+    $pendingMap = [];
+    $confirmedMap = [];
 
-        $confirmedMap = $bookingCalendar
-        ->filter(fn ($booking) => $booking->locksTheDate())
-        ->mapWithKeys(fn ($booking) => [
-            $booking->event_date->format('Y-m-d') => [
-                'event_name' => $booking->event_name,
-                'event_time' => $formatTime($booking->event_time),
-                'end_time' => $formatTime($booking->end_time),
-                'venue' => $booking->venue,
-                'url' => $editable ? route('performer.bookings.show', $booking) : null,
-            ],
-        ])
-        ->all();
+    foreach ($bookingCalendar as $booking) {
+        $date = $booking->assignmentStartDate()->copy()->startOfDay();
+        $endDate = $booking->assignmentEndDate()->copy()->startOfDay();
+
+        if ($endDate->lt($date)) {
+            $endDate = $date->copy();
+        }
+
+        while ($date->lessThanOrEqualTo($endDate)) {
+            $dateKey = $date->format('Y-m-d');
+
+            if ($booking->status === 'pending') {
+                $pendingMap[$dateKey] = [
+                    'label' => 'Pending',
+                    'event_name' => $booking->event_name,
+                ];
+            }
+
+            if ($booking->locksTheDate()) {
+                $confirmedMap[$dateKey] = [
+                    'event_name' => $booking->event_name,
+                    'event_time' => $formatTime($booking->event_time),
+                    'end_time' => $formatTime($booking->end_time),
+                    'venue' => $booking->venue,
+                    'url' => $editable ? route('performer.bookings.show', $booking) : null,
+                ];
+            }
+
+            $date->addDay();
+        }
+    }
 @endphp
 
 <div
@@ -110,7 +124,6 @@
             <div class="modal-content" style="background: var(--ph-bg-card); border-color: var(--ph-border); color: var(--ph-text);">
                 <div class="modal-header" style="border-color: var(--ph-border);">
                     <h5 class="modal-title fw-semibold" id="availabilityModalLabel">Set Availability</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <form method="POST" action="{{ $storeUrl }}" id="availabilityForm">
                     @csrf
@@ -126,7 +139,7 @@
                             <a href="#" class="small d-none" id="availabilityBookingLink">View booking</a>
                         </div>
                         <input type="hidden" name="date" id="availabilityDateInput">
-                        <div class="row g-3" id="availabilityEditorFields">
+                        <div class="row g-3 availability-step is-visible" id="availabilityEditorFields">
                             <div class="col-6">
                                 <label class="form-label text-muted small" for="availabilityStart">Start time</label>
                                 <input type="time" name="start_time" id="availabilityStart" class="form-control ph-input">
@@ -134,6 +147,12 @@
                             <div class="col-6">
                                 <label class="form-label text-muted small" for="availabilityEnd">End time</label>
                                 <input type="time" name="end_time" id="availabilityEnd" class="form-control ph-input">
+                            </div>
+                            <div class="col-12">
+                                <button type="button" class="btn ph-btn-outline btn-sm" id="availabilityWholeDayBtn">
+                                    Whole day
+                                </button>
+                                <span class="text-muted small ms-2">Sets 12:00 AM – 11:59 PM</span>
                             </div>
                             <div class="col-12">
                                 <label class="form-label text-muted small d-block mb-2">Status</label>
@@ -154,21 +173,31 @@
                                 <input type="hidden" name="is_available" id="availabilityIsAvailable" value="1">
                             </div>
                             <div class="col-12" id="availabilityEventWrap">
-                                <label class="form-label text-muted small" for="availabilityNotes">Event name</label>
+                                <label class="form-label text-muted small" for="availabilityNotes">Event name (optional)</label>
                                 <input type="text" name="notes" id="availabilityNotes" class="form-control ph-input" placeholder="e.g. Wedding gig at Marco Polo Hotel">
                             </div>
                         </div>
+                        <div class="availability-step d-none" id="availabilityPendingConfirmStep">
+                            <p class="mb-2" id="availabilityPendingConfirmText">
+                                You have a pending booking request this day. Saving will decline that pending request.
+                            </p>
+                            <p class="text-muted small mb-0">Continue only if you do not want to take that booking.</p>
+                        </div>
                     </div>
-                    <div class="modal-footer" style="border-color: var(--ph-border);">
-                        <button type="button" class="btn ph-btn-outline" data-bs-dismiss="modal" id="availabilityCancelButton">Cancel</button>
-                        <button type="submit" class="btn ph-btn-primary">Save</button>
+                    <div class="modal-footer gap-2 availability-step is-visible" style="border-color: var(--ph-border);" id="availabilityEditorFooter">
+                        <button type="button" class="btn ph-btn-outline availability-modal-action-btn" data-bs-dismiss="modal" id="availabilityCancelButton">Cancel</button>
+                        <button type="submit" class="btn ph-btn-primary availability-modal-action-btn" id="availabilitySaveButton">Save</button>
+                    </div>
+                    <div class="modal-footer gap-2 availability-step d-none" style="border-color: var(--ph-border);" id="availabilityPendingConfirmFooter">
+                        <button type="button" class="btn ph-btn-outline availability-modal-action-btn" id="availabilityPendingBackBtn">Go back</button>
+                        <button type="button" class="btn ph-btn-primary availability-modal-action-btn" id="availabilityPendingConfirmBtn">Decline &amp; save</button>
                     </div>
                 </form>
                 <form method="POST" id="availabilityDeleteForm" class="d-none">
                     @csrf
                     @method('DELETE')
-                    <div class="modal-footer pt-0" style="border-color: var(--ph-border);">
-                        <button type="submit" class="btn btn-outline-danger btn-sm">Remove this date</button>
+                    <div class="modal-footer pt-0 justify-content-end" style="border-color: var(--ph-border);">
+                        <button type="submit" class="btn btn-outline-danger availability-modal-action-btn availability-modal-clear-btn">Clear</button>
                     </div>
                 </form>
             </div>
@@ -179,7 +208,7 @@
 @once
     @push('scripts')
         <script>
-        document.querySelectorAll('.availability-calendar').forEach(calendar => {
+        document.querySelectorAll('.availability-calendar').forEach(function (calendar) {
             function parseDataset(value, fallback = {}) {
                 try {
                     return JSON.parse(value || '{}');
@@ -220,15 +249,30 @@
             const notesInput = document.getElementById('availabilityNotes');
             const isAvailableInput = document.getElementById('availabilityIsAvailable');
             const eventWrap = document.getElementById('availabilityEventWrap');
+            const wholeDayButton = document.getElementById('availabilityWholeDayBtn');
             let modeInputs = [];
 
             if (form) {
                 modeInputs = form.querySelectorAll('input[name="availability_mode"]');
             }
+
+            if (wholeDayButton && startInput && endInput) {
+                wholeDayButton.addEventListener('click', function () {
+                    startInput.value = '00:00';
+                    endInput.value = '23:59';
+                });
+            }
             const modalDateLabel = document.getElementById('availabilityModalDate');
             const modalTitle = document.getElementById('availabilityModalLabel');
             const bookingLockNotice = document.getElementById('availabilityBookingLockNotice');
             const bookingView = document.getElementById('availabilityBookingView');
+            const pendingConfirmStep = document.getElementById('availabilityPendingConfirmStep');
+            const pendingConfirmText = document.getElementById('availabilityPendingConfirmText');
+            const pendingConfirmBtn = document.getElementById('availabilityPendingConfirmBtn');
+            const pendingBackBtn = document.getElementById('availabilityPendingBackBtn');
+            const editorFooter = document.getElementById('availabilityEditorFooter');
+            const pendingConfirmFooter = document.getElementById('availabilityPendingConfirmFooter');
+            let skipPendingConfirm = false;
             const bookingEventName = document.getElementById('availabilityBookingEventName');
             const bookingMeta = document.getElementById('availabilityBookingMeta');
             const bookingVenue = document.getElementById('availabilityBookingVenue');
@@ -237,7 +281,67 @@
             const cancelButton = document.getElementById('availabilityCancelButton');
             const availableModeInput = document.getElementById('availabilityModeAvailable');
             const blockedModeInput = document.getElementById('availabilityModeBlocked');
-            const saveButton = form ? form.querySelector('button[type="submit"]') : null;
+            const saveButton = document.getElementById('availabilitySaveButton');
+
+            let clearActionVisible = false;
+            let stepAnimTimer = null;
+
+            function hideStep(element) {
+                if (!element) {
+                    return;
+                }
+
+                element.classList.remove('is-visible');
+                element.classList.add('d-none');
+            }
+
+            function showStep(element) {
+                if (!element) {
+                    return;
+                }
+
+                element.classList.remove('d-none');
+                element.classList.remove('is-visible');
+                // Force layout, then fade in (same idea as Bootstrap modal fade).
+                void element.offsetWidth;
+                element.classList.add('is-visible');
+            }
+
+            function showPendingConfirmStep(show) {
+                if (stepAnimTimer) {
+                    window.clearTimeout(stepAnimTimer);
+                    stepAnimTimer = null;
+                }
+
+                if (modalTitle) {
+                    if (show) {
+                        modalTitle.textContent = 'Decline pending request?';
+                    } else {
+                        modalTitle.textContent = 'Set Availability';
+                    }
+                }
+
+                if (modalDateLabel) {
+                    modalDateLabel.classList.toggle('d-none', show);
+                }
+
+                if (deleteForm) {
+                    deleteForm.classList.toggle('d-none', show || !clearActionVisible);
+                }
+
+                if (show) {
+                    hideStep(editorFields);
+                    hideStep(editorFooter);
+                    showStep(pendingConfirmStep);
+                    showStep(pendingConfirmFooter);
+                    return;
+                }
+
+                hideStep(pendingConfirmStep);
+                hideStep(pendingConfirmFooter);
+                showStep(editorFields);
+                showStep(editorFooter);
+            }
 
             function formatTimeDisplay(time) {
                 if (!time) {
@@ -252,8 +356,17 @@
                     return time;
                 }
 
-                const suffix = hour >= 12 ? 'PM' : 'AM';
-                const hour12 = hour % 12 || 12;
+                let suffix = 'AM';
+
+                if (hour >= 12) {
+                    suffix = 'PM';
+                }
+
+                let hour12 = hour % 12;
+
+                if (hour12 === 0) {
+                    hour12 = 12;
+                }
 
                 return `${hour12}:${minute} ${suffix}`;
             }
@@ -279,14 +392,26 @@
                     bookingView.classList.toggle('d-none', !locked);
                 }
                 if (modalTitle) {
-                    modalTitle.textContent = locked ? 'Event this day' : 'Set Availability';
+                    if (locked) {
+                        modalTitle.textContent = 'Event this day';
+                    } else {
+                        modalTitle.textContent = 'Set Availability';
+                    }
                 }
                 if (cancelButton) {
-                    cancelButton.textContent = locked ? 'Close' : 'Cancel';
+                    if (locked) {
+                        cancelButton.textContent = 'Close';
+                    } else {
+                        cancelButton.textContent = 'Cancel';
+                    }
                 }
 
                 if (bookingEventName) {
-                    bookingEventName.textContent = booking && booking.event_name ? booking.event_name : '';
+                    bookingEventName.textContent = '';
+
+                    if (booking && booking.event_name) {
+                        bookingEventName.textContent = booking.event_name;
+                    }
                 }
 
                 if (bookingMeta) {
@@ -303,7 +428,11 @@
                 }
 
                 if (bookingVenue) {
-                    const venue = booking && booking.venue ? `Venue: ${booking.venue}` : '';
+                    let venue = '';
+
+                    if (booking && booking.venue) {
+                        venue = `Venue: ${booking.venue}`;
+                    }
                     bookingVenue.textContent = venue;
                     bookingVenue.classList.toggle('d-none', !venue);
                 }
@@ -339,25 +468,66 @@
                 } else if (mode === 'event') {
                     isAvailableInput.value = '0';
                     eventWrap.classList.remove('d-none');
-                    eventWrap.querySelector('label').textContent = 'Event name';
+                    eventWrap.querySelector('label').textContent = 'Event name (optional)';
                     notesInput.placeholder = 'e.g. Wedding gig at Marco Polo Hotel';
-                    notesInput.setAttribute('required', 'required');
+                    notesInput.removeAttribute('required');
                 } else if (mode === 'blocked') {
                     isAvailableInput.value = '0';
-                    eventWrap.classList.remove('d-none');
-                    eventWrap.querySelector('label').textContent = 'Notes (optional)';
-                    notesInput.placeholder = 'e.g. Out of town, rest day';
+                    eventWrap.classList.add('d-none');
                     notesInput.removeAttribute('required');
+                    notesInput.value = '';
                 }
             }
 
-            modeInputs.forEach(input => input.addEventListener('change', syncAvailabilityMode));
+            modeInputs.forEach(function (input) {
+                input.addEventListener('change', syncAvailabilityMode);
+            });
 
             if (form) {
-                form.addEventListener('submit', (event) => {
+                form.addEventListener('submit', function (event) {
                     if (confirmedDates[dateInput.value]) {
                         event.preventDefault();
+                        return;
                     }
+
+                    if (skipPendingConfirm) {
+                        skipPendingConfirm = false;
+                        return;
+                    }
+
+                    const dateKey = dateInput.value;
+                    const pendingBooking = pendingDates[dateKey];
+                    const checkedMode = form.querySelector('input[name="availability_mode"]:checked');
+                    let mode = 'available';
+
+                    if (checkedMode) {
+                        mode = checkedMode.value;
+                    }
+
+                    if (pendingBooking && mode !== 'available') {
+                        event.preventDefault();
+
+                        const eventName = pendingBooking.event_name || 'this request';
+                        if (pendingConfirmText) {
+                            pendingConfirmText.textContent =
+                                `You have a pending booking request for "${eventName}" this day. Saving as Day off or “I have an event” will decline that pending request.`;
+                        }
+
+                        showPendingConfirmStep(true);
+                    }
+                });
+            }
+
+            if (pendingBackBtn) {
+            pendingBackBtn.addEventListener('click', function () {
+                    showPendingConfirmStep(false);
+                });
+            }
+
+            if (pendingConfirmBtn && form) {
+                pendingConfirmBtn.addEventListener('click', function () {
+                    skipPendingConfirm = true;
+                    form.requestSubmit();
                 });
             }
 
@@ -390,6 +560,11 @@
 
                 if (pendingDates[dateKey]) {
                     return 'pending';
+                }
+
+                // Manual "I have an event" (unavailable + event name) uses the same red booked style.
+                if (entry && !entry.is_available && entry.notes) {
+                    return 'booked';
                 }
 
                 if (entry && !entry.is_available) {
@@ -505,9 +680,9 @@
                         const time = document.createElement('span');
                         time.className = 'av-day-time';
                         if (entry.start_time && entry.end_time) {
-                            time.textContent = `${entry.start_time}–${entry.end_time}`;
+                            time.textContent = `${formatTimeDisplay(entry.start_time)}–${formatTimeDisplay(entry.end_time)}`;
                         } else {
-                            time.textContent = entry.start_time || entry.end_time || '';
+                            time.textContent = formatTimeDisplay(entry.start_time || entry.end_time || '');
                         }
                         button.appendChild(time);
                     } else if (state === 'google-busy' && googleBusyDates[dateKey] && (googleBusyDates[dateKey].start_time || googleBusyDates[dateKey].end_time)) {
@@ -515,44 +690,50 @@
                         time.className = 'av-day-time';
                         const google = googleBusyDates[dateKey];
                         if (google.start_time && google.end_time) {
-                            time.textContent = `${google.start_time}–${google.end_time}`;
+                            time.textContent = `${formatTimeDisplay(google.start_time)}–${formatTimeDisplay(google.end_time)}`;
                         } else {
-                            time.textContent = google.start_time || google.end_time || '';
+                            time.textContent = formatTimeDisplay(google.start_time || google.end_time || '');
                         }
                         button.appendChild(time);
-                    } else if (state === 'pending') {
+                    }
+
+                    if (state === 'pending') {
                         const pending = document.createElement('span');
                         pending.className = 'av-day-pending-label';
                         pending.textContent = pendingDates[dateKey].label;
                         button.appendChild(pending);
-                    } else if (state === 'google-busy') {
+                    } else if (state === 'google-busy' && !(googleBusyDates[dateKey] && (googleBusyDates[dateKey].start_time || googleBusyDates[dateKey].end_time))) {
                         const googleLabel = document.createElement('span');
                         googleLabel.className = 'av-day-google-label';
                         googleLabel.textContent = 'Google';
                         button.appendChild(googleLabel);
-                    } else if (entry && entry.notes && state === 'booked') {
-                        const event = document.createElement('span');
-                        event.className = 'av-day-event';
-                        if (entry.notes.length > 14) {
-                            event.textContent = `${entry.notes.slice(0, 14)}…`;
-                        } else {
-                            event.textContent = entry.notes;
+                    }
+
+                    if (state === 'booked') {
+                        let eventName = '';
+
+                        if (entry && entry.notes) {
+                            eventName = entry.notes;
+                        } else if (confirmedDates[dateKey]) {
+                            eventName = confirmedDates[dateKey].event_name;
                         }
-                        button.appendChild(event);
-                    } else if (confirmedDates[dateKey]) {
-                        const event = document.createElement('span');
-                        event.className = 'av-day-event';
-                        const name = confirmedDates[dateKey].event_name;
-                        if (name.length > 14) {
-                            event.textContent = `${name.slice(0, 14)}…`;
-                        } else {
-                            event.textContent = name;
+
+                        if (eventName) {
+                            const event = document.createElement('span');
+                            event.className = 'av-day-event';
+                            event.textContent = eventName;
+
+                            if (eventName.length > 14) {
+                                event.textContent = `${eventName.slice(0, 14)}…`;
+                            }
+                            button.appendChild(event);
                         }
-                        button.appendChild(event);
                     }
 
                     if (editable && (cellDate >= today || confirmedDates[dateKey])) {
-                        button.addEventListener('click', () => openEditor(dateKey, entry));
+                        button.addEventListener('click', function () {
+                            openEditor(dateKey, entry);
+                        });
                     } else if (editable && cellDate < today) {
                         button.disabled = true;
                     }
@@ -633,18 +814,14 @@
                     }
                 }
 
-                if (entry && entry.id && deleteForm && !confirmedBooking) {
+                clearActionVisible = Boolean(entry && entry.id && deleteForm && !confirmedBooking);
+
+                if (clearActionVisible) {
                     deleteForm.action = destroyUrlFor(entry.id);
-                    deleteForm.classList.remove('d-none');
-                    if (entry.is_available) {
-                        deleteForm.querySelector('button[type="submit"]').textContent = 'Remove custom hours';
-                    } else {
-                        deleteForm.querySelector('button[type="submit"]').textContent = 'Clear and use default (available)';
-                    }
-                } else if (deleteForm) {
-                    deleteForm.classList.add('d-none');
+                    deleteForm.querySelector('button[type="submit"]').textContent = 'Clear';
                 }
 
+                showPendingConfirmStep(false);
                 setBookingLocked(Boolean(confirmedBooking), confirmedBooking || null);
                 startInput.readOnly = Boolean(confirmedBooking);
                 endInput.readOnly = Boolean(confirmedBooking);
@@ -654,8 +831,8 @@
                 availabilityModal.show();
             }
 
-            calendar.querySelectorAll('[data-action]').forEach(button => {
-                button.addEventListener('click', () => {
+            calendar.querySelectorAll('[data-action]').forEach(function (button) {
+                button.addEventListener('click', function () {
                     const action = button.dataset.action;
 
                     if (action === 'prev') {

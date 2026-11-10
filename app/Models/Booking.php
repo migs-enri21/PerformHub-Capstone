@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Services\SupabaseStorageService;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -15,6 +16,9 @@ class Booking extends Model
         'event_id',
         'event_name',
         'event_date',
+        'end_date',
+        'assigned_start_date',
+        'assigned_end_date',
         'event_time',
         'end_time',
         'venue',
@@ -42,6 +46,9 @@ class Booking extends Model
     {
         return [
             'event_date' => 'date',
+            'end_date' => 'date',
+            'assigned_start_date' => 'date',
+            'assigned_end_date' => 'date',
             'signed_contract_uploaded_at' => 'datetime',
             'cancel_requested_at' => 'datetime',
             'signwell_sent_at' => 'datetime',
@@ -84,6 +91,8 @@ class Booking extends Model
                 return 'Rejected';
             case 'completed':
                 return 'Booked';
+            case 'finished':
+                return 'Completed';
             case 'expired':
                 return 'Expired';
             default:
@@ -95,19 +104,21 @@ class Booking extends Model
     {
         switch ($this->status) {
             case 'pending':
-                return 'bg-warning text-dark';
+                return 'ph-badge ph-badge-action';
             case 'cancelled':
-                return 'bg-secondary';
+                return 'ph-badge ph-badge-muted';
             case 'accepted':
-                return 'bg-primary';
+                return 'ph-badge ph-badge-accepted';
             case 'rejected':
-                return 'bg-danger';
+                return 'ph-badge ph-badge-rejected';
             case 'completed':
-                return 'bg-success';
+                return 'ph-badge ph-badge-success';
+            case 'finished':
+                return 'ph-badge ph-badge-finished';
             case 'expired':
-                return 'bg-danger';
+                return 'ph-badge ph-badge-expired';
             default:
-                return 'bg-secondary';
+                return 'ph-badge ph-badge-muted';
         }
     }
 
@@ -142,28 +153,170 @@ class Booking extends Model
         return $this->hasSignedContract() || $this->isSignWellCompleted();
     }
 
-    public function eventDateHasPassed(): bool
+    public function resolvedEndDate(): Carbon
     {
-        return $this->event_date->toDateString() < now()->toDateString();
+        $endDate = $this->end_date ?: $this->event_date;
+
+        if ($endDate === null) {
+            return $this->resolvedEventDate();
+        }
+
+        if ($endDate instanceof Carbon) {
+            return $endDate->copy()->startOfDay();
+        }
+
+        return Carbon::parse($endDate)->startOfDay();
+    }
+
+    public function resolvedEventDate(): Carbon
+    {
+        if ($this->event_date instanceof Carbon) {
+            return $this->event_date->copy()->startOfDay();
+        }
+
+        if ($this->event_date === null) {
+            return now()->startOfDay();
+        }
+
+        return Carbon::parse($this->event_date)->startOfDay();
+    }
+
+    public function isSingleDayEvent(): bool
+    {
+        return $this->resolvedEventDate()->isSameDay($this->resolvedEndDate());
+    }
+
+    public function eventHasEnded(): bool
+    {
+        $startDate = $this->assignmentStartDate();
+        $endDate = $this->assignmentEndDate();
+
+        $startTime = $this->normalizeTimeString($this->event_time);
+        $endTime = $this->normalizeTimeString($this->end_time ?: $this->event_time);
+
+        $start = Carbon::parse($startDate->toDateString().' '.$startTime);
+        $end = Carbon::parse($endDate->toDateString().' '.$endTime);
+
+        // Legacy overnight rows that only stored one date.
+        if ($endDate->isSameDay($startDate) && $end->lessThanOrEqualTo($start)) {
+            $end->addDay();
+        }
+
+        return now()->greaterThanOrEqualTo($end);
+    }
+
+    private function normalizeTimeString(mixed $time): string
+    {
+        if ($time instanceof Carbon) {
+            return $time->format('H:i:s');
+        }
+
+        $time = trim((string) $time);
+
+        if ($time === '') {
+            return '00:00:00';
+        }
+
+        if (str_contains($time, ' ')) {
+            $parts = explode(' ', $time);
+
+            return end($parts) ?: '00:00:00';
+        }
+
+        return $time;
+    }
+
+    public function eventHasStarted(): bool
+    {
+        $startDate = $this->assignmentStartDate();
+        $startTime = $this->normalizeTimeString($this->event_time);
+        $start = Carbon::parse($startDate->toDateString().' '.$startTime);
+
+        return now()->greaterThanOrEqualTo($start);
+    }
+
+    public function dateRangeLabel(string $format = 'F j, Y'): string
+    {
+        $startDate = $this->resolvedEventDate();
+        $endDate = $this->resolvedEndDate();
+
+        if ($startDate->isSameDay($endDate)) {
+            return $startDate->format($format);
+        }
+
+        return $startDate->format($format).' - '.$endDate->format($format);
+    }
+
+    public function assignmentStartDate(): Carbon
+    {
+        if ($this->assigned_start_date instanceof Carbon) {
+            return $this->assigned_start_date->copy()->startOfDay();
+        }
+
+        if ($this->assigned_start_date) {
+            return Carbon::parse($this->assigned_start_date)->startOfDay();
+        }
+
+        return $this->resolvedEventDate();
+    }
+
+    public function assignmentEndDate(): Carbon
+    {
+        if ($this->assigned_end_date instanceof Carbon) {
+            return $this->assigned_end_date->copy()->startOfDay();
+        }
+
+        if ($this->assigned_end_date) {
+            return Carbon::parse($this->assigned_end_date)->startOfDay();
+        }
+
+        return $this->resolvedEndDate();
+    }
+
+    public function assignmentDateRangeLabel(string $format = 'F j, Y'): string
+    {
+        $startDate = $this->assignmentStartDate();
+        $endDate = $this->assignmentEndDate();
+
+        if ($startDate->isSameDay($endDate)) {
+            return $startDate->format($format);
+        }
+
+        return $startDate->format($format).' - '.$endDate->format($format);
+    }
+
+    public function coversDate($date): bool
+    {
+        $checkedDate = Carbon::parse($date)->startOfDay();
+
+        return $checkedDate->betweenIncluded($this->resolvedEventDate(), $this->resolvedEndDate());
+    }
+
+    public function assignmentCoversDate($date): bool
+    {
+        $checkedDate = Carbon::parse($date)->startOfDay();
+
+        return $checkedDate->betweenIncluded($this->assignmentStartDate(), $this->assignmentEndDate());
     }
 
     public static function sweepPastBookings(): void
     {
-        static::expirePastUnsigned();
+        static::expirePastUnconfirmed();
+        static::finishPastBooked();
     }
 
-    public static function expirePastUnsigned(): int
+    public static function expirePastUnconfirmed(): int
     {
         $bookings = static::query()
             ->with(['organizer', 'performer'])
             ->whereIn('status', ['pending', 'accepted'])
-            ->whereDate('event_date', '<', today())
+            ->whereDate('end_date', '<=', today())
             ->get();
 
         $count = 0;
 
         foreach ($bookings as $booking) {
-            if ($booking->isSigned()) {
+            if (! $booking->eventHasEnded()) {
                 continue;
             }
 
@@ -172,7 +325,7 @@ class Booking extends Model
                 'cancel_requested_at' => null,
             ]);
 
-            $message = '"'.$booking->event_name.'" expired because the event date passed without a signed contract.';
+            $message = '"'.$booking->event_name.'" expired because the event ended before the booking was confirmed.';
 
             if ($booking->performer) {
                 \App\Models\Notification::send(
@@ -200,14 +353,39 @@ class Booking extends Model
         return $count;
     }
 
+    public static function finishPastBooked(): int
+    {
+        $bookings = static::query()
+            ->where('status', 'completed')
+            ->whereDate('assigned_end_date', '<=', today())
+            ->get();
+
+        $count = 0;
+
+        foreach ($bookings as $booking) {
+            if (! $booking->eventHasEnded()) {
+                continue;
+            }
+
+            $booking->update([
+                'status' => 'finished',
+                'cancel_requested_at' => null,
+            ]);
+
+            $count++;
+        }
+
+        return $count;
+    }
+
     public function locksTheDate(): bool
     {
-        return $this->status === 'completed';
+        return in_array($this->status, ['completed', 'finished'], true);
     }
 
     public function scopeLockingDate($query)
     {
-        return $query->where('status', 'completed');
+        return $query->whereIn('status', ['completed', 'finished']);
     }
 
     public function markCompletedFromSignature(): bool
@@ -257,9 +435,12 @@ class Booking extends Model
 
     public function sameDayConfirmedConflict(): ?self
     {
+        $startDate = $this->assignmentStartDate();
+        $endDate = $this->assignmentEndDate();
+
         return static::query()
             ->where('performer_id', $this->performer_id)
-            ->whereDate('event_date', $this->event_date)
+            ->overlappingAssignmentDates($startDate, $endDate)
             ->lockingDate()
             ->where('id', '!=', $this->id)
             ->first();
@@ -267,10 +448,13 @@ class Booking extends Model
 
     public function dropSameDayCompetitors(): void
     {
+        $startDate = $this->assignmentStartDate();
+        $endDate = $this->assignmentEndDate();
+
         $others = static::query()
             ->with('organizer')
             ->where('performer_id', $this->performer_id)
-            ->whereDate('event_date', $this->event_date)
+            ->overlappingAssignmentDates($startDate, $endDate)
             ->whereIn('status', ['pending', 'accepted'])
             ->where('id', '!=', $this->id)
             ->get();
@@ -300,7 +484,21 @@ class Booking extends Model
             return false;
         }
     
-        return $this->event_date->toDateString() >= now()->toDateString();
+        return ! $this->eventHasEnded();
+    }
+
+    public function scopeOverlappingDates($query, $startDate, $endDate)
+    {
+        return $query
+            ->whereDate('event_date', '<=', $endDate)
+            ->whereDate('end_date', '>=', $startDate);
+    }
+
+    public function scopeOverlappingAssignmentDates($query, $startDate, $endDate)
+    {
+        return $query
+            ->whereDate('assigned_start_date', '<=', $endDate)
+            ->whereDate('assigned_end_date', '>=', $startDate);
     }
 
     public function hasCancelRequest(): bool

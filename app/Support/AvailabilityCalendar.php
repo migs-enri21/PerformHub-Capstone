@@ -40,7 +40,7 @@ class AvailabilityCalendar
             'availabilitySchedules' => fn ($query) => $query->orderBy('date'),
             'bookings' => fn ($query) => $query
                 ->whereIn('status', ['pending', 'accepted', 'completed'])
-                ->orderBy('event_date'),
+                ->orderBy('assigned_start_date'),
             'googleCalendarBusyDates' => fn ($query) => $query->orderBy('date'),
         ]);
     }
