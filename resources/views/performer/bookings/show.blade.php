@@ -37,11 +37,11 @@
         <div class="d-flex flex-wrap gap-2">
             <form method="POST" action="{{ route('performer.bookings.accept', $booking) }}">
                 @csrf
-                <button class="btn ph-btn-outline booking-respond-btn" @disabled($dayConflict)>Accept Booking</button>
+                <button class="btn ph-btn-primary booking-respond-btn" @disabled($dayConflict)>Accept Booking</button>
             </form>
             <form method="POST" action="{{ route('performer.bookings.reject', $booking) }}">
                 @csrf
-                <button class="btn ph-btn-outline booking-respond-btn">Decline</button>
+                <button class="btn ph-btn-danger booking-respond-btn">Decline</button>
             </form>
         </div>
         @endif
