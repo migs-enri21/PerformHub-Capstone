@@ -98,7 +98,7 @@ class DashboardController extends Controller
             ->cancelRequested()
             ->count();
             
-        // Up Next matches calendar lock: only Booked (completed), not unsigned accepted.
+        // Up Next
         $nextBooking = Booking::where('performer_id', $user->id)
             ->where('status', 'completed')
             ->whereDate('assigned_end_date', '>=', today())

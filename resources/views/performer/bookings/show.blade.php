@@ -50,17 +50,27 @@
 
 <div class="ph-card p-4 mb-4">
     <h5 class="fw-semibold mb-3">Event Details</h5>
-    <p>
-        <strong>Event Dates:</strong>
-        {{ $booking->dateRangeLabel() }}
-    </p>
-    <p>
-        <strong>Your Assignment:</strong>
-        {{ $booking->assignmentDateRangeLabel() }}
-        @if($booking->event_time)
-            at {{ \Carbon\Carbon::parse($booking->event_time)->format('g:i A') }}
-        @endif
-    </p>
+    @if($booking->assignmentDateRangeLabel() !== $booking->dateRangeLabel())
+        <p>
+            <strong>Event Dates:</strong>
+            {{ $booking->dateRangeLabel() }}
+        </p>
+        <p>
+            <strong>Your Assignment:</strong>
+            {{ $booking->assignmentDateRangeLabel() }}
+            @if($booking->event_time)
+                at {{ \Carbon\Carbon::parse($booking->event_time)->format('g:i A') }}
+            @endif
+        </p>
+    @else
+        <p>
+            <strong>Dates:</strong>
+            {{ $booking->dateRangeLabel() }}
+            @if($booking->event_time)
+                at {{ \Carbon\Carbon::parse($booking->event_time)->format('g:i A') }}
+            @endif
+        </p>
+    @endif
     <p><strong>Venue:</strong> {{ $booking->venue ?? 'TBD' }}</p>
     @if($booking->budget !== null)
         <p><strong>Budget Offer:</strong> ₱{{ number_format((float) $booking->budget, 2) }}</p>
