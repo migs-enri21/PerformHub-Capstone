@@ -39,6 +39,15 @@ class EventApplicationController extends Controller
             return back()->with('warning', 'You already have an active booking for this event.');
         }
 
+        $dateConflict = Booking::bookedDateConflictForEvent($user->id, $event);
+
+        if ($dateConflict) {
+            return back()->with(
+                'warning',
+                'You already have "'.$dateConflict->event_name.'" booked on '.$dateConflict->assignmentDateRangeLabel('M j, Y').'. PerformHub allows 1 booked event per day.'
+            );
+        }
+
         $existing = EventApplication::where('event_id', $event->id)
             ->where('performer_id', $user->id)
             ->first();

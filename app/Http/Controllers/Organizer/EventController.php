@@ -876,7 +876,6 @@ class EventController extends Controller
 
         $activeBookings = Booking::where('event_id', $event->id)
             ->whereIn('status', ['pending', 'accepted', 'completed'])
-            ->with('performer')
             ->get();
 
         foreach ($activeBookings as $booking) {
@@ -884,14 +883,8 @@ class EventController extends Controller
             $assignedEndDate = $booking->assignmentEndDate()->toDateString();
 
             if ($assignedStartDate < $eventDate || $assignedEndDate > $endDate) {
-                $performerName = 'a performer';
-
-                if ($booking->performer) {
-                    $performerName = $booking->performer->name;
-                }
-
                 throw ValidationException::withMessages([
-                    'event_date' => 'The event dates cannot exclude '.$performerName.'\'s assigned dates.',
+                    'event_date' => 'The event dates cannot exclude dates assigned to existing bookings.',
                 ]);
             }
 
@@ -907,7 +900,7 @@ class EventController extends Controller
 
             if ($conflict) {
                 throw ValidationException::withMessages([
-                    'event_date' => 'This change conflicts with '.$booking->performer->name.'\'s confirmed booking for "'.$conflict->event_name.'".',
+                    'event_date' => 'This date change conflicts with an existing confirmed booking.',
                 ]);
             }
         }

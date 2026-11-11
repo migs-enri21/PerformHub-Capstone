@@ -258,7 +258,7 @@
 
             </div>
 
-<div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top"><a href="{{ route('organizer.events.index') }}" class="btn ph-btn-outline">Cancel</a><button type="submit" class="btn ph-btn-primary">Save Changes</button></div>
+<div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top organizer-form-actions"><a href="{{ route('organizer.events.index') }}" class="btn ph-btn-outline organizer-action-button">Cancel</a><button type="submit" class="btn ph-btn-primary organizer-action-button">Save Changes</button></div>
         </form>
 
         @if($event->photos->isNotEmpty())
