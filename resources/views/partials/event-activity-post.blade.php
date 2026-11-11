@@ -46,7 +46,13 @@
         <h5 class="event-card-title event-feed-title">{{ $event->title }}</h5>
 
         @if($event->description)
-            <p class="text-muted event-feed-description">{{ $event->description }}</p>
+            @if(strlen($event->description) > 280)
+                <p class="text-muted event-feed-description mb-1">{{ Str::limit($event->description, 280) }}</p>
+                <p class="text-muted event-feed-description mb-1 d-none" data-full-description>{{ $event->description }}</p>
+                <button type="button" class="event-description-toggle" data-description-toggle>See more</button>
+            @else
+                <p class="text-muted event-feed-description">{{ $event->description }}</p>
+            @endif
         @endif
 
         <p class="event-feed-meta mb-0">
@@ -85,3 +91,30 @@
         <a href="{{ route('organizer.events.show', $event) }}" class="btn btn-sm ph-btn-outline">View Event</a>
     </div>
 </article>
+
+@once
+    @push('scripts')
+    <script>
+        document.addEventListener('click', function (event) {
+            const button = event.target.closest('[data-description-toggle]');
+
+            if (!button) {
+                return;
+            }
+
+            const post = button.closest('.event-feed-body');
+            const descriptions = post.querySelectorAll('.event-feed-description');
+
+            descriptions.forEach(function (description) {
+                description.classList.toggle('d-none');
+            });
+
+            if (button.textContent === 'See more') {
+                button.textContent = 'See less';
+            } else {
+                button.textContent = 'See more';
+            }
+        });
+    </script>
+    @endpush
+@endonce

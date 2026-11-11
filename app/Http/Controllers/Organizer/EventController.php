@@ -127,6 +127,7 @@ class EventController extends Controller
         $canDeleteEvent = $hasFullAccess && $this->eventCanBeDeleted($event, $hasParticipants);
         $canCancelEvent = $hasParticipants
             && strtolower($event->status) === 'open'
+            && ! $event->hasStarted()
             && ! Auth::user()->hasLimitedAccess();
 
         foreach ($bookings as $booking) {
@@ -189,8 +190,12 @@ class EventController extends Controller
         $confirmedBookingBudget = Booking::where('event_id', $event->id)
             ->where('status', 'completed')
             ->sum('budget');
+        $hasConfirmedBooking = Booking::where('event_id', $event->id)
+            ->where('status', 'completed')
+            ->exists();
         $canCancelEvent = $hasParticipants
             && strtolower($event->status) === 'open'
+            && ! $event->hasStarted()
             && ! Auth::user()->hasLimitedAccess();
 
         return view('organizer.events.edit', compact(
@@ -202,6 +207,7 @@ class EventController extends Controller
             'categoryRequests',
             'hasParticipants',
             'confirmedBookingBudget',
+            'hasConfirmedBooking',
             'canCancelEvent'
         ));
     }
@@ -341,6 +347,10 @@ class EventController extends Controller
 
         if (strtolower($event->status) !== 'open') {
             return back()->with('warning', 'Only open events can be cancelled.');
+        }
+
+        if ($event->hasStarted()) {
+            return back()->with('warning', 'An event cannot be cancelled after it has started.');
         }
 
         if (! $this->eventHasParticipants($event)) {
@@ -630,6 +640,7 @@ class EventController extends Controller
         }
 
         $this->clearUnusedCompensationFields($validated, $validated['compensation_type']);
+        $this->ensureConfirmedBookingsKeepAgreedDetails($validated, $event);
         $this->ensureConfirmedBookingsFitEditedBudget($validated, $event);
         $this->ensureOrganizerScheduleAvailable($validated, $event);
 
@@ -684,6 +695,57 @@ class EventController extends Controller
         if ($eventBudget < $allocatedBudget) {
             throw ValidationException::withMessages([
                 'budget' => 'The total budget cannot be lower than PHP '.number_format($allocatedBudget, 2).' already allocated to confirmed bookings.',
+            ]);
+        }
+    }
+
+    private function ensureConfirmedBookingsKeepAgreedDetails(array $eventDetails, ?Event $event): void
+    {
+        if (! $event) {
+            return;
+        }
+
+        $hasConfirmedBooking = Booking::where('event_id', $event->id)
+            ->where('status', 'completed')
+            ->exists();
+
+        if (! $hasConfirmedBooking) {
+            return;
+        }
+
+        $existingStartTime = Carbon::parse($event->start_time)->format('H:i');
+        $existingEndTime = $event->end_time;
+
+        if (! $existingEndTime) {
+            $existingEndTime = $event->start_time;
+        }
+
+        $existingEndTime = Carbon::parse($existingEndTime)->format('H:i');
+
+        $eventDetailsChanged = $eventDetails['title'] !== $event->title
+            || $eventDetails['description'] !== $event->description
+            || $eventDetails['event_date'] !== $event->event_date->toDateString()
+            || $eventDetails['end_date'] !== $event->end_date->toDateString()
+            || $eventDetails['start_time'] !== $existingStartTime
+            || $eventDetails['end_time'] !== $existingEndTime
+            || $eventDetails['venue'] !== $event->venue;
+
+        if ($eventDetailsChanged) {
+            throw ValidationException::withMessages([
+                'title' => 'Event details cannot be changed after a performer booking is confirmed.',
+            ]);
+        }
+
+        $compensationDetailsChanged = $eventDetails['compensation_type'] !== $event->compensation_type
+            || $eventDetails['rate_per_hour'] != $event->rate_per_hour
+            || $eventDetails['work_hours_per_day'] != $event->work_hours_per_day
+            || $eventDetails['first_prize'] != $event->first_prize
+            || $eventDetails['second_prize'] != $event->second_prize
+            || $eventDetails['third_prize'] != $event->third_prize;
+
+        if ($compensationDetailsChanged) {
+            throw ValidationException::withMessages([
+                'compensation_type' => 'Compensation details cannot be changed after a performer booking is confirmed.',
             ]);
         }
     }
@@ -814,7 +876,6 @@ class EventController extends Controller
 
         $activeBookings = Booking::where('event_id', $event->id)
             ->whereIn('status', ['pending', 'accepted', 'completed'])
-            ->with('performer')
             ->get();
 
         foreach ($activeBookings as $booking) {
@@ -822,14 +883,8 @@ class EventController extends Controller
             $assignedEndDate = $booking->assignmentEndDate()->toDateString();
 
             if ($assignedStartDate < $eventDate || $assignedEndDate > $endDate) {
-                $performerName = 'a performer';
-
-                if ($booking->performer) {
-                    $performerName = $booking->performer->name;
-                }
-
                 throw ValidationException::withMessages([
-                    'event_date' => 'The event dates cannot exclude '.$performerName.'\'s assigned dates.',
+                    'event_date' => 'The event dates cannot exclude dates assigned to existing bookings.',
                 ]);
             }
 
@@ -845,7 +900,7 @@ class EventController extends Controller
 
             if ($conflict) {
                 throw ValidationException::withMessages([
-                    'event_date' => 'This change conflicts with '.$booking->performer->name.'\'s confirmed booking for "'.$conflict->event_name.'".',
+                    'event_date' => 'This date change conflicts with an existing confirmed booking.',
                 ]);
             }
         }

@@ -35,112 +35,11 @@
                 </div>
             @endif
 
-            @php
-                $showRegistration = $errors->any() || old('terms_accepted');
-            @endphp
-
             <form method="POST" action="{{ route('register') }}" enctype="multipart/form-data">
                 @csrf
                 <input type="hidden" name="role" id="roleInput" value="{{ old('role', $role) }}">
 
-                <div class="ph-card p-3 mb-4" style="{{ $showRegistration ? 'display:none;' : '' }}">
-                    <h5 class="fw-semibold mb-3">Terms & Conditions</h5>
-                    <div class="border rounded p-3 mb-3" style="max-height: 280px; overflow-y: auto; background-color: rgba(255,255,255,.03);">
-                        <p><strong>Last Updated:</strong> July 27, 2026</p>
-                        <h6 class="fw-semibold">1. Acceptance of Terms</h6>
-                        <p>Welcome to <strong>PerformHub</strong>. By creating an account and using our platform, you agree to comply with these Terms & Conditions. If you do not agree with these terms, you should not proceed with registration or use the platform.</p>
-                        <hr class="my-3">
-                        <h6 class="fw-semibold">2. User Responsibilities</h6>
-                        <p>All users are responsible for providing accurate and complete information during registration and for keeping their account credentials secure. Users must use the platform responsibly and comply with all applicable laws and regulations.</p>
-                        <hr class="my-3">
-                        <h6 class="fw-semibold">3. Organizer Responsibilities</h6>
-                        <ul>
-                            <li>Create accurate and complete event listings.</li>
-                            <li>Clearly communicate event details, schedules, and requirements.</li>
-                            <li>Treat performers professionally and respectfully.</li>
-                            <li>Honor confirmed bookings whenever possible.</li>
-                            <li>Comply with all applicable laws and event regulations.</li>
-                        </ul>
-                        <hr class="my-3">
-                        <h6 class="fw-semibold">4. Performer Responsibilities</h6>
-                        <ul>
-                            <li>Provide truthful profile information and qualifications.</li>
-                            <li>Respond to booking requests professionally.</li>
-                            <li>Attend and fulfill confirmed bookings.</li>
-                            <li>Inform organizers immediately if they are unable to fulfill a commitment.</li>
-                            <li>Maintain professionalism throughout all interactions.</li>
-                        </ul>
-                        <hr class="my-3">
-                        <h6 class="fw-semibold">5. Prohibited Activities</h6>
-                        <ul>
-                            <li>Provide false or misleading information.</li>
-                            <li>Impersonate another individual or organization.</li>
-                            <li>Harass, threaten, or abuse other users.</li>
-                            <li>Use the platform for fraudulent or illegal activities.</li>
-                            <li>Upload malicious or inappropriate content.</li>
-                            <li>Interfere with the normal operation of the platform.</li>
-                        </ul>
-                        <hr class="my-3">
-                        <h6 class="fw-semibold">6. Account Suspension</h6>
-                        <p>PerformHub reserves the right to suspend or permanently ban any account that violates these Terms & Conditions or engages in activities that may compromise the safety, integrity, or functionality of the platform.</p>
-                        <hr class="my-3">
-                        <h6 class="fw-semibold">7. Changes to These Terms</h6>
-                        <p>PerformHub may update these Terms & Conditions at any time. Continued use of the platform after any updates constitutes acceptance of the revised Terms & Conditions.</p>
-                        <hr class="my-3">
-                        <h5 class="fw-semibold">Disclaimer</h5>
-                        <p><strong>Last Updated:</strong> July 27, 2026</p>
-                        <p>PerformHub is an online platform that connects <strong>Organizers</strong> and <strong>Performers</strong> for event bookings and collaborations.</p>
-                        <p>PerformHub acts solely as a facilitator and is not a party to any agreement, contract, payment arrangement, or transaction between users.</p>
-                        <p>While we strive to provide a reliable and secure platform, PerformHub does not guarantee:</p>
-                        <ul>
-                            <li>The quality or success of any performance or event.</li>
-                            <li>The accuracy of information provided by users.</li>
-                            <li>The availability or reliability of organizers or performers.</li>
-                            <li>The outcome of bookings, negotiations, or collaborations.</li>
-                        </ul>
-                        <p>All bookings, communications, payments, and agreements are made directly between the Organizer and the Performer.</p>
-                        <p>PerformHub shall not be held liable for:</p>
-                        <ul>
-                            <li>Event cancellations.</li>
-                            <li>Payment disputes.</li>
-                            <li>Scheduling conflicts.</li>
-                            <li>Financial losses.</li>
-                            <li>Property damage.</li>
-                            <li>Personal injury.</li>
-                            <li>Any dispute arising between users.</li>
-                        </ul>
-                        <h6 class="fw-semibold">Data Privacy</h6>
-                        <p>PerformHub is committed to protecting the privacy and personal information of its users in accordance with the <strong>Data Privacy Act of 2012 (Republic Act No. 10173)</strong> of the Philippines and its applicable rules and regulations.</p>
-                        <p>By using PerformHub, users acknowledge and consent to the collection, processing, storage, and use of their personal information solely for legitimate platform purposes, including but not limited to:</p>
-                        <ul>
-                            <li>User registration and authentication.</li>
-                            <li>Profile management.</li>
-                            <li>Booking and event coordination.</li>
-                            <li>Communication between Organizers and Performers.</li>
-                            <li>Platform security, fraud prevention, and customer support.</li>
-                        </ul>
-                        <p>PerformHub implements reasonable administrative, technical, and physical security measures to safeguard users' personal information against unauthorized access, disclosure, alteration, loss, or misuse.</p>
-                        <p>Personal information will not be sold or disclosed to third parties except:</p>
-                        <ul>
-                            <li>With the user's consent.</li>
-                            <li>When required by law, court order, or lawful government request.</li>
-                            <li>When necessary to protect the rights, safety, or security of PerformHub and its users.</li>
-                        </ul>
-                        <p>Users have the rights provided under the Data Privacy Act of 2012, including the right to be informed, access, correct, object to processing where applicable, request deletion or blocking of personal information when legally appropriate, and file a complaint with the appropriate government authority if they believe their privacy rights have been violated.</p>
-                        <p>Users are encouraged to verify all event details, communicate clearly, and exercise good judgment before entering into any agreement.</p>
-                        <p>By using PerformHub, you acknowledge that you have read, understood, and agreed to these Terms & Conditions, this Disclaimer, and the processing of your personal information in accordance with the <strong>Data Privacy Act of 2012 (Republic Act No. 10173)</strong>.</p>
-                    </div>
-                    <div class="form-check mb-3">
-                        <input class="form-check-input @error('terms_accepted') is-invalid @enderror" type="checkbox" name="terms_accepted" id="termsAccepted" value="1" {{ old('terms_accepted') ? 'checked' : '' }}>
-                        <label class="form-check-label" for="termsAccepted">
-                            I have read and agree to the Terms & Conditions and Disclaimer.
-                        </label>
-                    </div>
-                    @error('terms_accepted')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
-                    <button type="button" id="continueRegistration" class="btn btn-outline-primary w-100 mt-3" disabled>Continue to Registration</button>
-                </div>
-
-                <div id="registrationFields" style="{{ $showRegistration ? '' : 'display:none;' }}">
+                <div id="registrationFields">
                     <div class="row g-2 mb-2">
                         <div class="col-md-6">
                             <label class="form-label text-muted small mb-1">First Name</label>
@@ -219,9 +118,8 @@
                         'formats' => '.jpg .png .pdf — up to 5 files, max 5 MB each',
                         'icon' => 'fa-id-card',
                     ])
-                    @error('government_id')<div class="text-danger small mb-2">{{ $message }}</div>@enderror
 
-                    <button type="submit" id="registerSubmitButton" class="btn ph-btn-primary w-100 mb-2" disabled>
+                    <button type="submit" id="registerSubmitButton" class="btn ph-btn-primary w-100 mb-2">
                         Create Account <i class="fas fa-arrow-right ms-2"></i>
                     </button>
 
@@ -242,39 +140,7 @@ document.querySelectorAll('.role-card').forEach(card => {
         document.querySelectorAll('.role-card').forEach(c => c.classList.remove('active'));
         card.classList.add('active');
         document.getElementById('roleInput').value = card.dataset.role;
-        document.getElementById('roleInput').value = card.dataset.role;
     });
 });
-
-const termsCheckbox = document.getElementById('termsAccepted');
-const continueButton = document.getElementById('continueRegistration');
-const registrationFields = document.getElementById('registrationFields');
-const submitButton = document.getElementById('registerSubmitButton');
-
-function updateContinueState() {
-    continueButton.disabled = !termsCheckbox.checked;
-    if (registrationFields.style.display !== 'none' && termsCheckbox.checked) {
-        submitButton.disabled = false;
-    }
-}
-
-if (termsCheckbox) {
-    termsCheckbox.addEventListener('change', updateContinueState);
-    updateContinueState();
-}
-
-if (continueButton) {
-    continueButton.addEventListener('click', () => {
-        if (termsCheckbox.checked) {
-            registrationFields.style.display = 'block';
-            continueButton.closest('.ph-card').style.display = 'none';
-            submitButton.disabled = false;
-        }
-    });
-}
-
-if (registrationFields && registrationFields.style.display !== 'none' && termsCheckbox && termsCheckbox.checked) {
-    submitButton.disabled = false;
-}
 </script>
 @endpush

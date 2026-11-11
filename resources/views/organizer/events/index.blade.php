@@ -60,11 +60,17 @@
                 @php
                     $status = strtolower($event->status);
                     $hasParticipants = $event->applications_count > 0 || $event->bookings_count > 0;
+                    $hasEventMedia = $event->photos->isNotEmpty();
+
+                    if (! $hasEventMedia && $event->coverPhotoUrl()) {
+                        $hasEventMedia = true;
+                    }
+
                     $canDeleteEvent = $status === 'cancelled'
                         || (! $hasParticipants && ($status === 'ended' || ($status === 'open' && ! $event->hasStarted())));
                 @endphp
 
-                <article class="ph-card organizer-event-card h-100 overflow-hidden">
+                <article class="ph-card organizer-event-card overflow-hidden @if($hasEventMedia) h-100 @endif">
                     @if($event->photos->count() > 1)
                         @php
                             $firstMedia = $event->photos->first();
@@ -97,6 +103,7 @@
                         </div>
                     @else
                         <div class="organizer-event-cover organizer-event-cover--empty">
+                            <i class="fas fa-image" aria-hidden="true"></i>
                             <span class="text-muted">No Event Photo</span>
                         </div>
                     @endif
@@ -105,9 +112,6 @@
                         <div class="d-flex justify-content-between align-items-start gap-3 mb-2">
                             <h5 class="event-card-title mb-0">{{ $event->title }}</h5>
                             <span class="organizer-event-status {{ $statusClass }}">{{ ucfirst($event->status) }}</span>
-                            @if(strtolower($event->status) === 'open' && $event->hasStarted())
-                                <span class="badge text-bg-secondary">Applications Closed</span>
-                            @endif
                         </div>
 
                         @if($event->description)
@@ -126,16 +130,19 @@
                         </div>
 
                         <div class="organizer-event-actions">
-                            <a href="{{ route('organizer.events.show', $event) }}" class="btn ph-btn-primary btn-sm">View Event</a>
+                            <a href="{{ route('organizer.events.show', $event) }}" class="btn ph-btn-primary btn-sm organizer-action-button">View Event</a>
                             @if(! auth()->user()->hasLimitedAccess() && strtolower($event->status) === 'open' && ! $event->hasStarted())
-                                <a href="{{ route('organizer.events.edit', $event) }}" class="btn ph-btn-outline btn-sm">Edit</a>
+                                <a href="{{ route('organizer.events.edit', $event) }}" class="btn btn-sm organizer-action-button organizer-edit-action">Edit</a>
                             @endif
                             @if(! auth()->user()->hasLimitedAccess() && $canDeleteEvent)
                                 <form method="POST" action="{{ route('organizer.events.destroy', $event) }}" class="delete-event-form">
                                     @csrf
                                     @method('DELETE')
-                                    <button type="submit" class="btn btn-sm ph-btn-danger">Delete</button>
+                                    <button type="submit" class="btn btn-sm ph-btn-danger organizer-action-button">Delete</button>
                                 </form>
+                            @endif
+                            @if(strtolower($event->status) === 'open' && $event->hasStarted())
+                                <span class="organizer-event-applications-closed">Applications Closed</span>
                             @endif
                         </div>
                     </div>
@@ -145,11 +152,8 @@
     </div>
 
     @if($events->hasPages())
-        <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3 mt-4">
-            <p class="text-muted mb-0 small">
-                Showing {{ $events->firstItem() }} to {{ $events->lastItem() }} of {{ $events->total() }} events
-            </p>
-            {{ $events->links() }}
+        <div class="organizer-event-pagination mt-4">
+            {{ $events->links('pagination::bootstrap-5') }}
         </div>
     @endif
 @endif

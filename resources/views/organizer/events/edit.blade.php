@@ -62,6 +62,12 @@
         @endif
     </div>
 
+    @if($hasConfirmedBooking)
+        <div class="alert alert-info mb-4">
+            A performer has a confirmed booking for this event. Agreed event details and compensation terms are locked to protect the signed booking. You may still add media, update categories or genres, and adjust the total budget without going below confirmed allocations.
+        </div>
+    @endif
+
     <div class="ph-card p-4 p-lg-5">
         <form method="POST" action="{{ route('organizer.events.update', $event) }}" enctype="multipart/form-data">
             @csrf
@@ -82,11 +88,7 @@
                                                 <img src="{{ $photo->fileUrl() }}" alt="Event photo" class="rounded w-100 organizer-event-thumb">
                                             </button>
                                         @endif
-                                        <form method="POST" action="{{ route('organizer.events.media.destroy', [$event, $photo]) }}" class="organizer-edit-media-remove organizer-confirm-form" data-confirm-title="Remove Media" data-confirm-message="Remove this media from the event? This cannot be undone." data-confirm-button="Remove Media" data-confirm-style="ph-btn-danger">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" aria-label="Remove event media">&times;</button>
-                                        </form>
+                                        <button type="submit" form="remove-event-media-{{ $photo->id }}" class="organizer-edit-media-remove" aria-label="Remove event media">&times;</button>
                                     </div>
                                 </div>
                             @endforeach
@@ -256,8 +258,17 @@
 
             </div>
 
-<div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top"><a href="{{ route('organizer.events.index') }}" class="btn ph-btn-outline">Cancel</a><button type="submit" class="btn ph-btn-primary">Save Changes</button></div>
+<div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top organizer-form-actions"><a href="{{ route('organizer.events.index') }}" class="btn ph-btn-outline organizer-action-button">Cancel</a><button type="submit" class="btn ph-btn-primary organizer-action-button">Save Changes</button></div>
         </form>
+
+        @if($event->photos->isNotEmpty())
+            @foreach($event->photos as $photo)
+                <form id="remove-event-media-{{ $photo->id }}" method="POST" action="{{ route('organizer.events.media.destroy', [$event, $photo]) }}" class="organizer-confirm-form" data-confirm-title="Remove Media" data-confirm-message="Remove this media from the event? This cannot be undone." data-confirm-button="Remove Media" data-confirm-style="ph-btn-danger">
+                    @csrf
+                    @method('DELETE')
+                </form>
+            @endforeach
+        @endif
     </div>
 </div>
 

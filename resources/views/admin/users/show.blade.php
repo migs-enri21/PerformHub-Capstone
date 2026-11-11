@@ -17,7 +17,10 @@
         $isOrganizer = $user->isOrganizer();
         $profileFieldsComplete = $user->hasCompletedProfileDetails();
         $profileComplete = $isOrganizer || $user->onboarding_step >= \App\Models\User::ONBOARDING_VERIFICATION;
-        $canVerify = $isOrganizer || $profileComplete || $profileFieldsComplete;
+        $profileNeedsCheck = $user->isPerformer()
+            && $profileFieldsComplete
+            && ! $profileComplete;
+        $canVerify = $isOrganizer || $profileFieldsComplete;
         $verificationComplete = $user->is_verified;
         $onboardingComplete = $profileComplete && $verificationComplete;
     @endphp
@@ -152,7 +155,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
-                @if(!$profileComplete)
+                @if(!$isOrganizer && ($profileNeedsCheck || !$profileComplete))
                     <form method="POST" action="{{ route('admin.users.check-profile', $user) }}" class="d-inline">
                         @csrf
                         <button type="submit" class="btn ph-btn-primary">Check Profile</button>
@@ -196,7 +199,7 @@
             </div>
             <div class="modal-footer mt-auto">
                 <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
-                @if(!$isOrganizer && !$profileComplete)
+                @if(!$isOrganizer && ($profileNeedsCheck || !$profileComplete))
                     <form method="POST" action="{{ route('admin.users.check-profile', $user) }}" class="d-inline">
                         @csrf
                         <button type="submit" class="btn ph-btn-primary">Check Profile</button>
@@ -252,11 +255,11 @@
     @endif
 </div>
 
-<div class="d-flex gap-2 flex-wrap">
+<div class="d-flex gap-2 flex-wrap admin-user-actions">
     @if(!$isOrganizer && !$profileComplete)
         <form method="POST" action="{{ route('admin.users.check-profile', $user) }}">
             @csrf
-            <button type="submit" class="btn ph-btn-primary" @if(!$profileFieldsComplete) disabled title="Required profile fields are still missing." @endif>
+            <button type="submit" class="btn ph-btn-primary admin-user-action-btn" @if(!$profileFieldsComplete) disabled title="Required profile fields are still missing." @endif>
                 Check Profile
             </button>
         </form>
@@ -264,12 +267,12 @@
     @if(!$user->is_verified)
         <form method="POST" action="{{ route('admin.users.verify', $user) }}">
             @csrf
-            <button class="btn btn-success" @if(!$canVerify) disabled title="Complete Profile Details before verification." @endif>Verify User</button>
+            <button class="btn btn-success admin-user-action-btn" @if(!$canVerify) disabled title="Complete Profile Details before verification." @endif>Verify User</button>
         </form>
     @endif
     <form method="POST" action="{{ route('admin.users.toggle', $user) }}">
         @csrf
-        <button class="btn btn-outline-warning">{{ $user->is_active ? 'Suspend' : 'Activate' }}</button>
+        <button class="btn btn-outline-warning admin-user-action-btn">{{ $user->is_active ? 'Suspend' : 'Activate' }}</button>
     </form>
 </div>
 @endsection

@@ -49,7 +49,7 @@ class UserController extends Controller
 
         $user->loadMissing(['performerProfile.categories', 'organizerProfile']);
 
-        if ($user->isPerformer() && $user->onboarding_step < User::ONBOARDING_VERIFICATION) {
+        if ($user->isPerformer()) {
             if (! $user->markProfileDetailsComplete()) {
                 return back()->with('warning', 'Complete Profile Details before admin verification.');
             }

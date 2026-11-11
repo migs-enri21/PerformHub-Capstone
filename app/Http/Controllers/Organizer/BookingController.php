@@ -263,7 +263,6 @@ class BookingController extends Controller
             'cancel_requested_at' => null,
         ]);
 
-        // Booking cancelled but event may still be open — clear application so performer can apply again.
         if ($booking->event_id) {
             EventApplication::where('event_id', $booking->event_id)
                 ->where('performer_id', $booking->performer_id)
