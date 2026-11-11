@@ -48,12 +48,14 @@ Route::middleware('guest')->group(function () {
 
 Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth')->name('logout');
 
+Route::post('/onboarding/exit', [AuthController::class, 'cancelRegistration'])->name('onboarding.exit');
+Route::get('/onboarding', [OnboardingController::class, 'index'])->name('onboarding.index');
+Route::get('/onboarding/profile', [OnboardingController::class, 'showProfile'])->name('onboarding.profile');
+Route::post('/onboarding/profile', [OnboardingController::class, 'storeProfile'])->name('onboarding.profile.store');
+Route::get('/onboarding/verification', [OnboardingController::class, 'showVerification'])->name('onboarding.verification');
+Route::post('/onboarding/verification', [OnboardingController::class, 'storeVerification'])->name('onboarding.verification.store');
+
 Route::middleware('auth')->group(function () {
-    Route::get('/onboarding', [OnboardingController::class, 'index'])->name('onboarding.index');
-    Route::get('/onboarding/profile', [OnboardingController::class, 'showProfile'])->name('onboarding.profile');
-    Route::post('/onboarding/profile', [OnboardingController::class, 'storeProfile'])->name('onboarding.profile.store');
-    Route::get('/onboarding/verification', [OnboardingController::class, 'showVerification'])->name('onboarding.verification');
-    Route::post('/onboarding/verification', [OnboardingController::class, 'storeVerification'])->name('onboarding.verification.store');
     Route::get('/onboarding/complete', [OnboardingController::class, 'showComplete'])->name('onboarding.complete');
     Route::post('/onboarding/dismiss-banner', [OnboardingController::class, 'dismissBanner'])->name('onboarding.dismiss-banner');
 

@@ -24,15 +24,26 @@
                         <td class="align-middle"><span class="badge {{ $item->is_active ? 'bg-success' : 'bg-secondary' }}">{{ $item->is_active ? 'Active' : 'Inactive' }}</span></td>
                         <td class="align-middle text-end">
                             <a href="{{ route('admin.'.$prefix.'.show', $item) }}" class="btn btn-sm btn-outline-info" title="View"><i class="fas fa-eye"></i></a>
-                            <a href="{{ route('admin.'.$prefix.'.edit', $item) }}" class="btn btn-sm btn-outline-warning" title="Edit"><i class="fas fa-edit"></i></a>
+                            <button type="button" class="btn btn-sm btn-outline-warning" title="Edit"
+                                data-bs-target="#editNamedOptionModal"
+                                data-edit-action="{{ route('admin.'.$prefix.'.update', $item) }}"
+                                data-item-type="{{ $itemLabel }}"
+                                data-name="{{ $item->name }}"
+                                data-description="{{ $item->description }}"
+                                data-active="{{ $item->is_active ? '1' : '0' }}"
+                                @if($showCategory ?? false) data-category-id="{{ $item->category_id }}" @endif>
+                                <i class="fas fa-edit"></i>
+                            </button>
                             <form method="POST" action="{{ route('admin.'.$prefix.'.toggle', $item) }}" class="admin-action-form">
                                 @csrf @method('PATCH')
                                 <button type="submit" class="btn btn-sm {{ $item->is_active ? 'btn-outline-secondary' : 'btn-outline-success' }}" title="{{ $item->is_active ? 'Deactivate' : 'Activate' }}"><i class="fas {{ $item->is_active ? 'fa-toggle-on' : 'fa-toggle-off' }}"></i></button>
                             </form>
-                            <form method="POST" action="{{ route('admin.'.$prefix.'.destroy', $item) }}" class="admin-action-form" onsubmit="return confirm('Delete this {{ $itemLabel }}?');">
-                                @csrf @method('DELETE')
-                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete"><i class="fas fa-trash"></i></button>
-                            </form>
+                            <button type="button" class="btn btn-sm btn-outline-danger" title="Delete"
+                                data-bs-target="#deleteNamedOptionModal"
+                                data-delete-action="{{ route('admin.'.$prefix.'.destroy', $item) }}"
+                                data-item-type="{{ $itemLabel }}" data-name="{{ $item->name }}">
+                                <i class="fas fa-trash"></i>
+                            </button>
                         </td>
                     </tr>
                 @empty

@@ -49,7 +49,7 @@
         @if($hasGovernmentId)
             <div class="mb-3 p-3 rounded" style="background-color: rgba(34,197,94,.1); border: 1px solid rgba(34,197,94,.3);">
                 <i class="fas fa-check-circle text-success me-2"></i>
-                <span class="small">Government ID already submitted during registration.</span>
+                <span class="small">Government ID uploaded during account setup.</span>
             </div>
         @else
             @include('onboarding.partials.upload-field', [
@@ -70,7 +70,7 @@
                 'formats' => '.jpg .png .pdf — up to 5 files, max 10 MB each',
             'icon' => 'fa-file-alt',
         ])
-        <div class="agency-only-document">
+        <div>
             @include('onboarding.partials.upload-field', [
                 'name' => 'proof_of_employment',
                 'title' => 'Proof of Employment',
@@ -95,7 +95,7 @@
         @if($hasGovernmentId)
             <div class="mb-3 p-3 rounded" style="background-color: rgba(34,197,94,.1); border: 1px solid rgba(34,197,94,.3);">
                 <i class="fas fa-check-circle text-success me-2"></i>
-                <span class="small">Government ID already submitted during registration.</span>
+                <span class="small">Government ID uploaded during account setup.</span>
             </div>
         @else
             @include('onboarding.partials.upload-field', [
@@ -132,11 +132,6 @@
 function updateDocumentRequirements() {
     const selectedType = document.querySelector('.org-type-card input[type=radio]:checked')?.value;
     const isAgency = selectedType === 'agency';
-    const employmentWrapper = document.querySelector('.agency-only-document');
-
-    if (employmentWrapper) {
-        employmentWrapper.classList.toggle('d-none', !isAgency);
-    }
 
     ['business_permit', 'proof_of_employment'].forEach(fieldName => {
         const field = document.querySelector(`.upload-field[data-field-name="${fieldName}"]`);
@@ -170,4 +165,3 @@ document.querySelectorAll('.org-type-card').forEach(card => {
     updateDocumentRequirements();
 </script>
 @endpush
-
