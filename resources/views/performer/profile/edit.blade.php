@@ -53,11 +53,11 @@
                 <div class="row g-3">
                     <div class="col-md-3">
                         <label class="form-label text-muted small mb-1">First Name</label>
-                        <input type="text" name="first_name" class="form-control ph-input" value="{{ old('first_name', auth()->user()->first_name) }}" required>
+                        <input type="text" name="first_name" class="form-control ph-input" value="{{ old('first_name', auth()->user()->first_name) }}" pattern="[A-Za-z\s'-]+" title="Use letters only; spaces, hyphens, and apostrophes are allowed." oninput="this.value = this.value.replace(/[^A-Za-z\s'-]/g, '')" required>
                     </div>
                     <div class="col-md-3">
                         <label class="form-label text-muted small mb-1">Last Name</label>
-                        <input type="text" name="last_name" class="form-control ph-input" value="{{ old('last_name', auth()->user()->last_name) }}" required>
+                        <input type="text" name="last_name" class="form-control ph-input" value="{{ old('last_name', auth()->user()->last_name) }}" pattern="[A-Za-z\s'-]+" title="Use letters only; spaces, hyphens, and apostrophes are allowed." oninput="this.value = this.value.replace(/[^A-Za-z\s'-]/g, '')" required>
                     </div>
                     <div class="col-md-3">
                         <label class="form-label text-muted small mb-1">Stage Name</label>
