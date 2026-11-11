@@ -60,11 +60,17 @@
                 @php
                     $status = strtolower($event->status);
                     $hasParticipants = $event->applications_count > 0 || $event->bookings_count > 0;
+                    $hasEventMedia = $event->photos->isNotEmpty();
+
+                    if (! $hasEventMedia && $event->coverPhotoUrl()) {
+                        $hasEventMedia = true;
+                    }
+
                     $canDeleteEvent = $status === 'cancelled'
                         || (! $hasParticipants && ($status === 'ended' || ($status === 'open' && ! $event->hasStarted())));
                 @endphp
 
-                <article class="ph-card organizer-event-card h-100 overflow-hidden">
+                <article class="ph-card organizer-event-card overflow-hidden @if($hasEventMedia) h-100 @endif">
                     @if($event->photos->count() > 1)
                         @php
                             $firstMedia = $event->photos->first();
@@ -97,6 +103,7 @@
                         </div>
                     @else
                         <div class="organizer-event-cover organizer-event-cover--empty">
+                            <i class="fas fa-image" aria-hidden="true"></i>
                             <span class="text-muted">No Event Photo</span>
                         </div>
                     @endif
