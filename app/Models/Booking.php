@@ -501,6 +501,38 @@ class Booking extends Model
             ->whereDate('assigned_end_date', '>=', $startDate);
     }
 
+    public static function bookedDateConflictForEvent(int $performerId, Event $event): ?self
+    {
+        $startDate = $event->event_date;
+        $endDate = $event->end_date ?: $event->event_date;
+
+        if (! $startDate) {
+            return null;
+        }
+
+        return static::query()
+            ->where('performer_id', $performerId)
+            ->where('status', 'completed')
+            ->overlappingAssignmentDates($startDate, $endDate)
+            ->orderBy('assigned_start_date')
+            ->first();
+    }
+
+    public static function applyDateBookedStatuses(int $performerId, iterable $events, array $applicationStatuses): array
+    {
+        foreach ($events as $event) {
+            if (isset($applicationStatuses[$event->id])) {
+                continue;
+            }
+
+            if (static::bookedDateConflictForEvent($performerId, $event)) {
+                $applicationStatuses[$event->id] = 'date_booked';
+            }
+        }
+
+        return $applicationStatuses;
+    }
+
     public function hasCancelRequest(): bool
     {
         return in_array($this->status, ['accepted', 'completed'], true) && $this->cancel_requested_at !== null;
