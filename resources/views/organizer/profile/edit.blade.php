@@ -68,14 +68,14 @@
                         <input type="text" name="last_name" class="form-control ph-input @error('last_name') is-invalid @enderror" value="{{ old('last_name', auth()->user()->last_name) }}" pattern="[A-Za-z\s'-]+" title="Use letters only; spaces, hyphens, and apostrophes are allowed." oninput="this.value = this.value.replace(/[^A-Za-z\s'-]/g, '')">
                         @error('last_name')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     </div>
-                    <div class="col-12">
+                    <div class="col-12" id="organizationNameField">
                         <label class="form-label text-muted small">Organization Name</label>
-                        <input type="text" name="organization_name" class="form-control ph-input @error('organization_name') is-invalid @enderror" value="{{ old('organization_name', $profile->organization_name) }}">
+                        <input type="text" name="organization_name" id="organizationName" class="form-control ph-input @error('organization_name') is-invalid @enderror" value="{{ old('organization_name', $profile->organization_name) }}">
                         @error('organization_name')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     </div>
                     <div class="col-md-6">
                         <label class="form-label text-muted small">Organization Type</label>
-                        <select name="organization_type" class="form-select ph-input @error('organization_type') is-invalid @enderror">
+                        <select name="organization_type" id="organizationType" class="form-select ph-input @error('organization_type') is-invalid @enderror">
                             <option value="agency" @if(old('organization_type', $profile->organization_type) == 'agency') selected @endif>Agency</option>
                             <option value="freelancer" @if(old('organization_type', $profile->organization_type) == 'freelancer') selected @endif>Freelancer</option>
                         </select>
@@ -86,9 +86,9 @@
                         <input type="tel" name="phone" class="form-control ph-input @error('phone') is-invalid @enderror" value="{{ old('phone', $profile->phone) }}" placeholder="0917 123 4567" inputmode="tel" autocomplete="tel" pattern="^(\+63|0|63)?[\s\-]*9\d{2}[\s\-]*\d{3}[\s\-]*\d{4}$" title="Enter a valid Philippine mobile number (e.g. 09XX XXX XXXX or +63 9XX XXX XXXX).">
                         @error('phone')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
                     </div>
-                    <div class="col-md-6">
+                    <div class="col-md-6" id="websiteField">
                         <label class="form-label text-muted small">Website</label>
-                        <input type="url" name="website" class="form-control ph-input" value="{{ old('website', $profile->website) }}">
+                        <input type="url" name="website" id="website" class="form-control ph-input" value="{{ old('website', $profile->website) }}">
                     </div>
                     <div class="col-12">
                         <label class="form-label text-muted small">Location</label>
@@ -119,6 +119,11 @@
     const placeholder = wrap.querySelector('.banner-reposition-placeholder');
     const resetBtn = document.getElementById('bannerResetPosition');
     const fileInput = document.getElementById('banner_photo_input');
+    const organizationType = document.getElementById('organizationType');
+    const organizationNameField = document.getElementById('organizationNameField');
+    const organizationName = document.getElementById('organizationName');
+    const websiteField = document.getElementById('websiteField');
+    const website = document.getElementById('website');
 
     let dragging = false;
     let startClientY = 0;
@@ -170,6 +175,19 @@
         if (placeholder) placeholder.remove();
         setPosition(50);
     });
+
+    function toggleOrganizationFields() {
+        const isFreelancer = organizationType.value === 'freelancer';
+
+        organizationNameField.classList.toggle('d-none', isFreelancer);
+        websiteField.classList.toggle('d-none', isFreelancer);
+        organizationName.disabled = isFreelancer;
+        organizationName.required = !isFreelancer;
+        website.disabled = isFreelancer;
+    }
+
+    organizationType.addEventListener('change', toggleOrganizationFields);
+    toggleOrganizationFields();
 })();
 </script>
 @endpush

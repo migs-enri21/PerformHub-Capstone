@@ -56,10 +56,10 @@ class ProfileController extends Controller
 
     private function validateProfile(Request $request): array
     {
-        return $request->validate(array_merge([
+        $validated = $request->validate(array_merge([
             'first_name' => ['required', 'string', 'max:100', "regex:/^[a-zA-Z\\s\\-']+$/"],
             'last_name' => ['required', 'string', 'max:100', "regex:/^[a-zA-Z\\s\\-']+$/"],
-            'organization_name' => ['required', 'string', 'max:255'],
+            'organization_name' => ['nullable', 'required_if:organization_type,agency', 'string', 'max:255'],
             'organization_type' => ['required', 'in:freelancer,agency'],
             'bio' => ['nullable', 'string', 'max:2000'],
             'phone' => PhoneNumbers::rules(required: false),
@@ -72,6 +72,13 @@ class ProfileController extends Controller
             'first_name.regex' => 'First name may only contain letters, spaces, hyphens, and apostrophes.',
             'last_name.regex' => 'Last name may only contain letters, spaces, hyphens, and apostrophes.',
         ]);
+
+        if ($validated['organization_type'] === 'freelancer') {
+            $validated['organization_name'] = trim($validated['first_name'].' '.$validated['last_name']);
+            $validated['website'] = null;
+        }
+
+        return $validated;
     }
 
     private function storePhoto(Request $request, OrganizerProfile $profile, array $data, string $field, string $type): array

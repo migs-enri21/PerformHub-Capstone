@@ -29,14 +29,16 @@
                     No phone number set.
                 @endif
             </p>
-            <p class="mb-0">
-                <i class="fas fa-globe me-2 text-muted"></i>
-                @if($profile->website)
-                    <a href="{{ $profile->website }}" target="_blank" rel="noopener">{{ $profile->website }}</a>
-                @else
-                    <span class="text-muted">No website set.</span>
-                @endif
-            </p>
+            @if($profile->organization_type === 'agency')
+                <p class="mb-0">
+                    <i class="fas fa-globe me-2 text-muted"></i>
+                    @if($profile->website)
+                        <a href="{{ $profile->website }}" target="_blank" rel="noopener">{{ $profile->website }}</a>
+                    @else
+                        <span class="text-muted">No website set.</span>
+                    @endif
+                </p>
+            @endif
         </div>
     </div>
     <div class="col-md-6">
