@@ -119,7 +119,6 @@ class Event extends Model
         $end = Carbon::parse($endDate.' '.$this->normalizeTimeString($endTime));
         $start = $this->startsAt();
 
-        // Legacy overnight rows only — new events must end same day.
         if ($end->lessThanOrEqualTo($start)) {
             $end->addDay();
         }
@@ -150,7 +149,6 @@ class Event extends Model
             return '00:00:00';
         }
 
-        // If a full datetime somehow arrives, keep the time portion only.
         if (str_contains($time, ' ')) {
             $parts = explode(' ', $time);
 
