@@ -92,7 +92,7 @@
 
         <div class="p-4">
             @if($event->description)
-                <p class="text-muted">{{ $event->description }}</p>
+                <p class="text-muted organizer-event-detail-description">{{ $event->description }}</p>
             @endif
 
             <div class="row g-3">

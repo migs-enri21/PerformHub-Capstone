@@ -443,6 +443,10 @@ button.organizer-edit-media-remove:hover,
     -webkit-line-clamp: 2;
 }
 
+.organizer-event-detail-description {
+    white-space: pre-line;
+}
+
 .organizer-event-meta {
     display: grid;
     gap: 0.5rem;
