@@ -329,7 +329,7 @@
                             </a>
                             <form method="POST" action="{{ route('organizer.events.applications.decline', [$event, $application]) }}" class="organizer-confirm-form" data-confirm-title="Decline Applicant" data-confirm-message="Decline this applicant?" data-confirm-button="Decline Applicant" data-confirm-style="ph-btn-danger">
                                 @csrf
-                                <button type="submit" class="btn ph-btn-danger-outline btn-sm">Decline</button>
+                                <button type="submit" class="btn ph-btn-danger btn-sm organizer-action-button">Decline</button>
                             </form>
                         @endif
                     @elseif($application->status === 'accepted' && isset($bookings[$application->performer_id]))

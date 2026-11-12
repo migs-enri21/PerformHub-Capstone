@@ -141,7 +141,7 @@
                     </form>
                     <form method="POST" action="{{ route('organizer.bookings.cancel.decline', $booking) }}" class="flex-grow-1">
                         @csrf
-                        <button class="btn ph-btn-outline w-100">Decline</button>
+                        <button class="btn organizer-action-button organizer-edit-action w-100">Decline</button>
                     </form>
                 </div>
             </div>

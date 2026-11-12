@@ -85,7 +85,17 @@
     align-items: center;
     display: inline-flex;
     justify-content: center;
+    min-height: 2.75rem;
     text-align: center;
+}
+
+.btn.ph-btn-primary.btn-sm,
+.btn.ph-btn-outline.btn-sm,
+.btn.ph-btn-success.btn-sm,
+.btn.ph-btn-danger.btn-sm,
+.btn.ph-btn-danger-outline.btn-sm {
+    min-height: 2.4rem;
+    padding: 0.45rem 1rem;
 }
 
 .organizer-action-button {
