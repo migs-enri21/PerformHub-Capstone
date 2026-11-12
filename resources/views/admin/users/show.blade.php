@@ -20,7 +20,7 @@
             $user->profile_checked_by_admin
             || ($user->onboarding_step >= \App\Models\User::ONBOARDING_VERIFICATION && $profileFieldsComplete)
         );
-        $canVerify = $isOrganizer || $profileFieldsComplete;
+        $canVerify = $isOrganizer || $profileFieldsComplete || $user->profile_checked_by_admin;
         $verificationComplete = $user->is_verified;
         $onboardingComplete = $profileComplete && $verificationComplete;
     @endphp
@@ -30,9 +30,15 @@
             <dl class="row">
                 <dt class="col-sm-4 text-muted">Name</dt>
                 <dd class="col-sm-8">
-                    <button type="button" class="btn btn-link p-0 fw-semibold text-decoration-none" data-bs-toggle="modal" data-bs-target="#profilePreviewModal" title="Click to preview {{ $user->fullName() }} profile" data-bs-toggle-tooltip="tooltip">
-                        {{ $user->fullName() }}
-                    </button>
+                    @if($user->isPerformer() && $user->performerProfile)
+                        <a href="{{ route('admin.users.performer-profile', $user) }}" class="fw-semibold text-decoration-none" title="Click to preview {{ $user->fullName() }} profile" data-bs-toggle-tooltip="tooltip">
+                            {{ $user->fullName() }}
+                        </a>
+                    @else
+                        <button type="button" class="btn btn-link p-0 fw-semibold text-decoration-none" data-bs-toggle="modal" data-bs-target="#profilePreviewModal" title="Click to preview {{ $user->fullName() }} profile" data-bs-toggle-tooltip="tooltip">
+                            {{ $user->fullName() }}
+                        </button>
+                    @endif
                 </dd>
 
                 <dt class="col-sm-4 text-muted">Email</dt>
@@ -162,7 +168,7 @@
                 @elseif(!$isOrganizer && !$profileComplete)
                     <form method="POST" action="{{ route('admin.users.check-profile', $user) }}">
                         @csrf
-                        <button type="submit" class="btn ph-btn-primary">Check Profile</button>
+                        <button type="submit" class="btn ph-btn-primary" title="Mark personal details as reviewed">Check Profile</button>
                     </form>
                 @endif
                 <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
@@ -245,10 +251,23 @@
 </div>
 
 <div class="d-flex gap-2 flex-wrap admin-user-actions">
+    @if(!$isOrganizer && $user->profile_checked_by_admin)
+        <form method="POST" action="{{ route('admin.users.uncheck-profile', $user) }}">
+            @csrf
+            <button type="submit" class="btn btn-outline-warning admin-user-action-btn">Uncheck Profile</button>
+        </form>
+    @elseif(!$isOrganizer && !$user->is_verified)
+        <form method="POST" action="{{ route('admin.users.check-profile', $user) }}">
+            @csrf
+            <button type="submit" class="btn ph-btn-primary admin-user-action-btn" title="Mark personal details as reviewed">
+                Check Profile
+            </button>
+        </form>
+    @endif
     @if(!$user->is_verified)
         <form method="POST" action="{{ route('admin.users.verify', $user) }}">
             @csrf
-            <button class="btn btn-success admin-user-action-btn" @if(!$canVerify) disabled title="Complete Profile Details before verification." @endif>Verify User</button>
+            <button class="btn btn-success admin-user-action-btn" @disabled(! $canVerify) title="{{ $canVerify ? 'Verify this account' : 'Complete Profile Details before verification.' }}">Verify User</button>
         </form>
     @endif
     <form method="POST" action="{{ route('admin.users.toggle', $user) }}">

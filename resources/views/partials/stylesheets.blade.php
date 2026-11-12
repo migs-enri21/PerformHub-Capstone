@@ -7,6 +7,7 @@
         @include('partials.performer-stylesheets')
     @elseif(auth()->user()->isAdmin())
         <link href="{{ asset('css/admin.css') }}?v={{ filemtime(public_path('css/admin.css')) }}" rel="stylesheet">
+        @include('partials.performer-stylesheets')
     @endif
 @else
     <link href="{{ asset('css/organizer.css') }}?v={{ filemtime(public_path('css/organizer.css')) }}" rel="stylesheet">

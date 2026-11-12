@@ -147,6 +147,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::get('/users', [AdminUserController::class, 'index'])->name('users.index');
     Route::get('/users/all', [AdminUserController::class, 'all'])->name('users.all');
     Route::get('/users/{user}', [AdminUserController::class, 'show'])->name('users.show');
+    Route::get('/users/{user}/profile', [AdminUserController::class, 'showPerformerProfile'])->name('users.performer-profile');
     Route::post('/users/{user}/check-profile', [AdminUserController::class, 'checkProfile'])->name('users.check-profile');
     Route::post('/users/{user}/uncheck-profile', [AdminUserController::class, 'uncheckProfile'])->name('users.uncheck-profile');
     Route::post('/users/{user}/verify', [AdminUserController::class, 'verify'])->name('users.verify');

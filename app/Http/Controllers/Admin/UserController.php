@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Support\AvailabilityCalendar;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -41,6 +42,19 @@ class UserController extends Controller
         $user->load(['performerProfile.categories', 'organizerProfile', 'verificationDocuments']);
 
         return view('admin.users.show', compact('user'));
+    }
+
+    public function showPerformerProfile(User $user): View
+    {
+        abort_unless($user->isPerformer() && $user->performerProfile, 404);
+
+        $performer = AvailabilityCalendar::loadCalendarRelations(
+            $user->performerProfile->load(['user', 'categories', 'portfolios'])
+        );
+
+        $calendar = AvailabilityCalendar::calendarData($performer);
+
+        return view('admin.users.performer-profile', compact('user', 'performer', 'calendar'));
     }
 
     public function verify(User $user): RedirectResponse
