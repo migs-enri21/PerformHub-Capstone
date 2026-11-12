@@ -59,6 +59,21 @@ a:hover { color: var(--ph-purple-hover); }
     transform: translateY(-1px);
 }
 
+.ph-btn-danger {
+    background: #dc3545;
+    border: none;
+    border-radius: 10px;
+    color: #ffffff;
+    font-weight: 600;
+    padding: 0.75rem 1.5rem;
+    transition: all 0.2s ease;
+}
+
+.ph-btn-danger:hover {
+    background: #bb2d3b;
+    color: #ffffff;
+}
+
 /* Outline button (Sync Google, Disconnect, Today, etc.) */
 .btn.ph-btn-outline {
     --bs-btn-color: var(--ph-text);

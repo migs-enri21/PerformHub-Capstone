@@ -38,6 +38,7 @@ class User extends Authenticatable implements CanResetPassword
         'is_verified',
         'is_active',
         'onboarding_step',
+        'profile_checked_by_admin',
     ];
 
     protected $hidden = [
@@ -52,6 +53,7 @@ class User extends Authenticatable implements CanResetPassword
             'password' => 'hashed',
             'is_verified' => 'boolean',
             'is_active' => 'boolean',
+            'profile_checked_by_admin' => 'boolean',
         ];
     }
 

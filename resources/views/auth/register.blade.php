@@ -35,19 +35,39 @@
                 </div>
             @endif
 
+            @php
+                $showRegistration = ($errors->any() && !$errors->has('terms_accepted')) || old('terms_accepted');
+            @endphp
+
             <form method="POST" action="{{ route('register') }}" enctype="multipart/form-data">
                 @csrf
                 <input type="hidden" name="role" id="roleInput" value="{{ old('role', $role) }}">
 
-                <div id="registrationFields">
+                <section id="termsStep" class="border rounded p-3 mb-3" style="{{ $showRegistration ? 'display:none;' : '' }}">
+                    <p class="text-muted small mb-3">Step 1 of 2: Review and accept the Terms & Agreement before creating your account.</p>
+                    <div class="border rounded p-3 mb-3" role="region" aria-label="Terms and Agreement" tabindex="0" style="max-height: 280px; overflow-y: auto; font-size: .875rem;">
+                        @include('partials.terms-content')
+                    </div>
+                    <div class="form-check mb-3">
+                        <input class="form-check-input @error('terms_accepted') is-invalid @enderror" type="checkbox" name="terms_accepted" id="termsAccepted" value="1" {{ old('terms_accepted') ? 'checked' : '' }}>
+                        <label class="form-check-label" for="termsAccepted">I have read and agree to the Terms & Conditions and Disclaimer.</label>
+                    </div>
+                    @error('terms_accepted')<div class="invalid-feedback d-block mb-2">{{ $message }}</div>@enderror
+                    <button type="button" id="continueRegistration" class="btn ph-btn-primary w-100" disabled>
+                        Continue to Account <i class="fas fa-arrow-right ms-2" aria-hidden="true"></i>
+                    </button>
+                </section>
+
+                <div id="registrationFields" style="{{ $showRegistration ? '' : 'display:none;' }}">
+                    <p class="text-muted small mb-3">Step 2 of 2: Enter your account details</p>
                     <div class="row g-2 mb-2">
                         <div class="col-md-6">
                             <label class="form-label text-muted small mb-1">First Name</label>
-                            <input type="text" name="first_name" class="form-control ph-input" value="{{ old('first_name') }}" required>
+                            <input type="text" name="first_name" class="form-control ph-input" value="{{ old('first_name') }}" pattern="[A-Za-z\s'-]+" title="Use letters only; spaces, hyphens, and apostrophes are allowed." oninput="this.value = this.value.replace(/[^A-Za-z\s'-]/g, '')" required>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label text-muted small mb-1">Last Name</label>
-                            <input type="text" name="last_name" class="form-control ph-input" value="{{ old('last_name') }}" required>
+                            <input type="text" name="last_name" class="form-control ph-input" value="{{ old('last_name') }}" pattern="[A-Za-z\s'-]+" title="Use letters only; spaces, hyphens, and apostrophes are allowed." oninput="this.value = this.value.replace(/[^A-Za-z\s'-]/g, '')" required>
                         </div>
                     </div>
 
@@ -120,8 +140,9 @@
                     ])
 
                     <button type="submit" id="registerSubmitButton" class="btn ph-btn-primary w-100 mb-2">
-                        Create Account <i class="fas fa-arrow-right ms-2"></i>
+                        Continue to Verification <i class="fas fa-arrow-right ms-2"></i>
                     </button>
+                    <p class="text-center text-muted small mb-2">Your account is created after you submit verification.</p>
 
                     <p class="text-center text-muted small mb-0">
                         Already have an account? <a href="{{ route('login') }}">Sign in</a>
@@ -142,5 +163,26 @@ document.querySelectorAll('.role-card').forEach(card => {
         document.getElementById('roleInput').value = card.dataset.role;
     });
 });
+
+const termsCheckbox = document.getElementById('termsAccepted');
+const continueButton = document.getElementById('continueRegistration');
+const termsStep = document.getElementById('termsStep');
+const registrationFields = document.getElementById('registrationFields');
+
+if (termsCheckbox && continueButton) {
+    const updateContinueState = () => {
+        continueButton.disabled = !termsCheckbox.checked;
+    };
+
+    termsCheckbox.addEventListener('change', updateContinueState);
+    updateContinueState();
+
+    continueButton.addEventListener('click', () => {
+        if (termsCheckbox.checked) {
+            termsStep.style.display = 'none';
+            registrationFields.style.display = 'block';
+        }
+    });
+}
 </script>
 @endpush

@@ -38,10 +38,7 @@
             </div>
             <div class="mt-4 pt-3 border-top">
                 <a href="{{ route('admin.event-types.edit', $eventType) }}" class="btn ph-btn-primary">Edit</a>
-                <form method="POST" action="{{ route('admin.event-types.destroy', $eventType) }}" class="d-inline" onsubmit="return confirm('Are you sure?');">
-                    @csrf @method('DELETE')
-                    <button class="btn btn-danger">Delete</button>
-                </form>
+                <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteEventTypeModal">Delete</button>
             </div>
         </div>
     </div>
@@ -51,6 +48,24 @@
             <h5 class="fw-bold mb-3">Event Type Notes</h5>
             <p class="text-muted">This event type is a standalone classification for events. Performers are not directly linked to this model yet.</p>
         </div>
+    </div>
+</div>
+
+<div class="modal fade" id="deleteEventTypeModal" tabindex="-1" aria-labelledby="deleteEventTypeModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <form method="POST" action="{{ route('admin.event-types.destroy', $eventType) }}" class="modal-content">
+            @csrf
+            @method('DELETE')
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold" id="deleteEventTypeModalLabel">Delete event type?</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">Are you sure you want to delete “{{ $eventType->name }}”?</div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="submit" class="btn btn-danger">Delete</button>
+            </div>
+        </form>
     </div>
 </div>
 @endsection

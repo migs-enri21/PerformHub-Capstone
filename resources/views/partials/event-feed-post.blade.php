@@ -148,6 +148,10 @@
                 @method('DELETE')
                 <button type="submit" class="event-feed-footer-btn event-feed-footer-btn--applied w-100">Cancel application</button>
             </form>
+        @elseif($applicationStatus === 'date_booked')
+            <button type="button" class="event-feed-footer-btn event-feed-footer-btn--declined w-100" disabled>
+                <i class="fas fa-calendar-xmark me-1"></i>Already booked this day
+            </button>
         @elseif(! $canApply)
             <button type="button" class="event-feed-footer-btn event-feed-footer-btn--declined w-100" disabled>
                 Applications closed

@@ -73,7 +73,9 @@
                         <td>{{ $booking->organizer->organizerProfile?->organization_name ?? $booking->organizer->name }}</td>
                         <td>
                             <div>{{ $booking->assignmentDateRangeLabel() }}</div>
-                            <div class="small text-muted">Event: {{ $booking->dateRangeLabel() }}</div>
+                            @if($booking->assignmentDateRangeLabel() !== $booking->dateRangeLabel())
+                                <div class="small text-muted">Event: {{ $booking->dateRangeLabel() }}</div>
+                            @endif
                         </td>
                         <td>
                             <span class="badge {{ $booking->statusBadgeClass() }}">{{ $booking->statusLabel() }}</span>

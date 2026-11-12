@@ -12,11 +12,11 @@
     <div class="row g-3 mb-3">
         <div class="col-md-6">
             <label class="form-label text-muted small">First Name</label>
-            <input type="text" name="first_name" class="form-control ph-input" value="{{ old('first_name', $user->first_name) }}" required>
+            <input type="text" name="first_name" class="form-control ph-input" value="{{ old('first_name', $user->first_name) }}" pattern="[A-Za-z\s'-]+" title="Use letters only; spaces, hyphens, and apostrophes are allowed." oninput="this.value = this.value.replace(/[^A-Za-z\s'-]/g, '')" required>
         </div>
         <div class="col-md-6">
             <label class="form-label text-muted small">Last Name</label>
-            <input type="text" name="last_name" class="form-control ph-input" value="{{ old('last_name', $user->last_name) }}" required>
+            <input type="text" name="last_name" class="form-control ph-input" value="{{ old('last_name', $user->last_name) }}" pattern="[A-Za-z\s'-]+" title="Use letters only; spaces, hyphens, and apostrophes are allowed." oninput="this.value = this.value.replace(/[^A-Za-z\s'-]/g, '')" required>
         </div>
     </div>
 

@@ -50,7 +50,7 @@ class UserController extends Controller
         $user->loadMissing(['performerProfile.categories', 'organizerProfile']);
 
         if ($user->isPerformer()) {
-            if (! $user->markProfileDetailsComplete()) {
+            if (! $user->profile_checked_by_admin && ! $user->markProfileDetailsComplete()) {
                 return back()->with('warning', 'Complete Profile Details before admin verification.');
             }
         }
@@ -73,18 +73,19 @@ class UserController extends Controller
 
         $user->loadMissing(['performerProfile.categories', 'organizerProfile']);
 
-        if (! $user->markProfileDetailsComplete()) {
-            return back()->with('warning', 'Profile details are incomplete. The user must finish the required profile fields first.');
-        }
+        $user->update(['profile_checked_by_admin' => true]);
 
-        return back()->with('success', 'Profile checked successfully. Profile Details is now complete.');
+        return back()->with('success', 'Profile manually checked. Admin verification is now available.');
     }
 
     public function uncheckProfile(User $user): RedirectResponse
     {
         abort_unless(in_array($user->role, ['performer', 'organizer']), 400);
 
-        $user->update(['onboarding_step' => User::ONBOARDING_PROFILE]);
+        $user->update([
+            'profile_checked_by_admin' => false,
+            'onboarding_step' => User::ONBOARDING_PROFILE,
+        ]);
 
         return back()->with('success', 'Profile check removed. The user must complete Profile Details again.');
     }

@@ -81,6 +81,9 @@ class DashboardController extends Controller
             $applicationStatuses[$eventId] = $booking->status === 'pending' ? 'invited' : 'accepted';
         }
 
+        // Hide Apply when another Booked assignment already covers that event date.
+        $applicationStatuses = Booking::applyDateBookedStatuses($user->id, $availableEvents, $applicationStatuses);
+
         $pendingBookingUrls = Booking::where('performer_id', $user->id)
             ->where('status', 'pending')
             ->whereNotNull('event_id')
@@ -95,9 +98,9 @@ class DashboardController extends Controller
             ->cancelRequested()
             ->count();
             
-        //Upnext
+        // Up Next
         $nextBooking = Booking::where('performer_id', $user->id)
-            ->whereIn('status', ['accepted', 'completed'])
+            ->where('status', 'completed')
             ->whereDate('assigned_end_date', '>=', today())
             ->orderBy('assigned_start_date')
             ->orderBy('event_time')

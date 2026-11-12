@@ -31,7 +31,11 @@ class OrganizerProfileController extends Controller
 
         $applicationStatuses = EventApplication::where('performer_id', auth()->id())
             ->whereIn('event_id', $events->pluck('id'))
-            ->pluck('status', 'event_id');
+            ->pluck('status', 'event_id')
+            ->all();
+
+        $applicationStatuses = Booking::applyDateBookedStatuses((int) auth()->id(), $events, $applicationStatuses);
+        $applicationStatuses = collect($applicationStatuses);
 
         $pendingBookingUrls = Booking::where('performer_id', auth()->id())
             ->where('status', 'pending')

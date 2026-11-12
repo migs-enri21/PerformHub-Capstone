@@ -60,12 +60,12 @@
                 <div class="row g-3">
                     <div class="col-md-6">
                         <label class="form-label text-muted small">First Name</label>
-                        <input type="text" name="first_name" class="form-control ph-input @error('first_name') is-invalid @enderror" value="{{ old('first_name', auth()->user()->first_name) }}">
+                        <input type="text" name="first_name" class="form-control ph-input @error('first_name') is-invalid @enderror" value="{{ old('first_name', auth()->user()->first_name) }}" pattern="[A-Za-z\s'-]+" title="Use letters only; spaces, hyphens, and apostrophes are allowed." oninput="this.value = this.value.replace(/[^A-Za-z\s'-]/g, '')">
                         @error('first_name')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     </div>
                     <div class="col-md-6">
                         <label class="form-label text-muted small">Last Name</label>
-                        <input type="text" name="last_name" class="form-control ph-input @error('last_name') is-invalid @enderror" value="{{ old('last_name', auth()->user()->last_name) }}">
+                        <input type="text" name="last_name" class="form-control ph-input @error('last_name') is-invalid @enderror" value="{{ old('last_name', auth()->user()->last_name) }}" pattern="[A-Za-z\s'-]+" title="Use letters only; spaces, hyphens, and apostrophes are allowed." oninput="this.value = this.value.replace(/[^A-Za-z\s'-]/g, '')">
                         @error('last_name')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     </div>
                     <div class="col-12">
