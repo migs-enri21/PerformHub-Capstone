@@ -3,21 +3,24 @@
 @section('title', 'PerformHub - Connect Performers & Event Organizers')
 
 @section('content')
-<nav class="navbar navbar-expand-lg navbar-dark navbar-ph fixed-top" style="z-index: 1030;">
+<nav class="navbar navbar-expand-lg navbar-dark navbar-ph landing-navbar fixed-top" style="z-index: 1030;" aria-label="Main navigation">
     <div class="container">
-        <a class="navbar-brand fw-bold d-flex align-items-center" href="{{ route('home') }}"><img src="{{ asset('images/logo.png') }}" alt="PerformHub" height="32" width="32" class="me-2 rounded-circle" style="object-fit: cover;">PerformHub</a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navLanding">
+        <a class="navbar-brand fw-bold d-flex align-items-center gap-2" href="{{ route('home') }}" aria-label="PerformHub home">
+            <img src="{{ asset('images/logo.png') }}" alt="" height="38" width="38" class="rounded-circle">
+            <span>PerformHub</span>
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navLanding" aria-controls="navLanding" aria-expanded="false" aria-label="Toggle main navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="navLanding">
             <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-3">
-                <li class="nav-item"><a class="nav-link" href="#categories">Categories</a></li>
-                <li class="nav-item"><a class="nav-link" href="#how-it-works">How It Works</a></li>
+                <li class="nav-item"><a class="nav-link landing-nav-link" href="#categories">Categories</a></li>
+                <li class="nav-item"><a class="nav-link landing-nav-link" href="#how-it-works">How It Works</a></li>
                 @guest
-                    <li class="nav-item"><a class="btn ph-btn-outline btn-sm"    href="{{ route('login') }}">Sign In</a></li>
-                    <li class="nav-item"><a class="btn ph-btn-primary btn-sm" href="{{ route('register') }}">Get Started</a></li>
+                    <li class="nav-item"><a class="btn ph-btn-outline btn-sm landing-nav-action" href="{{ route('login') }}">Sign In</a></li>
+                    <li class="nav-item"><a class="btn ph-btn-primary btn-sm landing-nav-action" href="{{ route('register') }}">Get Started</a></li>
                 @else
-                    <li class="nav-item"><a class="btn ph-btn-primary btn-sm" href="{{ auth()->user()->dashboardRoute() }}">Dashboard</a></li>
+                    <li class="nav-item"><a class="btn ph-btn-primary btn-sm landing-nav-action" href="{{ auth()->user()->dashboardRoute() }}">Dashboard</a></li>
                 @endguest
             </ul>
         </div>
@@ -45,6 +48,59 @@
 
 @push('styles')
 <style>
+    .landing-navbar {
+        min-height: 76px;
+        background: rgba(255, 255, 255, .96) !important;
+        border-bottom: 1px solid rgba(99, 70, 255, .12);
+        box-shadow: 0 8px 26px rgba(37, 33, 58, .08);
+        backdrop-filter: blur(14px);
+    }
+
+    .landing-navbar .navbar-brand {
+        color: #25213a;
+        font-size: 1.35rem;
+        letter-spacing: -.035em;
+    }
+
+    .landing-navbar .navbar-brand img {
+        object-fit: cover;
+        box-shadow: 0 0 0 3px rgba(99, 70, 255, .1);
+    }
+
+    .landing-nav-link {
+        border-radius: 999px;
+        color: #403a52 !important;
+        font-weight: 600;
+        padding: .6rem .9rem !important;
+        transition: color .18s ease, background-color .18s ease;
+    }
+
+    .landing-nav-link:hover,
+    .landing-nav-link:focus-visible {
+        color: #6346ff !important;
+        background: rgba(99, 70, 255, .08);
+    }
+
+    .landing-nav-action {
+        border-radius: 11px;
+        font-weight: 600;
+        padding: .58rem 1.1rem;
+    }
+
+    .landing-feature-card {
+        transition: transform .18s ease, box-shadow .18s ease;
+    }
+
+    .landing-feature-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 14px 30px rgba(37, 33, 58, .1);
+    }
+
+    .landing-navbar .navbar-toggler {
+        border-color: rgba(99, 70, 255, .24);
+        filter: invert(1);
+    }
+
     .hero-cta-group {
         margin-top: 0.5rem;
     }
@@ -78,6 +134,22 @@
         .hero-join-btn {
             width: 100%;
             justify-content: center;
+        }
+    }
+
+    @media (max-width: 991.98px) {
+        .landing-navbar .navbar-collapse {
+            padding: .75rem 0 1rem;
+        }
+
+        .landing-navbar .navbar-nav {
+            align-items: stretch !important;
+            gap: .35rem !important;
+        }
+
+        .landing-nav-action {
+            display: block;
+            text-align: center;
         }
     }
 </style>
@@ -126,9 +198,6 @@
                             </div>
                         </div>
                         <p class="text-muted small">{{ Str::limit($performer->bio, 100) ?: 'Talented performer available for bookings.' }}</p>
-                        @foreach($performer->rateLines() as $line)
-                            <p class="mb-0 fw-semibold text-primary">{{ $line }}</p>
-                        @endforeach
                     </div>
                 </div>
             @empty
@@ -138,16 +207,16 @@
     </div>
 </section>
 
-<section id="how-it-works" class="py-5">
-    <div class="container py-4">
-        <div class="text-center mb-5">
+<section id="how-it-works" class="py-4">
+    <div class="container py-3">
+        <div class="text-center mb-4">
             <h2 class="fw-bold">How PerformHub Works</h2>
             <p class="text-muted">Book talent in three simple steps</p>
         </div>
-        <div class="row g-4">
+        <div class="row g-4 justify-content-center">
             @foreach([['icon'=>'fa-search','title'=>'Discover','desc'=>'Search and filter performers by category, genre, and availability.'],['icon'=>'fa-paper-plane','title'=>'Request','desc'=>'Send booking requests with event details and requirements.'],['icon'=>'fa-check-circle','title'=>'Book','desc'=>'Accept bookings, manage contracts, and complete events.']] as $step)
-                <div class="col-md-6 col-lg-3">
-                    <div class="ph-card p-4 text-center h-100">
+                <div class="col-md-6 col-lg-4">
+                    <div class="ph-card p-4 text-center h-100 landing-feature-card">
                         <div class="category-icon"><i class="fas {{ $step['icon'] }}"></i></div>
                         <h6 class="fw-semibold">{{ $step['title'] }}</h6>
                         <p class="text-muted small mb-0">{{ $step['desc'] }}</p>
@@ -159,15 +228,15 @@
 </section>
 
 
-<section class="py-5">
-    <div class="container py-4">
-        <div class="text-center mb-5">
+<section class="py-4">
+    <div class="container py-3">
+        <div class="text-center mb-4">
             <h2 class="fw-bold">Why Choose PerformHub</h2>
         </div>
-        <div class="row g-4">
+        <div class="row g-4 justify-content-center">
             @foreach([['icon'=>'fa-shield-halved','title'=>'Verified Performers','desc'=>'Admin-verified profiles with badge system.'],['icon'=>'fa-calendar-check','title'=>'Smart Scheduling','desc'=>'Availability calendars synced with Google Calendar.'],['icon'=>'fa-file-contract','title'=>'Contract Management','desc'=>'Upload and confirm contracts digitally.']] as $f)
-                <div class="col-md-6 col-lg-3">
-                    <div class="ph-card p-4 h-100">
+                <div class="col-md-6 col-lg-4">
+                    <div class="ph-card p-4 h-100 landing-feature-card">
                         <i class="fas {{ $f['icon'] }} text-primary fs-4 mb-3"></i>
                         <h6 class="fw-semibold">{{ $f['title'] }}</h6>
                         <p class="text-muted small mb-0">{{ $f['desc'] }}</p>

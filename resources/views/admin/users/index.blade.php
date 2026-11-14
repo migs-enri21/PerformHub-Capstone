@@ -6,10 +6,47 @@
 @include('admin.partials.sidebar')
 @endsection
 
+@push('styles')
+<style>
+    .role-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: .35rem;
+        padding: .4rem .7rem;
+        border: 1px solid transparent;
+        font-weight: 600;
+    }
+
+    .role-badge--performer {
+        color: #5b21b6;
+        background: #ede9fe;
+        border-color: #ddd6fe;
+    }
+
+    .role-badge--organizer {
+        color: #0f766e;
+        background: #ccfbf1;
+        border-color: #99f6e4;
+    }
+
+    .role-badge--admin {
+        color: #b91c1c;
+        background: #fee2e2;
+        border-color: #fecaca;
+    }
+
+    .role-badge--default {
+        color: #475569;
+        background: #f1f5f9;
+        border-color: #e2e8f0;
+    }
+</style>
+@endpush
+
 @section('content')
 <h2 class="fw-bold mb-4">User Management</h2>
 <div class="ph-card p-4 mb-4">
-    <form method="GET" class="row g-2">
+    <form method="GET" class="row g-2 align-items-end">
         <div class="col-md-3">
             <select name="role" class="form-select ph-input">
                 <option value="">All Roles</option>
@@ -43,13 +80,24 @@
                     <td>{{ Str::title($user->first_name) }} {{ Str::title($user->last_name) }}</td>
                     @php
                         $roleBadgeClass = match ($user->role) {
-                            'performer' => 'bg-primary',
-                            'organizer' => 'bg-info text-dark',
-                            'admin' => 'bg-danger',
-                            default => 'bg-secondary',
+                            'performer' => 'role-badge--performer',
+                            'organizer' => 'role-badge--organizer',
+                            'admin' => 'role-badge--admin',
+                            default => 'role-badge--default',
+                        };
+                        $roleIconClass = match ($user->role) {
+                            'performer' => 'fa-music',
+                            'organizer' => 'fa-building',
+                            'admin' => 'fa-shield-halved',
+                            default => 'fa-user',
                         };
                     @endphp
-                    <td><span class="badge {{ $roleBadgeClass }}">{{ ucfirst($user->role) }}</span></td>
+                    <td>
+                        <span class="badge rounded-pill role-badge {{ $roleBadgeClass }}">
+                            <i class="fas {{ $roleIconClass }}" aria-hidden="true"></i>
+                            {{ ucfirst($user->role) }}
+                        </span>
+                    </td>
                     <td class="text-center">@if($user->is_verified)<span class="badge bg-primary">Yes</span>@else<span class="badge bg-warning text-dark">No</span>@endif</td>
                     <td class="text-center">@if($user->is_active)<span class="badge bg-success">Active</span>@else<span class="badge bg-danger">Suspended</span>@endif</td>
                     <td class="text-center">

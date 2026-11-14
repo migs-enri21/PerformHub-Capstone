@@ -280,7 +280,7 @@
 </div>
 
 <div class="modal fade" id="featureRequestModal" tabindex="-1" aria-labelledby="featureRequestModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-sm">
+    <div class="modal-dialog modal-dialog-centered">
         <form method="POST" action="{{ route('organizer.feature-requests.store') }}" class="modal-content">
             @csrf
             <input type="hidden" name="type" id="featureRequestType" value="category">
@@ -289,6 +289,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
+                @include('organizer.events.partials.feature-request-notice')
                 <p class="text-muted small">Tell the admin what is missing. It will appear here after approval.</p>
                 <label class="form-label" for="featureRequestName">Name</label>
                 <input type="text" name="name" id="featureRequestName" class="form-control ph-input mb-3 @error('name') is-invalid @enderror" placeholder="Option name">
