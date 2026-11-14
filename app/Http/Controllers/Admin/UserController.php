@@ -27,10 +27,24 @@ class UserController extends Controller
             $query->where('is_verified', false);
         }
 
-        $users = $query
-            ->with(['performerProfile', 'organizerProfile'])
-            ->latest('created_at')
-            ->paginate(15);
+        $usersQuery = $query->with(['performerProfile', 'organizerProfile']);
+
+        switch ($request->query('sort', 'latest')) {
+            case 'name_asc':
+                $usersQuery
+                    ->orderByRaw('LOWER(first_name)')
+                    ->orderByRaw('LOWER(last_name)');
+                break;
+            case 'name_desc':
+                $usersQuery
+                    ->orderByRaw('LOWER(first_name) DESC')
+                    ->orderByRaw('LOWER(last_name) DESC');
+                break;
+            default:
+                $usersQuery->latest('created_at');
+        }
+
+        $users = $usersQuery->paginate(15)->withQueryString();
 
         return view('admin.users.index', compact('users'));
     }

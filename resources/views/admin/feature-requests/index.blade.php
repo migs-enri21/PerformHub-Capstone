@@ -17,11 +17,11 @@
 
 <div class="ph-card p-4 mb-4">
     <form method="GET" action="{{ route('admin.feature-requests.index') }}" class="row g-3 align-items-end">
-        <div class="col-12 col-md-5">
+        <div class="col-12 col-md-4">
             <label class="form-label" for="featureRequestSearch">Search</label>
             <input type="search" name="search" id="featureRequestSearch" class="form-control ph-input" placeholder="Option, requester, or description" value="{{ $search }}">
         </div>
-        <div class="col-6 col-md-3">
+        <div class="col-6 col-md-2">
             <label class="form-label" for="featureRequestType">Type</label>
             <select name="type" id="featureRequestType" class="form-select ph-input">
                 <option value="">All types</option>
@@ -40,6 +40,7 @@
                 <option value="rejected" @selected($status === 'rejected')>Rejected</option>
             </select>
         </div>
+        @include('admin.partials.sort-filter', ['sortByLabel' => 'Option', 'defaultSort' => 'latest', 'sortColumnClass' => 'col-6 col-md-2'])
         <div class="col-12 col-md-2 d-flex gap-2">
             <button type="submit" class="btn ph-btn-primary flex-grow-1">Filter</button>
             <a href="{{ route('admin.feature-requests.index') }}" class="btn btn-outline-secondary flex-grow-1">Reset</a>
@@ -49,30 +50,34 @@
 
 <div class="ph-card p-0 overflow-hidden">
     <div class="table-responsive">
-        <table class="table table-dark table-hover mb-0">
+        <table class="table table-dark table-hover mb-0 align-middle" style="min-width: 1080px;">
             <thead>
                 <tr>
-                    <th>Requested Option</th>
-                    <th>Type</th>
-                    <th>Requested By</th>
+                    <th class="text-nowrap">Requested Option</th>
+                    <th class="text-nowrap">Type</th>
+                    <th class="text-nowrap">Requested By</th>
                     <th>Description</th>
-                    <th>Status</th>
-                    <th class="text-end pe-4">Action</th>
+                    <th class="text-nowrap">Rejection Reason</th>
+                    <th class="text-nowrap">Status</th>
+                    <th class="text-end text-nowrap pe-4">Action</th>
                 </tr>
             </thead>
             <tbody>
                 @forelse($requests as $featureRequest)
                     <tr>
-                        <td class="align-middle fw-semibold">{{ $featureRequest->name }}</td>
-                        <td class="align-middle">
+                        <td class="fw-semibold text-nowrap" style="min-width: 160px;">{{ $featureRequest->name }}</td>
+                        <td class="text-nowrap" style="min-width: 115px;">
                             {{ $featureRequest->typeLabel() }}
                             @if($featureRequest->category)
                                 <div class="small text-muted">{{ $featureRequest->category->name }}</div>
                             @endif
                         </td>
-                        <td class="align-middle">{{ $featureRequest->requester->fullName() }}</td>
-                        <td class="align-middle">{{ $featureRequest->description ?: '—' }}</td>
-                        <td class="align-middle">
+                        <td class="text-nowrap" style="min-width: 155px;">{{ $featureRequest->requester->fullName() }}</td>
+                        <td class="text-wrap" style="min-width: 160px; max-width: 280px;">{{ $featureRequest->description ?: '—' }}</td>
+                        <td class="text-wrap" style="min-width: 220px; max-width: 360px;">
+                            {{ $featureRequest->status === 'rejected' ? ($featureRequest->rejection_reason ?: '—') : '—' }}
+                        </td>
+                        <td class="text-nowrap">
                             <span class="badge {{ $featureRequest->status === 'pending' ? 'bg-warning text-dark' : ($featureRequest->status === 'approved' ? 'bg-success' : 'bg-secondary') }}">
                                 {{ ucfirst($featureRequest->status) }}
                             </span>
@@ -99,7 +104,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="6" class="text-center text-muted py-5">No feature requests yet.</td>
+                        <td colspan="7" class="text-center text-muted py-5">No feature requests yet.</td>
                     </tr>
                 @endforelse
             </tbody>

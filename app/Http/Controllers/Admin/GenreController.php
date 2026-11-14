@@ -19,18 +19,18 @@ class GenreController extends Controller
         $search = request('search');
         $status = request('status');
         $categoryId = request('category_id');
+        $sort = request('sort', 'name_asc');
 
-        $genres = $this->filtered(Genre::query()->with('category'), $search, $status)
-            ->when($categoryId, fn ($query) => $query->where('category_id', $categoryId))
-            ->orderBy('name')
+        $genres = $this->applySort($this->filtered(Genre::query()->with('category'), $search, $status)
+            ->when($categoryId, fn ($query) => $query->where('category_id', $categoryId)), $sort)
             ->paginate(15)
             ->withQueryString();
 
         $categories = Category::where('is_active', true)->orderBy('name')->get();
 
-        $specialties = $this->filtered(Specialty::query(), $search, $status)
-            ->orderBy('name')
-            ->paginate(15, ['*'], 'specialties_page');
+        $specialties = $this->applySort($this->filtered(Specialty::query(), $search, $status), $sort)
+            ->paginate(15, ['*'], 'specialties_page')
+            ->withQueryString();
 
         return view('admin.genres.index', compact('genres', 'specialties', 'categories', 'search', 'status', 'categoryId'));
     }
@@ -124,5 +124,14 @@ class GenreController extends Controller
         }
 
         return $query;
+    }
+
+    private function applySort($query, string $sort)
+    {
+        return match ($sort) {
+            'latest' => $query->latest(),
+            'name_desc' => $query->orderByRaw('LOWER(name) DESC'),
+            default => $query->orderByRaw('LOWER(name) ASC'),
+        };
     }
 }

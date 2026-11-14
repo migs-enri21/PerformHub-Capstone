@@ -15,7 +15,7 @@
     @if($user->isOrganizer())
         Performers need to trust you before accepting bookings. Verify your legitimacy with official documents.
     @else
-        Organizers look for verified performers. Upload your ID to build trust on the platform.
+        Organizers look for verified performers. Upload your ID to build trust, and optionally add a performance video.
     @endif
 </p>
 
@@ -91,7 +91,7 @@
             'icon' => 'fa-camera',
         ])
     @else
-        <p class="text-muted small mb-3">Upload Documents <span class="text-muted">(Optional items can be skipped)</span></p>
+        <p class="text-muted small mb-3">Upload Documents <span class="text-muted">(Performance video is optional)</span></p>
         @if($hasGovernmentId)
             <div class="mb-3 p-3 rounded" style="background-color: rgba(34,197,94,.1); border: 1px solid rgba(34,197,94,.3);">
                 <i class="fas fa-check-circle text-success me-2"></i>
@@ -109,17 +109,26 @@
         @endif
         @include('onboarding.partials.upload-field', [
             'name' => 'proof_of_events',
-            'title' => 'Proof of Previous Events',
+            'title' => 'Proof of Events',
             'required' => false,
             'multiple' => true,
             'desc' => 'Event photos, contracts, or letters confirming your previous performance experience.',
             'formats' => '.jpg .png .pdf .zip — up to 5 files, max 50 MB each',
             'icon' => 'fa-camera',
         ])
+        @include('onboarding.partials.upload-field', [
+            'name' => 'performance_sample',
+            'title' => 'Upload Video Performance',
+            'required' => false,
+            'multiple' => true,
+            'desc' => 'Optionally share a video showing your performance.',
+            'formats' => '.mp4 .mov — up to 5 videos, max 50 MB each',
+            'icon' => 'fa-video',
+            'videoOnly' => true,
+        ])
     @endif
 
     <div class="d-flex gap-2">
-        <a href="{{ route('onboarding.profile') }}" class="btn ph-btn-outline">Back</a>
         <button type="submit" class="btn ph-btn-primary flex-grow-1">
             Submit for Verification <i class="fas fa-arrow-right ms-2"></i>
         </button>

@@ -22,6 +22,35 @@
     </div>
 </div>
 
+@if($isAdmin)
+    <div class="ph-card p-4 mb-4">
+        <form method="GET" action="{{ route('notifications.index') }}" class="row g-3 align-items-end">
+            <div class="col-md-5">
+                <label class="form-label" for="notificationTypeFilter">Request type</label>
+                <select name="notification_type" id="notificationTypeFilter" class="form-select ph-input">
+                    <option value="all" @selected($notificationType === 'all')>All Notifications</option>
+                    <option value="category" @selected($notificationType === 'category')>Categories</option>
+                    <option value="genre" @selected($notificationType === 'genre')>Genres</option>
+                    <option value="event_type" @selected($notificationType === 'event_type')>Event Types</option>
+                    <option value="instrument" @selected($notificationType === 'instrument')>Instruments / Specialties</option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label" for="notificationRoleFilter">Requester role</label>
+                <select name="role" id="notificationRoleFilter" class="form-select ph-input">
+                    <option value="all" @selected($role === 'all')>All Roles</option>
+                    <option value="performer" @selected($role === 'performer')>Performer</option>
+                    <option value="organizer" @selected($role === 'organizer')>Organizer</option>
+                </select>
+            </div>
+            <div class="col-md-3 d-flex gap-2">
+                <button type="submit" class="btn ph-btn-primary flex-grow-1">Filter</button>
+                <a href="{{ route('notifications.index') }}" class="btn btn-outline-secondary flex-grow-1">Reset</a>
+            </div>
+        </form>
+    </div>
+@endif
+
 @forelse($notifications as $n)
     <form method="POST" action="{{ route('notifications.read', $n) }}" class="mb-2">
         @csrf

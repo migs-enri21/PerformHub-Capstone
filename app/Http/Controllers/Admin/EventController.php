@@ -40,7 +40,20 @@ class EventController extends Controller
             $query->whereDate('event_date', '<=', $request->date_to);
         }
 
-        $events = $query->orderBy('event_name')->orderBy('event_date')->paginate(15);
+        $sort = $request->query('sort', 'name_asc');
+
+        if ($sort === 'latest') {
+            $events = $query->latest('bookings.created_at');
+        } else {
+            $direction = $sort === 'name_desc' ? 'DESC' : 'ASC';
+            $events = $query
+                ->leftJoin('users as event_performer_users', 'bookings.performer_id', '=', 'event_performer_users.id')
+                ->leftJoin('users as event_organizer_users', 'bookings.organizer_id', '=', 'event_organizer_users.id')
+                ->select('bookings.*')
+                ->orderByRaw("LOWER(COALESCE(event_performer_users.first_name, event_organizer_users.first_name, '')) {$direction}")
+                ->orderByRaw("LOWER(COALESCE(event_performer_users.last_name, event_organizer_users.last_name, '')) {$direction}");
+        }
+        $events = $events->paginate(15)->withQueryString();
         $organizers = User::where('role', User::ROLE_ORGANIZER)->orderBy('first_name')->get();
 
         return view('admin.events.index', compact('events', 'organizers'));
@@ -89,9 +102,13 @@ class EventController extends Controller
                 ->with('performer')
                 ->orderBy('id')
                 ->get()
+                ->filter(fn ($eventBooking) => $eventBooking->performer)
                 ->unique('performer_id')
+                ->sortBy(fn ($eventBooking) => mb_strtolower($eventBooking->performer->fullName()))
                 ->values()
-            : collect([$booking]);
+            : collect([$booking])
+                ->filter(fn ($eventBooking) => $eventBooking->performer)
+                ->values();
 
         return view('admin.events.show', compact('booking', 'eventPerformers'));
     }

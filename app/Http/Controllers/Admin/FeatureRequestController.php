@@ -58,7 +58,12 @@ class FeatureRequestController extends Controller
             ->when($type !== '', fn (Builder $query) => $query->where('type', $type))
             ->when($status !== '', fn (Builder $query) => $query->where('status', $status));
 
-        $requests = $requestsQuery->latest()->paginate(20)->withQueryString();
+        $requests = match ($request->query('sort', 'latest')) {
+            'name_asc' => $requestsQuery->orderByRaw('LOWER(name) ASC'),
+            'name_desc' => $requestsQuery->orderByRaw('LOWER(name) DESC'),
+            default => $requestsQuery->latest(),
+        };
+        $requests = $requests->paginate(20)->withQueryString();
 
         return view('admin.feature-requests.index', compact('requests', 'search', 'type', 'status'));
     }

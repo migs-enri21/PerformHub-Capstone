@@ -160,17 +160,6 @@
                 </dl>
             </div>
             <div class="modal-footer">
-                @if(!$isOrganizer && $user->profile_checked_by_admin)
-                    <form method="POST" action="{{ route('admin.users.uncheck-profile', $user) }}">
-                        @csrf
-                        <button type="submit" class="btn btn-outline-warning">Uncheck Profile</button>
-                    </form>
-                @elseif(!$isOrganizer && !$profileComplete)
-                    <form method="POST" action="{{ route('admin.users.check-profile', $user) }}">
-                        @csrf
-                        <button type="submit" class="btn ph-btn-primary" title="Mark personal details as reviewed">Check Profile</button>
-                    </form>
-                @endif
                 <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
             </div>
         </div>
@@ -234,7 +223,15 @@
                         @endphp
 
                         @if(in_array(strtolower($extension), ['jpg','jpeg','png']))
-                            <img src="{{ $url }}" alt="{{ $document->document_type }}" class="img-fluid rounded">
+                            <button type="button" class="btn p-0 border-0 bg-transparent w-100 text-start"
+                                data-bs-toggle="modal"
+                                data-bs-target="#verificationImagePreviewModal"
+                                data-preview-src="{{ $url }}"
+                                data-preview-title="{{ $document->original_name }}">
+                                <img src="{{ $url }}" alt="{{ $document->document_type }}" class="img-fluid rounded" style="cursor: zoom-in;">
+                                <span class="visually-hidden">Preview image and adjust zoom</span>
+                            </button>
+                            <small class="text-muted d-block mt-1">Click image to preview and zoom</small>
                         @elseif(in_array(strtolower($extension), ['mp4','mov']))
                             <video controls class="w-100 rounded">
                                 <source src="{{ $url }}" type="video/{{ strtolower($extension) }}">
@@ -250,20 +247,30 @@
     @endif
 </div>
 
+<div class="modal fade" id="verificationImagePreviewModal" tabindex="-1" aria-labelledby="verificationImagePreviewTitle" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold" id="verificationImagePreviewTitle">Image preview</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="d-flex align-items-center gap-2 mb-3">
+                    <button type="button" class="btn btn-outline-secondary btn-sm" id="verificationImageZoomOut" aria-label="Zoom out">−</button>
+                    <input type="range" class="form-range mb-0" id="verificationImageZoom" min="100" max="400" step="25" value="100" aria-label="Image zoom">
+                    <span class="small text-nowrap" id="verificationImageZoomValue">100%</span>
+                    <button type="button" class="btn btn-outline-secondary btn-sm" id="verificationImageZoomIn" aria-label="Zoom in">+</button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm text-nowrap" id="verificationImageZoomReset">Fit image</button>
+                </div>
+                <div id="verificationImageViewport" class="border rounded" style="height: 70vh; overflow: auto;">
+                    <img id="verificationImagePreview" alt="" class="d-block" style="height: auto; max-width: none;">
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="d-flex gap-2 flex-wrap admin-user-actions">
-    @if(!$isOrganizer && $user->profile_checked_by_admin)
-        <form method="POST" action="{{ route('admin.users.uncheck-profile', $user) }}">
-            @csrf
-            <button type="submit" class="btn btn-outline-warning admin-user-action-btn">Uncheck Profile</button>
-        </form>
-    @elseif(!$isOrganizer && !$user->is_verified)
-        <form method="POST" action="{{ route('admin.users.check-profile', $user) }}">
-            @csrf
-            <button type="submit" class="btn ph-btn-primary admin-user-action-btn" title="Mark personal details as reviewed">
-                Check Profile
-            </button>
-        </form>
-    @endif
     @if(!$user->is_verified)
         <form method="POST" action="{{ route('admin.users.verify', $user) }}">
             @csrf
@@ -282,5 +289,59 @@
     document.querySelectorAll('[data-bs-toggle-tooltip="tooltip"]').forEach(function (element) {
         new bootstrap.Tooltip(element);
     });
+
+    const imagePreviewModal = document.getElementById('verificationImagePreviewModal');
+    const previewImage = document.getElementById('verificationImagePreview');
+    const previewViewport = document.getElementById('verificationImageViewport');
+    const zoomSlider = document.getElementById('verificationImageZoom');
+    const zoomValue = document.getElementById('verificationImageZoomValue');
+    let imageZoom = 1;
+
+    const renderPreviewZoom = (resetScroll = false) => {
+        if (!previewImage.naturalWidth || !previewViewport.clientWidth || !previewViewport.clientHeight) {
+            return;
+        }
+
+        const fitScale = Math.min(
+            previewViewport.clientWidth / previewImage.naturalWidth,
+            previewViewport.clientHeight / previewImage.naturalHeight,
+            1
+        );
+        previewImage.style.width = `${Math.round(previewImage.naturalWidth * fitScale * imageZoom)}px`;
+        zoomSlider.value = String(Math.round(imageZoom * 100));
+        zoomValue.textContent = `${Math.round(imageZoom * 100)}%`;
+
+        if (resetScroll) {
+            previewViewport.scrollTop = 0;
+            previewViewport.scrollLeft = 0;
+        }
+    };
+
+    const setPreviewZoom = (zoom, resetScroll = false) => {
+        imageZoom = Math.min(4, Math.max(1, zoom));
+        renderPreviewZoom(resetScroll);
+    };
+
+    imagePreviewModal.addEventListener('show.bs.modal', (event) => {
+        const trigger = event.relatedTarget;
+
+        if (!trigger) {
+            return;
+        }
+
+        const title = document.getElementById('verificationImagePreviewTitle');
+        title.textContent = trigger.dataset.previewTitle || 'Image preview';
+        previewImage.alt = title.textContent;
+        imageZoom = 1;
+        previewImage.onload = () => renderPreviewZoom(true);
+        previewImage.src = trigger.dataset.previewSrc;
+    });
+
+    imagePreviewModal.addEventListener('shown.bs.modal', () => renderPreviewZoom(true));
+    document.getElementById('verificationImageZoomOut').addEventListener('click', () => setPreviewZoom(imageZoom - 0.25));
+    document.getElementById('verificationImageZoomIn').addEventListener('click', () => setPreviewZoom(imageZoom + 0.25));
+    document.getElementById('verificationImageZoomReset').addEventListener('click', () => setPreviewZoom(1, true));
+    zoomSlider.addEventListener('input', () => setPreviewZoom(Number(zoomSlider.value) / 100));
+    window.addEventListener('resize', () => renderPreviewZoom());
 </script>
 @endpush

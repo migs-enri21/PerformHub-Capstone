@@ -16,11 +16,11 @@
 
 <div class="ph-card p-4 mb-4">
     <form method="GET" action="{{ route('admin.event-types.index') }}" class="row g-3 align-items-end">
-        <div class="col-md-5">
+        <div class="col-md-4">
             <label class="form-label">Search</label>
             <input type="text" name="search" class="form-control ph-input" placeholder="Search by name or description" value="{{ $search ?? '' }}">
         </div>
-        <div class="col-md-3">
+        <div class="col-md-2">
             <label class="form-label">Status</label>
             <select name="status" class="form-select ph-input">
                 <option value="">All Status</option>
@@ -28,6 +28,7 @@
                 <option value="inactive" {{ (request('status') === 'inactive') ? 'selected' : '' }}>Inactive</option>
             </select>
         </div>
+        @include('admin.partials.sort-filter', ['sortByLabel' => 'Name', 'defaultSort' => 'name_asc'])
         <div class="col-md-4 d-flex gap-2">
             <button type="submit" class="btn ph-btn-primary flex-grow-1">Filter</button>
             <a href="{{ route('admin.event-types.index') }}" class="btn btn-outline-secondary flex-grow-1">Reset</a>

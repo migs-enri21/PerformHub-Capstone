@@ -16,19 +16,25 @@ class EventTypeController extends Controller
     {
         $search = request('search');
         $status = request('status');
+        $sort = request('sort', 'name_asc');
 
         $query = EventType::query();
 
         if ($search) {
             $query->where('name', 'like', "%$search%")
-                  ->orWhere('description', 'like', "%$search%");
+                ->orWhere('description', 'like', "%$search%");
         }
 
         if ($status !== null) {
             $query->where('is_active', $status === 'active');
         }
 
-        $eventTypes = $query->orderBy('name')->paginate(15);
+        $eventTypes = match ($sort) {
+            'latest' => $query->latest(),
+            'name_desc' => $query->orderByRaw('LOWER(name) DESC'),
+            default => $query->orderByRaw('LOWER(name) ASC'),
+        };
+        $eventTypes = $eventTypes->paginate(15)->withQueryString();
 
         return view('admin.event-types.index', compact('eventTypes', 'search', 'status'));
     }
@@ -110,9 +116,10 @@ class EventTypeController extends Controller
 
     public function toggle(EventType $eventType): RedirectResponse
     {
-        $eventType->update(['is_active' => !$eventType->is_active]);
+        $eventType->update(['is_active' => ! $eventType->is_active]);
 
         $status = $eventType->is_active ? 'activated' : 'deactivated';
+
         return back()->with('success', "Event type $status.");
     }
 }

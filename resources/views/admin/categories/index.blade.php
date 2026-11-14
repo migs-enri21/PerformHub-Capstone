@@ -14,11 +14,11 @@
 <!-- Filter Section -->
 <div class="ph-card p-4 mb-4">
     <form method="GET" action="{{ route('admin.categories.index') }}" class="row g-3 align-items-end">
-        <div class="col-md-5">
+        <div class="col-md-4">
             <label class="form-label">Search</label>
             <input type="text" name="search" class="form-control ph-input" placeholder="Search by name or description" value="{{ $search ?? '' }}">
         </div>
-        <div class="col-md-3">
+        <div class="col-md-2">
             <label class="form-label">Status</label>
             <select name="status" class="form-control ph-input">
                 <option value="">All Status</option>
@@ -26,6 +26,7 @@
                 <option value="inactive" {{ ($status === 'inactive') ? 'selected' : '' }}>Inactive</option>
             </select>
         </div>
+        @include('admin.partials.sort-filter', ['sortByLabel' => 'Name', 'defaultSort' => 'name_asc'])
         <div class="col-md-4 d-flex gap-2">
             <button type="submit" class="btn ph-btn-primary flex-grow-1">Filter</button>
             <a href="{{ route('admin.categories.index') }}" class="btn btn-outline-secondary flex-grow-1">Reset</a>
@@ -69,23 +70,10 @@
                         <td class="align-middle text-center"><span class="badge bg-info">{{ $cat->performers->count() }}</span></td>
                         <td class="align-middle text-end">
                             <a href="{{ route('admin.categories.show', $cat) }}" class="btn btn-sm btn-outline-info" title="View"><i class="fas fa-eye"></i></a>
-                            <button type="button" class="btn btn-sm btn-outline-warning" title="Edit"
-                                data-bs-target="#editCategoryModal"
-                                data-edit-action="{{ route('admin.categories.update', $cat) }}"
-                                data-name="{{ $cat->name }}" data-description="{{ $cat->description }}"
-                                data-active="{{ $cat->is_active ? '1' : '0' }}">
-                                <i class="fas fa-edit"></i>
-                            </button>
                             <form method="POST" action="{{ route('admin.categories.toggle', $cat) }}" class="admin-action-form">
                                 @csrf @method('PATCH')
-                                <button type="submit" class="btn btn-sm {{ $cat->is_active ? 'btn-outline-secondary' : 'btn-outline-success' }}" title="{{ $cat->is_active ? 'Deactivate' : 'Activate' }}"><i class="fas {{ $cat->is_active ? 'fa-toggle-on' : 'fa-toggle-off' }}"></i></button>
+                                <button type="submit" class="btn btn-sm {{ $cat->is_active ? 'btn-outline-success' : 'btn-outline-secondary' }}" title="{{ $cat->is_active ? 'Deactivate' : 'Activate' }}"><i class="fas {{ $cat->is_active ? 'fa-toggle-on' : 'fa-toggle-off' }}"></i></button>
                             </form>
-                            <button type="button" class="btn btn-sm btn-outline-danger" title="Delete"
-                                data-bs-target="#deleteCategoryItemModal"
-                                data-delete-action="{{ route('admin.categories.destroy', $cat) }}"
-                                data-delete-name="{{ $cat->name }}" data-delete-type="category">
-                                <i class="fas fa-trash"></i>
-                            </button>
                         </td>
                     </tr>
                 @empty

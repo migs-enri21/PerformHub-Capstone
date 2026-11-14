@@ -45,11 +45,12 @@
 
                 <section id="termsStep" class="border rounded p-3 mb-3" style="{{ $showRegistration ? 'display:none;' : '' }}">
                     <p class="text-muted small mb-3">Step 1 of 2: Review and accept the Terms & Agreement before creating your account.</p>
-                    <div class="border rounded p-3 mb-3" role="region" aria-label="Terms and Agreement" tabindex="0" style="max-height: 280px; overflow-y: auto; font-size: .875rem;">
+                    <div id="termsContent" class="border rounded p-3 mb-2" role="region" aria-label="Terms and Agreement" tabindex="0" style="max-height: 280px; overflow-y: auto; font-size: .875rem;">
                         @include('partials.terms-content')
                     </div>
+                    <p id="termsScrollHint" class="text-muted small mb-3">Scroll to the bottom of the terms to enable acceptance.</p>
                     <div class="form-check mb-3">
-                        <input class="form-check-input @error('terms_accepted') is-invalid @enderror" type="checkbox" name="terms_accepted" id="termsAccepted" value="1" {{ old('terms_accepted') ? 'checked' : '' }}>
+                        <input class="form-check-input @error('terms_accepted') is-invalid @enderror" type="checkbox" name="terms_accepted" id="termsAccepted" value="1" {{ old('terms_accepted') ? 'checked' : '' }} @disabled(!old('terms_accepted'))>
                         <label class="form-check-label" for="termsAccepted">I have read and agree to the Terms & Conditions and Disclaimer.</label>
                     </div>
                     @error('terms_accepted')<div class="invalid-feedback d-block mb-2">{{ $message }}</div>@enderror
@@ -165,20 +166,35 @@ document.querySelectorAll('.role-card').forEach(card => {
 });
 
 const termsCheckbox = document.getElementById('termsAccepted');
+const termsContent = document.getElementById('termsContent');
+const termsScrollHint = document.getElementById('termsScrollHint');
 const continueButton = document.getElementById('continueRegistration');
 const termsStep = document.getElementById('termsStep');
 const registrationFields = document.getElementById('registrationFields');
 
-if (termsCheckbox && continueButton) {
+if (termsCheckbox && termsContent && continueButton) {
     const updateContinueState = () => {
-        continueButton.disabled = !termsCheckbox.checked;
+        continueButton.disabled = termsCheckbox.disabled || !termsCheckbox.checked;
     };
 
+    const updateTermsReadState = () => {
+        const reachedBottom = termsContent.scrollTop + termsContent.clientHeight >= termsContent.scrollHeight - 1;
+
+        if (reachedBottom) {
+            termsCheckbox.disabled = false;
+            termsScrollHint.hidden = true;
+        }
+
+        updateContinueState();
+    };
+
+    termsContent.addEventListener('scroll', updateTermsReadState);
     termsCheckbox.addEventListener('change', updateContinueState);
+    updateTermsReadState();
     updateContinueState();
 
     continueButton.addEventListener('click', () => {
-        if (termsCheckbox.checked) {
+        if (!termsCheckbox.disabled && termsCheckbox.checked) {
             termsStep.style.display = 'none';
             registrationFields.style.display = 'block';
         }

@@ -232,6 +232,10 @@ class OnboardingController extends Controller
                 'government_id.*' => $governmentIdFileRule,
                 'proof_of_events' => ['nullable', 'array', 'max:5'],
                 'proof_of_events.*' => ['required', 'file', 'mimes:jpg,jpeg,png,pdf,zip', 'max:51200'],
+                'performance_sample' => ['nullable', 'array', 'max:5'],
+                'performance_sample.*' => ['required', 'file', 'mimetypes:video/mp4,video/quicktime', 'max:51200'],
+            ], [
+                'performance_sample.*.mimetypes' => 'Performance videos must be MP4 or MOV files.',
             ]);
 
             if (! $draft) {
@@ -241,6 +245,10 @@ class OnboardingController extends Controller
 
                 foreach ($request->file('proof_of_events', []) as $index => $file) {
                     $this->storeVerificationDocument($user, 'proof_of_events', $file, [], $index === 0);
+                }
+
+                foreach ($request->file('performance_sample', []) as $index => $file) {
+                    $this->storeVerificationDocument($user, 'performance_sample', $file, [], $index === 0);
                 }
             }
         }
@@ -372,7 +380,7 @@ class OnboardingController extends Controller
 
                 $additionalDocuments = $user->isOrganizer()
                     ? ['business_permit', 'proof_of_employment', 'proof_of_events']
-                    : ['proof_of_events'];
+                    : ['proof_of_events', 'performance_sample'];
 
                 foreach ($additionalDocuments as $type) {
                     foreach ($request->file($type, []) as $index => $file) {
